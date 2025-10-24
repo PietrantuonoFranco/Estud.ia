@@ -1,1 +1,2 @@
-.env-example
+# Secrets
+.env
