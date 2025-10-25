@@ -1,2 +1,18 @@
 # Secrets
 .env
+
+# Virtual environments && Dependencies
+/venv
+/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+.DS_Store
+*.log
+*.code-workspace
