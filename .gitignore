@@ -1,2 +1,7 @@
 # Secrets
 .env
+
+# Volumes
+estudia_etcd_data
+standalone_data
+/volumes
