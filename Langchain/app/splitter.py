@@ -2,6 +2,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader
 
 
+
 ##Función para generar chunks de texto
 def splitter(file_path:str):
     
