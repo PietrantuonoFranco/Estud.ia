@@ -3,7 +3,7 @@ from langchain_community.document_loaders import PyPDFLoader
 
 
 ##Función para generar chunks de texto
-def splitter(file_path:str):
+def splitter(file_path:str)->list[str]:
     
     """Divide un texto en fragmentos más pequeños utilizando RecursiveCharacterTextSplitter."""
     
@@ -18,10 +18,13 @@ def splitter(file_path:str):
     )
     
     all_splits = text_splitter.split_documents(docs)
+    
     chunks: list[str] = [];
+    
     for i in all_splits:
         chunks.append(i.page_content)
+    return chunks
 
 ##Ejemplo de uso con PDF
 chunks = splitter(file_path = "C:/Users/ivija/Desktop/Estud.ia/Langchain/app/bitcoin_es.pdf")
-print(chunks[0], "CHUNK 2", chunks[1])##Imprime el contenido del primer chunk
+print(chunks[0])##Imprime el contenido del primer chunk
