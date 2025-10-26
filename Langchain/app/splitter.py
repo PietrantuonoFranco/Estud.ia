@@ -18,9 +18,10 @@ def splitter(file_path:str):
     )
     
     all_splits = text_splitter.split_documents(docs)
-    return all_splits
-
+    chunks: list[str] = [];
+    for i in all_splits:
+        chunks.append(i.page_content)
 
 ##Ejemplo de uso con PDF
 chunks = splitter(file_path = "C:/Users/ivija/Desktop/Estud.ia/Langchain/app/bitcoin_es.pdf")
-print(chunks[0].page_content) ##Imprime el contenido del primer chunk
+print(chunks[0], "CHUNK 2", chunks[1])##Imprime el contenido del primer chunk
