@@ -19,7 +19,7 @@ def get_query_embedding(text: str) -> list[float]:
     return embeddings.embed_query(text=text, task_type="SEMANTIC_SIMILARITY", output_dimensionality=128)
 
 
-doc_embedding = get_document_embedding("Hello, world!")
+doc_embedding = get_document_embedding(["Falopatina es la mejor materia", "La inteligencia artificial es el futuro"])
 print(f"doc_embedding:",doc_embedding[0])
 
 query_embedding = get_query_embedding("Hello, world!")
