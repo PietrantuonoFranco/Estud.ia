@@ -8,3 +8,4 @@ langchain-milvus
 langchain_text_splitters 
 langchain_core
 pypdf
+FastApi
