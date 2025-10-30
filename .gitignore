@@ -7,7 +7,7 @@ standalone_data
 /volumes
 
 # Virtual environments && Dependencies
-/venv
+*/venv
 /__pycache__/
 *.pyc
 *.pyo
