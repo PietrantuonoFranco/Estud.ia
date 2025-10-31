@@ -40,7 +40,7 @@ services:
       - "9001:9001"
       - "9000:9000"
     volumes:
-      - minio_data:/minio_data
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/minio:/minio_data
     command: minio server /minio_data --console-address ":9001"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
@@ -51,16 +51,18 @@ services:
 
   standalone:
     container_name: milvus-standalone
-    image: milvusdb/milvus:v2.6.4
+    image: milvusdb/milvus:v2.6.2
     command: ["milvus", "run", "standalone"]
     security_opt:
     - seccomp:unconfined
     environment:
       ETCD_ENDPOINTS: etcd:2379
       MINIO_ADDRESS: minio:9000
-      MQ_TYPE: woodpecker
+      MINIO_ACCESS_KEY_ID: minioadmin
+      MINIO_SECRET_ACCESS_KEY: minioadmin
+      #MQ_TYPE: woodpecker
     volumes:
-      - standalone_data:/var/lib/milvus
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/milvus:/var/lib/milvus
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
       interval: 30s
@@ -77,8 +79,6 @@ services:
 
 volumes:
   postgres_data:
-  minio_data:
-  standalone_data:
 
 networks:
   default:
