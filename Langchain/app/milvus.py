@@ -1,28 +1,52 @@
 from pymilvus import MilvusClient, DataType
 from fastapi import FastAPI
-from os import getenv
+from typing import Optional
+from dotenv import load_dotenv
+import os
 
-##Cliente Milvus
-client = MilvusClient(
-    uri = getenv("MILVUS_URI") 
-)
-
-##App FastAPI
-app = FastAPI()
-
-   
-#Db Creation
-if "estud_ia_db" in client.list_databases():
-    client.drop_database("estud_ia_db")
-    client.create_database("estud_ia_db")
-else:
-    client.create_database("estud_ia_db")
+load_dotenv()  
+uri = os.getenv("MILVUS_URI")
 
 
- ##Funciones Milvus
-def create_milvus_collection(name: str):
+##Funciones Milvus
+def milvus_client(uri: str , db_name: Optional[str] = None) -> MilvusClient:
+    """Instancia un cliente de Milvus con la URI (del contenedor) y la base de datos especificada. 
+    Si no se especifica db_name, se conecta al cliente sin base de datos."""
+    
+    if not db_name:
+        client = MilvusClient(
+            uri = uri,
+        )
+        
+    
+    client = MilvusClient(
+        uri = uri,
+        db_name= db_name 
+        
+    )
+    
+    return client
+
+def create_database(db : str, client : MilvusClient):
+    
+    """Crea una base de datos en Milvus si no existe. Aca el cliente debe ser instanciado sin base de datos."""
+    
+    if db not in client.list_databases():
+        
+        client.create_database(db)
+    else:
+        print(f"La base de datos {db} ya existe")
+        
+    
+def create_milvus_collection(name: str, client : MilvusClient):
     
     """"Crea una coleccion en Milvus con el esquema e indices definidos."""
+    
+    if name in client.list_collections():
+        
+        print(f"La coleccion {name} ya existe")
+        return None
+    
     # <-- Esquema -->
     schema = MilvusClient.create_schema(
         auto_id=True,
@@ -70,14 +94,14 @@ def create_milvus_collection(name: str):
     print(res)
 
 
-def remove_collection(name_collection: str):
+def remove_collection(name_collection: str, client : MilvusClient ) : 
     
     client.drop_collection(
         collection_name=name_collection
     )
 
 
-def upload_document(data: list[dict], collection_name : str ):
+def upload_document(data: list[dict], collection_name : str, client : MilvusClient ):
     
     res = client.insert(
         collection_name = collection_name,
@@ -87,7 +111,7 @@ def upload_document(data: list[dict], collection_name : str ):
     print(f"resultado de la insercion: {res}, en la coleccion: {collection_name}")
 
 
-def get_document(query_vector: list[float], collection_name: str,filter : str):
+def get_document(query_vector: list[float], collection_name: str,filter : str, client : MilvusClient ) :
     
     res = client.search(
         collection_name=collection_name,
@@ -104,7 +128,21 @@ def get_document(query_vector: list[float], collection_name: str,filter : str):
             print(hit)
     
 
+##Crear base de datos 
+client_universal = milvus_client( uri = uri)
+create_database("estudia_db",client_universal)
+##Instanciamos cliente con base de datos
+client_db = milvus_client( uri = uri , db_name= "estudia_db")
+##Crear coleccion en estudia_db
+create_milvus_collection("documents_collection", client_db)
+
+
+
+
 ##Endpoints FastAPI
+
+app = FastAPI()
+
 @app.post("/upload_document")
 def upload_document_endpoint(data: list[dict], collection_name : str ):
     upload_document(data, collection_name)
