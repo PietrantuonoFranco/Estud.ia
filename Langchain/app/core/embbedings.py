@@ -10,7 +10,7 @@ embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001", g
 
 def get_document_embedding(text: list[str]) -> list[list[float]]:
     
-    return embeddings.embed_documents(texts=text, task_type="SEMANTIC_SIMILARITY", output_dimensionality=128)
+    return embeddings.embed_documents(texts=text, task_type="RETRIEVAL_DOCUMENT", output_dimensionality=128)
     ##SEMANTIC_SIMILARITY : incrustaciones optimizadas para evaluar la similitud del texto.
 
 
