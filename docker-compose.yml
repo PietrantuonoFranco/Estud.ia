@@ -77,6 +77,17 @@ services:
       - "minio"
     restart: ${RESTART_POLICY:-no}
 
+  attu:
+    image: zilliz/attu:v2.6
+    container_name: attu
+    restart: ${RESTART_POLICY:-no}
+    ports:
+      - "8001:3000"
+    environment:
+      MILVUS_URL: "http://milvus-standalone:19530"
+    depends_on:
+      - standalone
+
 volumes:
   postgres_data:
 
