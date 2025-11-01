@@ -8,6 +8,7 @@ langchain-milvus
 langchain_text_splitters 
 langchain_core
 pypdf
-FastApi
+fastapi[standard]
 pymilvus
 python-dotenv
+uvicorn
