@@ -4,7 +4,7 @@ from os import getenv
 
 ##Cliente Milvus
 client = MilvusClient(
-    uri = getenv("MILVUS_URI")
+    uri = getenv("MILVUS_URI") 
 )
 
 ##App FastAPI
@@ -25,7 +25,7 @@ def create_milvus_collection(name: str):
     """"Crea una coleccion en Milvus con el esquema e indices definidos."""
     # <-- Esquema -->
     schema = MilvusClient.create_schema(
-        auto_id=False,
+        auto_id=True,
         enable_dynamic_field=True,
     )
 
@@ -50,7 +50,7 @@ def create_milvus_collection(name: str):
     )
     
     index_params.add_index(
-        field_name="source",
+        field_name="text_chunk",
         index_type="INVERTED"  # Recomendado para VARCHAR
         
     )
