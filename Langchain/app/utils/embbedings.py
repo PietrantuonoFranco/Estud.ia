@@ -28,7 +28,22 @@ class EmbeddingGenerator:
         
         return self.embeddings.embed_query(text=text, task_type="SEMANTIC_SIMILARITY", output_dimensionality=3072 )
 
-
+    
+    def format_database (self, text_chunks:list[dict], vector_chunks:list[list[float]] ):
+        """Formatea los chunks de texto y sus embeddings en una lista de diccionarios para insertar en la base de datos.
+        """
+        
+        formatted_data = []
+        
+        for i , j in zip(text_chunks, vector_chunks):
+            data = {
+                "text_chunk": i['text'],
+                "metadata": i['metadata'],
+                "vector_chunk": j
+            }
+            formatted_data.append(data)
+        
+        return formatted_data
 
 
 

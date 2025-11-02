@@ -32,7 +32,7 @@ class Splitter:
         result = []
         
         for i in all_splits:
-            dict = {'chunk_text': i.page_content, 'metadata': i.metadata}
+            dict = {'text': i.page_content, 'metadata': i.metadata}
             result.append(dict)
         
         return result
