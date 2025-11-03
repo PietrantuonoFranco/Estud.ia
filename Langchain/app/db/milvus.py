@@ -47,7 +47,7 @@ def create_milvus_collection(name: str):
     )
 
     schema.add_field(field_name="id", datatype=DataType.INT64, is_primary=True, auto_id=True)
-    schema.add_field(field_name="vector_chunk", datatype=DataType.FLOAT_VECTOR, dim=120) ##dim 1536 | recomendada para Gemini
+    schema.add_field(field_name="vector_chunk", datatype=DataType.FLOAT_VECTOR, dim=3072) ##dim 1536 | recomendada para Gemini
     schema.add_field(field_name="text_chunk", datatype=DataType.VARCHAR, max_length=2000)
     schema.add_field(field_name="metadata", datatype=DataType.JSON, nullable=True) ##Datos adicionales que sirven para filtrar la busqueda
 
