@@ -1,4 +1,5 @@
-langchain_openai
 langchain
 typing
 chainlit
+langchain_google_genai
+pydantic
