@@ -1,4 +1,3 @@
-from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema import StrOutputParser
 from langchain.schema.runnable import Runnable
@@ -7,10 +6,16 @@ from typing import cast
 
 import chainlit as cl
 
+import os
+from config import conf
+from langchain.chat_models import init_chat_model
+
+os.environ["GOOGLE_API_KEY"] = conf.GOOGLE_API_KEY
+
 
 @cl.on_chat_start
 async def on_chat_start():
-    model = ChatOpenAI(streaming=True)
+    model = init_chat_model("google_genai:gemini-2.5-flash-lite")
     prompt = ChatPromptTemplate.from_messages(
         [
             (
