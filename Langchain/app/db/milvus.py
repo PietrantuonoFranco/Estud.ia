@@ -116,9 +116,14 @@ def get_document(query_vector: list[float], collection_name: str,filter : str) :
         output_fields = ["text_chunk"]
     )
     
+    lista = []
+    
     for hits in res:
         for hit in hits:
-            print(hit)
+            lista.append(hit)
+    
+            
+    return lista
     
 
 

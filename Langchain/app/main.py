@@ -7,12 +7,15 @@ from dotenv import load_dotenv
 import shutil
 import traceback
 from contextlib import asynccontextmanager
+from pydantic import BaseModel
 
 
 UPLOAD_DIRECTORY = os.path.join(os.path.dirname(__file__), "uploaded_files")
 os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
 
-
+class ContextRequest(BaseModel):
+    query: str
+    filter : str
 
 
 ##Inicializacion de objetos 
@@ -55,3 +58,19 @@ async def upload_document_app(file: UploadFile):
         return {"error": str(e)}
 
 
+
+@app.get("/get_context")
+def get_context_app(request: ContextRequest ):
+    
+    try:
+        query_vector = embedding_generator.get_query_embedding(text=request.query)
+        
+        results = get_document(query_vector=query_vector, collection_name="documents_collection", filter="")
+        
+        contexts = [result.entity for result in results]
+        
+        return contexts
+    
+    except Exception as e:
+        traceback.print_exc()
+        return {"error": str(e)}
