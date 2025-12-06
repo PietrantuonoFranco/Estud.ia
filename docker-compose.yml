@@ -1,4 +1,16 @@
 services:
+  chainlit:
+    container_name: chainlit
+    build:
+      context: ./Chainlit
+      dockerfile: Dockerfile
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    ports:
+      - 8000:8000
+  # Falta agregar el depends on postgres, milvus y la api
+  # Falta Healthcheck
+
   postgres:
     container_name: postgres-users
     image: postgres:${TAG_DB_VERSION:-latest}
