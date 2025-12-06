@@ -1,0 +1,19 @@
+[project]
+name = "langchain-api"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "bs4>=0.0.2",
+    "langchain[google-genai]>=1.1.2",
+    "langchain-community>=0.4.1",
+    "langchain-text-splitters>=1.0.0",
+    "langchain-google-genai>=3.2.0",
+    "langchain-milvus>=0.3.1",
+    "langchain-core>=1.1.1",
+    "pypdf>=6.4.0",
+    "fastapi[standard]>=0.124.0",
+    "pymilvus>=2.6.5",
+    "python-dotenv>=1.2.1",
+]
