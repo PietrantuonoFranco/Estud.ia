@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, status
 from .utils.embbedings import EmbeddingGenerator
 from .utils.splitter import Splitter
 from .db.milvus import upload_document, get_document
@@ -36,6 +36,10 @@ app = FastAPI(lifespan=lifespan)
 @app.get("/")
 def root():
     return {"message": "Langchain App is running"}
+
+@app.get("/healthcheck", status_code=status.HTTP_200_OK)
+async def healthcheck():
+    return {"status": "ok", "message": "Service is healthy"}
 
 @app.post("/upload_document")
 async def upload_document_app(file: UploadFile):
