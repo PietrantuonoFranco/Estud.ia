@@ -12,8 +12,8 @@ services:
   # Falta Healthcheck
 
   postgres:
-    container_name: postgres-users
-    image: postgres:${TAG_DB_VERSION:-latest}
+    container_name: postgres-users-db
+    image: postgres:16-alpine
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     environment:
