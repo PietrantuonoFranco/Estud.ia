@@ -8,8 +8,14 @@ services:
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
     ports:
       - 8000:8000
-  # Falta agregar el depends on postgres, milvus y la api
-  # Falta Healthcheck
+    depends_on:
+      - "postgres"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    restart: ${RESTART_POLICY:-no}
 
   postgres:
     container_name: postgres-users-db
