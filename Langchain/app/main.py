@@ -45,20 +45,35 @@ async def healthcheck():
 async def upload_document_app(file: UploadFile):
     
     try:
+        # Validar que sea un PDF
+        if not file.filename.endswith('.pdf'):
+            return {"error": "Only PDF files are allowed"}
+        
+        # Guardar temporalmente el archivo
         file_path = os.path.join(UPLOAD_DIRECTORY, file.filename)
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
+        
+        try:
+            # Procesar el documento
+            text_chunks = splitter.split_document(file_path=file_path)
+            texts = [chunk['text'] for chunk in text_chunks]
             
-        text_chunks = splitter.split_document(file_path=file_path)
-        texts = [chunk['text'] for chunk in text_chunks]
-        
-        vector_chunks = embedding_generator.get_document_embedding(text=texts)
-        
-        formatted_data = embedding_generator.format_database(text_chunks=text_chunks, vector_chunks=vector_chunks)
-        
-        upload_document(data=formatted_data, collection_name="documents_collection")
+            vector_chunks = embedding_generator.get_document_embedding(text=texts)
+            
+            formatted_data = embedding_generator.format_database(text_chunks=text_chunks, vector_chunks=vector_chunks)
+            
+            upload_document(data=formatted_data, collection_name="documents_collection")
+            
+            return {"status": "success", "message": f"Document {file.filename} uploaded successfully", "chunks": len(texts)}
+            
+        finally:
+            # Limpiar archivo temporal después de procesar
+            if os.path.exists(file_path):
+                os.remove(file_path)
         
     except Exception as e:
+        traceback.print_exc()
         return {"error": str(e)}
 
 

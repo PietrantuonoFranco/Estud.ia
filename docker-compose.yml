@@ -44,11 +44,11 @@ services:
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - MILVUS_URI=${MILVUS_URI}
     ports:
-      - 80:80
+      - 80:3000
     depends_on:
       - "standalone"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/healthcheck"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/healthcheck"]
       interval: 30s
       timeout: 20s
       retries: 3

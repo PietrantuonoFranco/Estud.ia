@@ -39,14 +39,19 @@ RUN --mount=from=ghcr.io/astral-sh/uv,source=/uv,target=/bin/uv \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv pip install --system -r pyproject.toml
 
-# Switch to the non-privileged user to run the application.
-USER appuser
-
 # Copy the source code into the container.
 COPY . .
 
+# Create uploaded_files directory with proper permissions
+RUN mkdir -p /app/app/uploaded_files && \
+    chown -R appuser:appuser /app && \
+    chmod -R 755 /app/app/uploaded_files
+
+# Switch to the non-privileged user to run the application.
+USER appuser
+
 # Expose the port that the application listens on.
-EXPOSE 80
+EXPOSE 3000
 
 # Run the application (FastAPI instance is `app` in app/main.py)
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "3000"]
