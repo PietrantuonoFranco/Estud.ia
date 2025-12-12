@@ -43,6 +43,7 @@ services:
     environment:
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - MILVUS_URI=${MILVUS_URI}
+      - VOYAGE_API_KEY=${VOYAGE_API_KEY}
     ports:
       - 80:3000
     depends_on:

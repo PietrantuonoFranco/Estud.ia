@@ -2,6 +2,7 @@ from fastapi import FastAPI, UploadFile, File, status
 from .utils.embbedings import EmbeddingGenerator
 from .utils.splitter import Splitter
 from .db.milvus import upload_document, get_document
+from .utils.reranker import Reranker
 import os
 from dotenv import load_dotenv
 import shutil
@@ -23,9 +24,10 @@ class ContextRequest(BaseModel):
 async def lifespan(app: FastAPI):
     
     ##Instancias de objetos (helpers)
-    global splitter, embedding_generator
+    global splitter, embedding_generator, reranker
     splitter = Splitter()
     embedding_generator = EmbeddingGenerator()
+    reranker = Reranker()
     
     
     yield
@@ -86,9 +88,9 @@ def get_context_app(request: ContextRequest ):
         
         results = get_document(query_vector=query_vector, collection_name="documents_collection", filter="")
         
-        contexts = [result.entity for result in results]
+        results_reranked = reranker.rerank(query=request.query, document=[results])
         
-        return contexts
+        return results_reranked
     
     except Exception as e:
         traceback.print_exc()
