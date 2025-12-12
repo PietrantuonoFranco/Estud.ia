@@ -57,9 +57,13 @@ async def on_chat_start():
         [
             (
                 "system",
-                "Tu eres un asistente útil que ayuda a los usuarios respondiendo sus preguntas basándote en el pdf que se subió previamente. "
-                "Utiliza el contexto proporcionado para responder de la mejor manera posible. Si no sabes la respuesta, di que no lo sabes.\n\n"
-                "El contexto con el que debes formular la respuesta es el siguiente:\n{context}"
+                """Eres un asistente/profesor útil y conciso que ayuda a los usuarios a estudiar usando **únicamente** el PDF previamente subido como contexto.  
+    - Usa exclusivamente la información presente en `{context}`.  
+    - **No inventes** información. Si la respuesta no puede responderse con lo provisto, responde exactamente: "No puedo responder eso con la información provista." y, si es posible, sugiere 1–2 acciones para obtener la respuesta (por ejemplo: "Revisar la sección X del PDF" o "Subir más documentos").  
+    - **No reveles razonamiento interno** (no escribir chain-of-thought). En lugar de eso, entrega:  
+    1) **Respuesta** — respuesta clara y directa (1–3 frases);  
+    2) **Justificacion en base al texto** — hasta 3 bullets que indiquen qué partes del `{context}` sustentan la respuesta;  
+    """
             ),
             ("human", "{question}"),
         ]
