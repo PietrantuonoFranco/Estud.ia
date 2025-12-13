@@ -1,8 +1,3 @@
-"""
-RAG con LangGraph usando LLM as Judge
-Flujo: Retrieve → Generate → Judge → Refine (si es mala) → Retrieve → Generate → End
-"""
-
 from typing import TypedDict, Annotated, Literal
 from langgraph.graph import StateGraph, END
 from langchain_core.prompts import ChatPromptTemplate
@@ -12,6 +7,7 @@ import operator
 import json
 
 
+##Clase estado del grafo
 class RAGState(TypedDict):
     """Estado del grafo RAG con validación"""
     question: str  # Pregunta original
@@ -24,9 +20,7 @@ class RAGState(TypedDict):
 
 
 class RAGGraph:
-    """
-    Clase que encapsula la lógica del RAG con LangGraph y LLM as Judge
-    """
+   
     
     def __init__(self, embedding_generator, reranker, get_document_func):
         """
@@ -80,7 +74,7 @@ class RAGGraph:
         """
         Nodo 2: Genera respuesta usando el contexto
         """
-        print("\n✍️  [GENERATE] Generando respuesta...")
+        print("\n  [GENERATE] Generando respuesta...")
         
         model = init_chat_model("google_genai:gemini-2.5-flash-lite")
         
@@ -111,7 +105,7 @@ class RAGGraph:
         """
         Nodo 3: LLM as Judge - Evalúa si la respuesta es buena usando un modelo más grande
         """
-        print("\n🧑‍⚖️  [JUDGE] Evaluando calidad de la respuesta...")
+        print("\n  [JUDGE] Evaluando calidad de la respuesta...")
         
         # Usar un modelo más grande para juzgar
         judge_model = init_chat_model("google_genai:gemini-2-pro")
@@ -167,7 +161,7 @@ Respuesta: {generation}
         """
         Nodo 4: Refina la query cuando la respuesta es inválida
         """
-        print("\n🔧 [REFINE] Refinando query para obtener mejor contexto...")
+        print("\n [REFINE] Refinando query para obtener mejor contexto...")
         
         model = init_chat_model("google_genai:gemini-2.5-flash-lite")
         
