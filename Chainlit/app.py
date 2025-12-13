@@ -23,9 +23,6 @@ async def on_chat_start():
     ##Instancia del API Client de nuestros endpoints
     r = Requests()
     
-    ##Instancia del modelo
-    model = init_chat_model("google_genai:gemini-2.5-flash-lite")
-    
     ##Pedimos PDF al usuario
     files = await cl.AskFileMessage(
         content="Porfavor suba un pdf, para arrancar la conversacion!", accept=["application/pdf"]
@@ -52,24 +49,6 @@ async def on_chat_start():
             await cl.Message(content=f"❌ Error: {result['error']}").send()
         else:
             await cl.Message(content=f"✅ `{file.name}` guardado correctamente en la base de datos.").send()
-    
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                """Eres un asistente/profesor útil y conciso que ayuda a los usuarios a estudiar usando **únicamente** el PDF previamente subido como contexto.  
-    - Usa exclusivamente la información presente en `{context}`.  
-    - **No inventes** información. Si la respuesta no puede responderse con lo provisto, responde exactamente: "No puedo responder eso con la información provista." y, si es posible, sugiere 1–2 acciones para obtener la respuesta (por ejemplo: "Revisar la sección X del PDF" o "Subir más documentos").  
-    - **No reveles razonamiento interno** (no escribir chain-of-thought). En lugar de eso, entrega:  
-    1) **Respuesta** — respuesta clara y directa (1–3 frases);  
-    2) **Justificacion en base al texto** — hasta 3 bullets que indiquen qué partes del `{context}` sustentan la respuesta;  
-    """
-            ),
-            ("human", "{question}"),
-        ]
-    )
-    runnable = prompt | model | StrOutputParser() ##Creamos el pipeline al iniciar el chat
-    cl.user_session.set("runnable", runnable)
 
 
 @cl.on_message
@@ -77,14 +56,22 @@ async def on_message(message: cl.Message):
     
     r = Requests()
     
-    runnable = cast(Runnable, cl.user_session.get("runnable"))  # type: Runnable
-
-    msg = cl.Message(content="")
-
-    async for chunk in runnable.astream(
-        {"question": message.content, "context": r.request_get_context(query=message.content, filter="")},
-        config=RunnableConfig(callbacks=[cl.LangchainCallbackHandler()]),
-    ):
-        await msg.stream_token(chunk)
-
+    msg = cl.Message(content="🔍 Analizando tu pregunta...")
     await msg.send()
+    
+    ##Llamar al endpoint RAG con validación
+    result = r.request_rag(question=message.content)
+    
+    if "error" in result:
+        msg.content = f"❌ Error: {result['error']}"
+    else:
+        # Construir respuesta con metadata
+        response_text = result.get("generation", "Sin respuesta")
+        
+        # Agregar indicador si se refinó la query
+        if result.get("refinement_attempts", 0) > 0:
+            response_text += f"\n\n*ℹ️ Se refinó la búsqueda {result['refinement_attempts']} vez(ces) para obtener mejor contexto*"
+        
+        msg.content = response_text
+    
+    await msg.update()

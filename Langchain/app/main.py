@@ -3,6 +3,7 @@ from .utils.embbedings import EmbeddingGenerator
 from .utils.splitter import Splitter
 from .db.milvus import upload_document, get_document
 from .utils.reranker import Reranker
+from .utils.graph import create_rag_graph
 import os
 from dotenv import load_dotenv
 import shutil
@@ -19,15 +20,35 @@ class ContextRequest(BaseModel):
     filter : str
 
 
+class RAGRequest(BaseModel):
+    question: str
+    filter: str = ""
+
+
+class RAGResponse(BaseModel):
+    question: str
+    generation: str
+    context: str
+    is_valid: bool
+    refinement_attempts: int
+
+
 ##Inicializacion de objetos 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     
     ##Instancias de objetos (helpers)
-    global splitter, embedding_generator, reranker
+    global splitter, embedding_generator, reranker, rag_graph
     splitter = Splitter()
     embedding_generator = EmbeddingGenerator()
     reranker = Reranker()
+    
+    ##Crear grafo RAG con dependencias locales (sin requests HTTP internos)
+    rag_graph = create_rag_graph(
+        embedding_generator=embedding_generator,
+        reranker=reranker,
+        get_document_func=get_document
+    )
     
     
     yield
@@ -95,3 +116,47 @@ def get_context_app(request: ContextRequest ):
     except Exception as e:
         traceback.print_exc()
         return {"error": str(e)}
+
+
+@app.post("/rag", response_model=RAGResponse)
+async def rag_endpoint(request: RAGRequest):
+    """
+    Endpoint RAG con LangGraph - Valida respuesta con LLM as Judge
+    y refina query si es necesario
+    """
+    try:
+        
+        
+        # Estado inicial del grafo
+        initial_state = {
+            "question": request.question,
+            "query": request.question,
+            "context": "",
+            "generation": "",
+            "is_valid": False,
+            "refinement_attempts": 0,
+            "retrieval_attempts": 0
+        }
+        
+        # Invocar el grafo
+        result = rag_graph.invoke(initial_state)
+        
+       
+        return RAGResponse(
+            question=result["question"],
+            generation=result["generation"],
+            context=result["context"],
+            is_valid=result["is_valid"],
+            refinement_attempts=result["refinement_attempts"]
+        )
+        
+    except Exception as e:
+        traceback.print_exc()
+        return {
+            "error": str(e),
+            "question": request.question,
+            "generation": f"Error procesando la solicitud: {str(e)}",
+            "context": "",
+            "is_valid": False,
+            "refinement_attempts": 0
+        }
