@@ -1,11 +1,11 @@
-from fastapi import FastAPI, UploadFile, File, status
+from fastapi import FastAPI, UploadFile, File, status, Security
 from .utils.embbedings import EmbeddingGenerator
 from .utils.splitter import Splitter
 from .db.milvus import upload_document, get_document
 from .utils.reranker import Reranker
 from .utils.graph import create_rag_graph
+from .security import verify_api_key
 import os
-from dotenv import load_dotenv
 import shutil
 import traceback
 from contextlib import asynccontextmanager
@@ -64,8 +64,8 @@ def root():
 async def healthcheck():
     return {"status": "ok", "message": "Service is healthy"}
 
-@app.post("/upload_document")
-async def upload_document_app(file: UploadFile):
+@app.post("/upload_document") 
+async def upload_document_app(file: UploadFile, api_key: str = Security(verify_api_key)):
     
     try:
         # Validar que sea un PDF
@@ -101,8 +101,8 @@ async def upload_document_app(file: UploadFile):
 
 
 
-@app.get("/get_context")
-def get_context_app(request: ContextRequest ):
+@app.get("/get_context") ## De prueba / depuracion 
+def get_context_app(request: ContextRequest, api_key: str = Security(verify_api_key) ):
     
     try:
         query_vector = embedding_generator.get_query_embedding(text=request.query)
@@ -118,8 +118,8 @@ def get_context_app(request: ContextRequest ):
         return {"error": str(e)}
 
 
-@app.post("/rag", response_model=RAGResponse)
-async def rag_endpoint(request: RAGRequest):
+@app.post("chat/rag", response_model=RAGResponse)
+async def rag_endpoint(request: RAGRequest, api_key: str = Security(verify_api_key)):
     """
     Endpoint RAG con LangGraph - Valida respuesta con LLM as Judge
     y refina query si es necesario

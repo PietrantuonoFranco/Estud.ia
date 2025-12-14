@@ -6,6 +6,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - API_KEY_NAME=${API_KEY_NAME}
     ports:
       - 8000:8000
     depends_on:
@@ -44,6 +45,7 @@ services:
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - MILVUS_URI=${MILVUS_URI}
       - VOYAGE_API_KEY=${VOYAGE_API_KEY}
+      - API_KEY_NAME=${API_KEY_NAME}
     ports:
       - 80:3000
     depends_on:
