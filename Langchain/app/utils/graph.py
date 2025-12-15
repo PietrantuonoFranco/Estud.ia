@@ -37,7 +37,7 @@ class RAGGraph:
         self.workflow = None
         self.app = None
     
-    def retrieve_context(self, state: RAGState) -> RAGState:
+    async def retrieve_context(self, state: RAGState) -> RAGState:
         """
         Nodo 1: Recupera contexto de Milvus directamente
         """
@@ -45,10 +45,10 @@ class RAGGraph:
         
         try:
             # Generar embedding de la query
-            query_vector = self.embedding_generator.get_query_embedding(text=state["query"])
+            query_vector = await self.embedding_generator.get_query_embedding(text=state["query"])
             
             # Obtener documentos de Milvus
-            results = self.get_document_func(
+            results = await self.get_document_func(
                 query_vector=query_vector, 
                 collection_name="documents_collection", 
                 filter=""
@@ -70,7 +70,7 @@ class RAGGraph:
             "retrieval_attempts": 1
         }
 
-    def generate_answer(self, state: RAGState) -> RAGState:
+    async def generate_answer(self, state: RAGState) -> RAGState:
         """
         Nodo 2: Genera respuesta usando el contexto
         """
@@ -91,7 +91,7 @@ class RAGGraph:
         
         generator_chain = generator_prompt | model | StrOutputParser() ##chain
         
-        generation = generator_chain.invoke({
+        generation = await generator_chain.ainvoke({
             "context": state["context"],
             "question": state["question"]
         })
@@ -101,7 +101,7 @@ class RAGGraph:
             "generation": generation
         }
 
-    def judge_answer(self, state: RAGState) -> RAGState:
+    async def judge_answer(self, state: RAGState) -> RAGState:
         """
         Nodo 3: LLM as Judge - Evalúa si la respuesta es buena usando un modelo más grande
         """
@@ -136,7 +136,7 @@ Respuesta: {generation}
         ])
         
         try:
-            result = judge_model.invoke(judge_prompt.format(
+            result = await judge_model.ainvoke(judge_prompt.format(
                 question=state["question"],
                 context=state["context"],
                 generation=state["generation"]
@@ -157,7 +157,7 @@ Respuesta: {generation}
             "is_valid": is_valid
         }
 
-    def refine_query(self, state: RAGState) -> RAGState:
+    async def refine_query(self, state: RAGState) -> RAGState:
         """
         Nodo 4: Refina la query cuando la respuesta es inválida
         """
@@ -180,7 +180,7 @@ Responde SOLO con la pregunta reformulada, sin explicaciones adicionales."""),
         
         refiner_chain = refiner_prompt | model | StrOutputParser()
         
-        refined_query = refiner_chain.invoke({
+        refined_query = await refiner_chain.ainvoke({
             "question": state["question"],
             "generation": state["generation"]
         })
@@ -193,7 +193,7 @@ Responde SOLO con la pregunta reformulada, sin explicaciones adicionales."""),
             "refinement_attempts": 1
         }
 
-    def should_refine(self, state: RAGState) -> Literal["refine", "end"]:
+    async def should_refine(self, state: RAGState) -> Literal["refine", "end"]:
         """
         Nodo de decisión: ¿Refinar y reintentar o terminar?
         """
@@ -240,14 +240,14 @@ Responde SOLO con la pregunta reformulada, sin explicaciones adicionales."""),
         
         return self.app
     
-    def invoke(self, initial_state: RAGState):
+    async def invoke(self, initial_state: RAGState):
         """
         Invoca el grafo con un estado inicial
         """
         if self.app is None:
             self.build()
         
-        return self.app.invoke(initial_state)
+        return await self.app.ainvoke(initial_state)
 
 
 # Patron builder, crea el el objeto RAGGraph y construye el grafo (objeto) dentro de el atributo workflow

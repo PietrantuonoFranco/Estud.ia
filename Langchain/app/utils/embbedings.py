@@ -13,20 +13,20 @@ class EmbeddingGenerator:
     def __init__(self):
         self.embeddings =  GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001", google_api_key= api_key)
     
-    def get_document_embedding(self,text: list[str]) -> list[list[float]]:
+    async def get_document_embedding(self,text: list[str]) -> list[list[float]]:
         
         """Genera embeddings para una lista de textos (documentos)"""
         """Un embedding por string en la lista"""        
         
-        return self.embeddings.embed_documents(texts=text, task_type="RETRIEVAL_DOCUMENT", output_dimensionality=3072 )
+        return await self.embeddings.aembed_documents(texts=text, task_type="RETRIEVAL_DOCUMENT", output_dimensionality=3072 )
     
         ##SEMANTIC_SIMILARITY : incrustaciones optimizadas para evaluar la similitud del texto.
         ##La dim 3072 ya esta normalizada
 
 
-    def get_query_embedding(self,text: str) -> list[float]:
+    async def get_query_embedding(self,text: str) -> list[float]:
         
-        return self.embeddings.embed_query(text=text, task_type="SEMANTIC_SIMILARITY", output_dimensionality=3072 )
+        return await self.embeddings.aembed_query(text=text, task_type="SEMANTIC_SIMILARITY", output_dimensionality=3072 )
 
     
     def format_database (self, text_chunks:list[dict], vector_chunks:list[list[float]] ):

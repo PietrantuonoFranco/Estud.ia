@@ -82,7 +82,7 @@ async def upload_document_app(file: UploadFile, api_key: str = Security(verify_a
             text_chunks = splitter.split_document(file_path=file_path)
             texts = [chunk['text'] for chunk in text_chunks]
             
-            vector_chunks = embedding_generator.get_document_embedding(text=texts)
+            vector_chunks = await embedding_generator.get_document_embedding(text=texts)
             
             formatted_data = embedding_generator.format_database(text_chunks=text_chunks, vector_chunks=vector_chunks)
             
@@ -105,7 +105,7 @@ async def upload_document_app(file: UploadFile, api_key: str = Security(verify_a
 async def get_context_app(request: ContextRequest, api_key: str = Security(verify_api_key) ):
     
     try:
-        query_vector = embedding_generator.get_query_embedding(text=request.query)
+        query_vector = await embedding_generator.get_query_embedding(text=request.query)
         
         results = await get_document(query_vector=query_vector, collection_name="documents_collection", filter="")
         
@@ -118,7 +118,7 @@ async def get_context_app(request: ContextRequest, api_key: str = Security(verif
         return {"error": str(e)}
 
 
-@app.post("chat/rag", response_model=RAGResponse)
+@app.post("/chat/rag", response_model=RAGResponse)
 async def rag_endpoint(request: RAGRequest, api_key: str = Security(verify_api_key)):
     """
     Endpoint RAG con LangGraph - Valida respuesta con LLM as Judge
@@ -138,8 +138,8 @@ async def rag_endpoint(request: RAGRequest, api_key: str = Security(verify_api_k
             "retrieval_attempts": 0
         }
         
-        # Invocar el grafo
-        result = rag_graph.invoke(initial_state)
+        # Invocar el grafo (async wrapper on graph app)
+        result = await rag_graph.invoke(initial_state)
         
        
         return RAGResponse(
