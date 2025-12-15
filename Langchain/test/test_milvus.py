@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from app.db.milvus import upload_document, get_document, create_milvus_collection
 
-
+##Para correr los test de milvus se necesita tener la bsdd de datos de milvus corriendo localmente
 class TestMilvusOperations(unittest.TestCase):
     """Tests unitarios para operaciones de Milvus"""
     
