@@ -86,7 +86,7 @@ async def upload_document_app(file: UploadFile, api_key: str = Security(verify_a
             
             formatted_data = embedding_generator.format_database(text_chunks=text_chunks, vector_chunks=vector_chunks)
             
-            upload_document(data=formatted_data, collection_name="documents_collection")
+            await upload_document(data=formatted_data, collection_name="documents_collection")
             
             return {"status": "success", "message": f"Document {file.filename} uploaded successfully", "chunks": len(texts)}
             
@@ -102,12 +102,12 @@ async def upload_document_app(file: UploadFile, api_key: str = Security(verify_a
 
 
 @app.get("/get_context") ## De prueba / depuracion 
-def get_context_app(request: ContextRequest, api_key: str = Security(verify_api_key) ):
+async def get_context_app(request: ContextRequest, api_key: str = Security(verify_api_key) ):
     
     try:
         query_vector = embedding_generator.get_query_embedding(text=request.query)
         
-        results = get_document(query_vector=query_vector, collection_name="documents_collection", filter="")
+        results = await get_document(query_vector=query_vector, collection_name="documents_collection", filter="")
         
         results_reranked = reranker.rerank(query=request.query, document=[results])
         

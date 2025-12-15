@@ -1,4 +1,4 @@
-from pymilvus import MilvusClient, DataType
+from pymilvus import MilvusClient, DataType, AsyncMilvusClient
 from fastapi import FastAPI
 from typing import Optional
 from dotenv import load_dotenv
@@ -10,10 +10,24 @@ uri = os.getenv("MILVUS_URI")
 
 
 
+
 ##Instancia del cliente Milvus
 
 client = MilvusClient(
         uri = uri,
+)
+
+##Clienbte de estudia_db
+
+client_db = MilvusClient(
+        uri = uri,
+        db_name= "estudia_db"
+)
+
+##Cliente asyncrono
+async_client = AsyncMilvusClient(
+        uri = uri,
+        db_name= "estudia_db"
 )
 
 if "estudia_db" not in client.list_databases():
@@ -23,13 +37,7 @@ if "estudia_db" not in client.list_databases():
 else:
     print(f"La base de datos {"estudia_db"} ya existe")
 
-##Clienbte de estudia_db
-
-client_db = MilvusClient(
-        uri = uri,
-        db_name= "estudia_db"
-)
-        
+     
     
 def create_milvus_collection(name: str):
     
@@ -87,16 +95,16 @@ def create_milvus_collection(name: str):
     print(res)
 
 
-def remove_collection(name_collection: str) : 
+async def remove_collection(name_collection: str) : 
     
-    client_db.drop_collection(
+    await async_client.drop_collection(
         collection_name=name_collection
     )
 
 
-def upload_document(data: list[dict], collection_name : str,  ):
+async def upload_document(data: list[dict], collection_name : str,  ):
     
-    res = client_db.insert(
+    res = await async_client.insert(
         collection_name = collection_name,
         data = data
     )
@@ -104,9 +112,10 @@ def upload_document(data: list[dict], collection_name : str,  ):
     print(f"resultado de la insercion: {res}, en la coleccion: {collection_name}")
 
 
-def get_document(query_vector: list[float], collection_name: str,filter : str) :
+async def get_document(query_vector: list[float], collection_name: str,filter : str) :
     
-    res = client_db.search(
+    res = await async_client.search(
+        
         collection_name=collection_name,
         anns_field = "vector_chunk",
         data = [query_vector],
@@ -122,11 +131,9 @@ def get_document(query_vector: list[float], collection_name: str,filter : str) :
         for hit in hits:
             lista.append(hit)
     
-            
+    print(lista)     
     return lista
     
-
-
 ##Crear coleccion en estudia_db
 create_milvus_collection("documents_collection")
 
@@ -147,11 +154,11 @@ class getDocumentRequest(BaseModel):
 app = FastAPI()
 
 @app.post("/upload_document")
-def upload_document_endpoint(request: uploadDocumentRequest):
-    upload_document(request.data, request.collection_name)
+async def upload_document_endpoint(request: uploadDocumentRequest):
+    await upload_document(request.data, request.collection_name)
     return {"message": "Document uploaded successfully"}
 
 @app.get("/get_document")
-def get_document_endpoint(request: getDocumentRequest):
-    get_document( request.collection_name, request.query_vector, request.filter)
+async def get_document_endpoint(request: getDocumentRequest):
+    await get_document( request.collection_name, request.query_vector, request.filter)
     return {"message": "Document retrieved successfully"}
