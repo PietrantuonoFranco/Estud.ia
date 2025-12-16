@@ -19,7 +19,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd Langchain
-          pip install -r requirements.txt
+          pip install -r pyproject.toml
       - name: Run tests
         run: |
           cd Langchain
