@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, status, Security
 from .utils.embbedings import EmbeddingGenerator
 from .utils.splitter import Splitter
-from .db.milvus import upload_document, get_document
+from .db.milvus import Async_Milvus_Client
 from .utils.reranker import Reranker
 from .utils.graph import create_rag_graph
 from .security import verify_api_key
@@ -38,16 +38,18 @@ class RAGResponse(BaseModel):
 async def lifespan(app: FastAPI):
     
     ##Instancias de objetos (helpers)
-    global splitter, embedding_generator, reranker, rag_graph
+    global splitter, embedding_generator, reranker, rag_graph, client_milvus
+
     splitter = Splitter()
     embedding_generator = EmbeddingGenerator()
     reranker = Reranker()
+    client_milvus = Async_Milvus_Client()
     
     ##Crear grafo RAG con dependencias locales (sin requests HTTP internos)
     rag_graph = create_rag_graph(
         embedding_generator=embedding_generator,
         reranker=reranker,
-        get_document_func=get_document
+        client_milvus=client_milvus
     )
     
     
@@ -86,7 +88,7 @@ async def upload_document_app(file: UploadFile, api_key: str = Security(verify_a
             
             formatted_data = embedding_generator.format_database(text_chunks=text_chunks, vector_chunks=vector_chunks)
             
-            await upload_document(data=formatted_data, collection_name="documents_collection")
+            await client_milvus.upload_document(data=formatted_data, collection_name="documents_collection")
             
             return {"status": "success", "message": f"Document {file.filename} uploaded successfully", "chunks": len(texts)}
             
@@ -107,7 +109,7 @@ async def get_context_app(request: ContextRequest, api_key: str = Security(verif
     try:
         query_vector = await embedding_generator.get_query_embedding(text=request.query)
         
-        results = await get_document(query_vector=query_vector, collection_name="documents_collection", filter="")
+        results = await client_milvus.get_document(query_vector=query_vector, collection_name="documents_collection", filter="")
         
         results_reranked = reranker.rerank(query=request.query, document=[results])
         

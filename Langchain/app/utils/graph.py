@@ -1,3 +1,7 @@
+from .embbedings import EmbeddingGenerator
+from .reranker import Reranker
+from .splitter import Splitter
+from ..db.milvus import Async_Milvus_Client
 from typing import TypedDict, Annotated, Literal
 from langgraph.graph import StateGraph, END
 from langchain_core.prompts import ChatPromptTemplate
@@ -22,7 +26,7 @@ class RAGState(TypedDict):
 class RAGGraph:
    
     
-    def __init__(self, embedding_generator, reranker, get_document_func):
+    def __init__(self, embedding_generator: EmbeddingGenerator, reranker: Reranker, client_milvus:Async_Milvus_Client):
         """
         Inicializar el grafo RAG
         
@@ -33,7 +37,7 @@ class RAGGraph:
         """
         self.embedding_generator = embedding_generator
         self.reranker = reranker
-        self.get_document_func = get_document_func
+        self.client_milvus = client_milvus
         self.workflow = None
         self.app = None
     
@@ -48,7 +52,7 @@ class RAGGraph:
             query_vector = await self.embedding_generator.get_query_embedding(text=state["query"])
             
             # Obtener documentos de Milvus
-            results = await self.get_document_func(
+            results = await self.client_milvus.get_document(
                 query_vector=query_vector, 
                 collection_name="documents_collection", 
                 filter=""
@@ -251,7 +255,7 @@ Responde SOLO con la pregunta reformulada, sin explicaciones adicionales."""),
 
 
 # Patron builder, crea el el objeto RAGGraph y construye el grafo (objeto) dentro de el atributo workflow
-def create_rag_graph(embedding_generator, reranker, get_document_func):
+def create_rag_graph(embedding_generator: EmbeddingGenerator, reranker: Reranker, client_milvus:Async_Milvus_Client):
     """
     Factory function que crea una instancia de RAGGraph y construye el grafo
     
@@ -260,6 +264,6 @@ def create_rag_graph(embedding_generator, reranker, get_document_func):
         reranker: Reranker de resultados
         get_document_func: Función para obtener documentos de Milvus
     """
-    rag_graph = RAGGraph(embedding_generator, reranker, get_document_func)
+    rag_graph = RAGGraph(embedding_generator, reranker, client_milvus)
     rag_graph.build()
     return rag_graph
