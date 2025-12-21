@@ -21,7 +21,7 @@ export default function SourcesPanel() {
   }
 
   return (
-    <div className={`${ openPanel ? "w-96" : "w-18" } flex flex-col border-r border-border bg-[var(--panel-bg)]`}>
+    <div className={`${ openPanel ? "w-90" : "w-18" } flex flex-col border-r border-border bg-[var(--panel-bg)]`}>
       <div className={`flex items-center border-b border-border px-4 py-3 ${ openPanel ? "justify-between" : "justify-center"}`}>
         <h2 className={`${ openPanel ? "" : "hidden" } text-sm font-medium text-foreground`}>Fuentes</h2>
 
