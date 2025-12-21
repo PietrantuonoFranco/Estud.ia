@@ -46,9 +46,9 @@ export default function ChatPanel() {
         
       </div>
 
-      <div className="border-t border-border p-4">
+      <div className="border-t border-border mt-2 p-2">
         <div className="mx-auto max-w-3xl">
-          <div className="mt-2 flex items-center justify-center text-xs text-muted-foreground">
+          <div className="flex items-center justify-center text-xs text-muted-foreground">
             <span>Es posible que Estud.IA muestre información imprecisa. Verifica las respuestas.</span>
           </div>
         </div>
