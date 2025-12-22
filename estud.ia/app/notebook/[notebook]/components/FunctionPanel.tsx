@@ -11,7 +11,7 @@ import {
 } from "lucide-react"
 
 const studioTools = [
-  { icon: FileText, label: "Informes", color: "orange" },
+  { icon: FileText, label: "Resumen", color: "orange" },
   { icon: BookOpen, label: "Tarjetas didácticas", color: "green" },
   { icon: HelpCircle, label: "Cuestionario", color: "purple" },
 ]
