@@ -19,7 +19,16 @@ export default function SourcesPanel() {
       setSelectedFonts([...selectedFonts, font])
     }
   }
+  
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    
+  };
 
+  const handleSubmit = () => {
+    
+  }
+  
   return (
     <div className={`${ openPanel ? "w-90" : "w-18" } flex flex-col border-r border-border bg-[var(--panel-bg)]`}>
       <div className={`flex items-center border-b border-border px-4 py-3 ${ openPanel ? "justify-between" : "justify-center"}`}>
@@ -35,10 +44,13 @@ export default function SourcesPanel() {
       </div>
 
       <div className="p-4">
-        <button className={`text-sm text-black font-semibold w-full flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-[var(--purple-accent)] to-[var(--sidebar-border)] to-[var(--purple-accent)] hover:bg-gradient-to-br hover:from-[var(--sidebar-border)] to-[var(--purple-accent)]  transition-all duration-300 ease-in-out cursor-pointer ${ openPanel ? "py-3 px-6" : "p-3"}`}>
-          <Plus className="h-4 w-4" strokeWidth={3}/>
-          <span className={`${ openPanel ? "" : "hidden" }`}>Agregar fuentes</span>
-        </button>
+        <form onSubmit={handleSubmit} className={`text-sm text-black font-semibold w-full flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-[var(--purple-accent)] to-[var(--sidebar-border)] to-[var(--purple-accent)] hover:bg-gradient-to-br hover:from-[var(--sidebar-border)] to-[var(--purple-accent)]  transition-all duration-300 ease-in-out cursor-pointer `}>
+          <input type="file" accept="application/pdf" className="hidden" id="file-upload" onChange={handleFileChange} />
+          <label htmlFor="file-upload" className="cursor-pointer rounded-full h-full w-full py-3 px-6 flex items-center justify-center gap-2">
+            <Plus className="h-4 w-4" strokeWidth={3}/>
+            <span className={`${ openPanel ? "font-semibold" : "hidden" }`}>Agregar fuentes</span>
+          </label>
+        </form>
       </div>
 
 
