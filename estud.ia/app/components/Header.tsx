@@ -15,7 +15,7 @@ export default function Header() {
   }
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-border bg-[var(--panel-bg)] px-6">
+    <header className="flex h-16 items-center justify-between border-b border-border bg-[var(--panel-bg)] py-3 px-6">
       <Link href="/" className="flex items-center gap-3">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg">
           <Image  src="/favicon.png" alt="Estud.IA Logo" width={32} height={32} className="rounded-full" />
