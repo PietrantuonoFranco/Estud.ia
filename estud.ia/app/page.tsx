@@ -6,7 +6,6 @@ import NotebooksContainer from "./components/NotebooksContainer";
 export default function Home() {
   return (
     <div className="flex h-screen flex-col bg-background">
-      <Header />
       <div className="flex flex-col flex-1 overflow-hidden py-6 px-42 space-y-6">
         <OptionsBanner />
 
