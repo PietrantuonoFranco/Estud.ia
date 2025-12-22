@@ -18,17 +18,17 @@ export default function OptionsBanner () {
             onClick={() => setOrderShow("grid")}
             className="cursor-pointer flex items-center gap-2 py-4 px-8 rounded-l-full hover:bg-[var(--hover-bg)] bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]"
           >
-            <Check className={`${ orderShow === "grid" ? "h-4 w-4" : "hidden" }`} strokeWidth={3}/>
-            <LayoutGrid className="h-4 w-4" strokeWidth={3}/>
+            <Check className={`${ orderShow === "grid" ? "h-4 w-4" : "hidden" }`} strokeWidth={2.5}/>
+            <LayoutGrid className="h-4 w-4" strokeWidth={2.5}/>
           </button>
           
           <button
             type="button"
-            onClick={() => setOrderShow("line")}
+            onClick={() => setOrderShow("list")}
             className="cursor-pointer flex items-center gap-2 py-4 px-8 rounded-r-full hover:bg-[var(--hover-bg)] bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]"
           >
-            <Check className={`${ orderShow === "line" ? "h-4 w-4" : "hidden" }`} strokeWidth={3}/>
-            <StretchHorizontal className="h-4 w-4" strokeWidth={3}/>
+            <Check className={`${ orderShow === "list" ? "h-4 w-4" : "hidden" }`} strokeWidth={3}/>
+            <StretchHorizontal className="h-4 w-4" strokeWidth={2.5}/>
           </button>
         </div>
 
