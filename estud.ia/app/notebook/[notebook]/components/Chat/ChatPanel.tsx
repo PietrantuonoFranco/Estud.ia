@@ -12,12 +12,12 @@ import UserMessage from "./components/UserMessage"
 
 export default function ChatPanel() {
   return (
-    <div className="max-h-[100dvh] flex flex-1 flex-col bg-background">
+    <div className="flex flex-1 flex-col bg-background">
       <div className="flex items-center justify-between border-b border-border px-6 py-4.5">
         <h2 className="text-sm font-medium text-foreground">Chat</h2>
       </div>
 
-      <div className="flex-1 overflow-y-auto flex-col items-center space-y-2 px-6 py-8 mb-2">
+      <div className="flex-1 overflow-y-auto flex-col items-center space-y-2 px-6 py-8">
         <div className="relative mx-auto max-w-3xl space-y-4">
           <div className="flex flex-col items-center gap-6 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--orange-accent)]/20">
@@ -36,8 +36,8 @@ export default function ChatPanel() {
             </p>
           </div>
 
-          <div className="rounded-lg border border-border bg-card p-6 text-sm leading-relaxed text-foreground">
-            <UserMessage message={`Hola que es la legislación?`}/>
+          <div className="p-6 text-sm leading-relaxed text-foreground">
+            <UserMessage message={`Hola de qué trata el texto?`}/>
             <LLMMessage message={message.message}/>
           </div>
           <MessageInbox />

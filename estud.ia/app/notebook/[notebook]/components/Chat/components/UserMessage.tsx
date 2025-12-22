@@ -5,7 +5,7 @@ import { Copy, SquarePen } from "lucide-react"
 export default function UserMessage ({ message }: { message: string }) {
   return (
     <div className="flex flex-col items-end space-y-2 pl-24">
-      <div className=" flex items-center justify-center bg-[var(--hover-bg)] px-4 py-2 rounded-full">
+      <div className=" flex items-center justify-center bg-[var(--hover-bg)] px-6 py-3 rounded-3xl">
         <p className="text-right">
           {message}
         </p>
