@@ -3,10 +3,14 @@
 import { Check, LayoutGrid, StretchHorizontal, ChevronDown, Plus } from "lucide-react";
 import { useState } from "react"
 
+interface OptionsBannerProps {
+  orderBy: "most-recently" | "title";
+  setOrderBy: (value: "most-recently" | "title") => void;
+  viewMode: "grid" | "list";
+  setViewMode: (value: "grid" | "list") => void;
+}
 
-export default function OptionsBanner () {
-  const [orderBy, setOrderBy] = useState("grid");
-  const [orderShow, setOrderShow] = useState("grid");
+export default function OptionsBanner ({ orderBy, setOrderBy, viewMode, setViewMode }: OptionsBannerProps) {
   const [openOrderByMenu, setOpenOrderByMenu] = useState(false);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,19 +28,19 @@ export default function OptionsBanner () {
         <div className="flex items-center rounded-full">
           <button
             type="button"
-            onClick={() => setOrderShow("grid")}
+            onClick={() => setViewMode("grid")}
             className="cursor-pointer flex items-center gap-2 py-4 px-8 rounded-l-full hover:bg-[var(--hover-bg)] bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]"
           >
-            <Check className={`${ orderShow === "grid" ? "h-4 w-4" : "hidden" }`} strokeWidth={2.5}/>
+            <Check className={`${ viewMode === "grid" ? "h-4 w-4" : "hidden" }`} strokeWidth={2.5}/>
             <LayoutGrid className="h-4 w-4" strokeWidth={2.5}/>
           </button>
           
           <button
             type="button"
-            onClick={() => setOrderShow("list")}
+            onClick={() => setViewMode("list")}
             className="cursor-pointer flex items-center gap-2 py-4 px-8 rounded-r-full hover:bg-[var(--hover-bg)] bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]"
           >
-            <Check className={`${ orderShow === "list" ? "h-4 w-4" : "hidden" }`} strokeWidth={3}/>
+            <Check className={`${ viewMode === "list" ? "h-4 w-4" : "hidden" }`} strokeWidth={3}/>
             <StretchHorizontal className="h-4 w-4" strokeWidth={2.5}/>
           </button>
         </div>
