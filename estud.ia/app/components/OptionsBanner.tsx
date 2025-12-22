@@ -4,7 +4,6 @@ import { Check, LayoutGrid, StretchHorizontal, ChevronDown, Plus } from "lucide-
 import { useState } from "react"
 
 
-
 export default function OptionsBanner () {
   const [orderBy, setOrderBy] = useState("grid");
   const [orderShow, setOrderShow] = useState("grid");
@@ -44,7 +43,7 @@ export default function OptionsBanner () {
           </button>
 
           {openOrderByMenu && (
-            <div className="absolute w-full rounded-3xl py-2 flex flex-col items-center gap-2 bg-[var(--hover-bg)] text-[var(--purple-accent)] top-14 left-1/2 -translate-x-1/2">
+            <div className="absolute w-full rounded-3xl py-2 flex flex-col items-center gap-2 bg-[var(--hover-bg)] text-[var(--purple-accent)] top-14 left-1/2 -translate-x-1/2 z-10">
               <button
                 type="button"
                 onClick={() => setOrderBy("most-recently")}
