@@ -1,0 +1,58 @@
+[
+  {
+    "id": 1,
+    "title": "How To Build A Life, de The Atlantic",
+    "source": "The Atlantic",
+    "icon": "🔴",
+    "date": "22 abr 2025",
+    "sourcesCount": 46
+  },
+  {
+    "id": 2,
+    "title": "Tendencias en salud, riqueza y felicidad",
+    "source": "Our World in Data",
+    "icon": "🌍",
+    "date": "15 abr 2025",
+    "sourcesCount": 24
+  },
+  {
+    "id": 3,
+    "title": "Archive 1945",
+    "source": "The Economist",
+    "icon": "📰",
+    "date": "29 sept 2025",
+    "sourcesCount": 27
+  },
+  {
+    "id": 4,
+    "title": "William Shakespeare: las obras completas",
+    "source": "Arte y cultura",
+    "icon": "🎭",
+    "date": "25 abr 2025",
+    "sourcesCount": 45
+  },
+  {
+    "id": 5,
+    "title": "University Guide to Legislation",
+    "source": "The Economist",
+    "icon": "⚖️",
+    "sourcesCount": 1,
+    "date": "Hace 2 d"
+  },
+  {
+    "id": 6,
+    "title": "Derecho Cuestionario",
+    "source": "The Economist",
+    "icon": "📊",
+    "sourcesCount": 1,
+    "date": "Hace 13 d"
+  },
+  {
+    "id": 7,
+    "title": "Trabajos Solarpunk para el 2030",
+    "source": "The Economist",
+    "icon": "👨‍💼",
+    "sourcesCount": 1,
+    "date": "Hace 14 d"
+  }
+]
