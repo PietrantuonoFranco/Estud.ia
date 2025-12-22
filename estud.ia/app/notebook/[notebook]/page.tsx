@@ -5,12 +5,10 @@ import StudioPanel from "./components/FunctionPanel";
 
 export default function Home() {
   return (
-    <div className="flex h-screen flex-col bg-background">
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex overflow-hidden bg-background">
         <SourcesPanel />
         <ChatPanel />
         <StudioPanel />
       </div>
-    </div>
   )
 }
