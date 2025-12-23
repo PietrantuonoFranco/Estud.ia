@@ -1,14 +1,18 @@
-from pydantic_settings import BaseSettings
-import os
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field
+
 
 class Settings(BaseSettings):
-    DB_USER = str(os.getenv("POSTGRES_USER", "usuario_por_defecto"))
-    DB_PASSWORD = str(os.getenv("POSTGRES_PASSWORD", "password_por_defecto"))
-    DB_NAME = str(os.getenv("POSTGRES_DB", "nombre_db"))
-    DB_PORT = int(os.getenv("POSTGRES_PORT", "5432"))
+    # Carga variables desde .env si existe y permite valores extra sin fallar
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    # Si la API está en Docker, el host es 'postgres'. Si es local, es 'localhost'.
-    DB_HOST = str(os.getenv("POSTGRES_HOST", "postgres")) 
+    # Usamos las variables definidas en docker-compose (POSTGRES_*) y damos defaults razonables para local
+    DB_USER: str = Field("postgres", env="POSTGRES_USER")
+    DB_PASSWORD: str = Field("postgres", env="POSTGRES_PASSWORD")
+    DB_NAME: str = Field("postgres", env="POSTGRES_DB")
+    DB_PORT: int = Field(5432, env="POSTGRES_PORT")
+    # Por defecto local; en Docker compose se inyecta POSTGRES_HOST=postgres
+    DB_HOST: str = Field("localhost", env="POSTGRES_HOST")
 
 
 conf = Settings()
