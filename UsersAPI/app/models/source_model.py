@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, ForeignKey, LargeBinary
 from sqlalchemy.orm import relationship
-from .database import Base
+from ..database import Base
 
 class Source(Base):
     __tablename__ = "sources"
