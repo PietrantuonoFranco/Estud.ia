@@ -4,9 +4,8 @@ from typing import List
 
 from ..database import SessionLocal
 
-from ..models.source_model import Source
-
 from ..schemas.source_schema import SourceCreate, SourceOut
+from ..schemas.notebook_schema import NotebookOut
 
 from ..crud.source_crud import create_source, get_source, get_all_sources, delete_source, get_notebook_by_source
 
@@ -32,7 +31,7 @@ def create_source(source: SourceCreate, db: Session = Depends(get_db)):
     return create_source(db=db, source=source)
 
 
-@router.get("/", response_model=List[SourceOut])
+@router.get("/", response_model=List[SourceOut], status_code=status.HTTP_200_OK)
 def read_sources(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     """Método para obtener todas las fuentes (sources) con paginación."""
     sources = get_all_sources(db, skip=skip, limit=limit)
@@ -40,7 +39,7 @@ def read_sources(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     return sources
 
 
-@router.get("/{source_id}", response_model=SourceOut)
+@router.get("/{source_id}", response_model=SourceOut, status_code=status.HTTP_200_OK)
 def read_source(source_id: int, db: Session = Depends(get_db)):
     """Método para obtener una fuente (source) por su ID."""
     source = get_source(db, source_id=source_id)
@@ -51,7 +50,7 @@ def read_source(source_id: int, db: Session = Depends(get_db)):
     return source
 
 
-@router.delete("/{source_id}", response_model=SourceOut)
+@router.delete("/{source_id}", response_model=SourceOut, status_code=status.HTTP_200_OK)
 def delete_source(source_id: int, db: Session = Depends(get_db)):
     """Método para eliminar una fuente (source) por su ID."""
     source = get_source(db, source_id=source_id)
@@ -64,7 +63,7 @@ def delete_source(source_id: int, db: Session = Depends(get_db)):
     return source
 
 
-@router.get("/{source_id}/notebook")
+@router.get("/{source_id}/notebook", response_model=NotebookOut, status_code=status.HTTP_200_OK)
 def read_notebook_by_source(source_id: int, db: Session = Depends(get_db)):
     """Método para obtener el notebook asociado a una fuente (source) específica."""
     notebook = get_notebook_by_source(db, source_id=source_id)
