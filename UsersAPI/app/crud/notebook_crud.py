@@ -49,4 +49,4 @@ def get_all_sources_by_notebook_id(db: Session, notebook_id: int):
 # --- OPERACIONES DE USER ---
 def get_all_notebooks_by_user_id(db: Session, user_id: int):
     """Obtener todos los notebooks (cuadernos) asociados a un usuario específico."""
-    return db.query(Notebook).filter(Notebook.users_id == user_id).all()
+    return db.query(Notebook).filter(Notebook.users_id == user_id).first()
