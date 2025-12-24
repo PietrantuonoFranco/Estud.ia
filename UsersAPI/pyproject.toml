@@ -12,6 +12,7 @@ dependencies = [
     "pydantic[email]>=2.12.5",
     "pypdf>=6.5.0",
     "python-dotenv>=1.2.1",
+    "python-jose[cryptography]>=3.5.0",
     "sqlalchemy>=2.0.45",
     "uvicorn>=0.40.0",
 ]
