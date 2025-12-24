@@ -8,7 +8,7 @@ from ..notebook_model import Notebook
 
 def create_notebook(db: Session, notebook: SourceCreate):
     """Crea un nuevo notebook (cuaderno) en la base de datos."""
-    db_source = Notebook(
+    db_notebook = Notebook(
         title=notebook.title,
         icon=notebook.icon,
         date=notebook.date,
@@ -16,11 +16,11 @@ def create_notebook(db: Session, notebook: SourceCreate):
         users_id=notebook.users_id
     )
 
-    db.add(db_source)
+    db.add(db_notebook)
     db.commit()
-    db.refresh(db_source)
+    db.refresh(db_notebook)
 
-    return db_source
+    return db_notebook
 
 def get_all_notebooks(db: Session, skip: int = 0, limit: int = 10):
     """Obtener todas las fuentes (sources) con paginación."""
