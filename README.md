@@ -11,6 +11,7 @@ Proyecto RAG para estudios.
 | attu | 8001 | Interfaz gráfica de administración para la base de datos vectorial Milvus. |
 | chainlit | 8000 | Aplicación de interfaz de usuario para interacción con el sistema RAG. |
 | langchain | 80 | API FastAPI para procesamiento de documentos, generación de embeddings y gestión del almacenamiento vectorial. |
+| users-api | 5000 | API FastAPI para procesamiento de usuarios y sus hilos. |
 
 
 #### Repositorio compartido por:
