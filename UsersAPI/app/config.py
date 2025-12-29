@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     # Por defecto local; en Docker compose se inyecta POSTGRES_HOST=postgres
     DB_HOST: str = Field("localhost", env="POSTGRES_HOST")
     
-    SECRET_KEY: str = Field(..., env="SECRET_KEY")
+    SECRET_KEY: str = Field("your_secret_key", env="SECRET_KEY")
     ALGORITHM: str = Field("HS256", env="ALGORITHM")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(60, env="ACCESS_TOKEN_EXPIRE_MINUTES")
 
