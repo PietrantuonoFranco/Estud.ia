@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from ..security import hash_password  # Importamos la función de hash_password
+from ..security.password import hash_password  # Importamos la función de hash_password
 
 from ..schemas.user_schema import UserCreate
 from ..schemas.notebook_schema import NotebookCreate
