@@ -2,8 +2,8 @@ from sqlalchemy.orm import Session  # Importamos la función de hash_password
 
 from ..schemas.source_schema import SourceCreate
 
-from ..source_model import Source
-from ..notebook_model import Notebook
+from ..models.source_model import Source
+from ..models.notebook_model import Notebook
 
 
 def create_notebook(db: Session, notebook: SourceCreate):

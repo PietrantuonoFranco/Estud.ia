@@ -4,8 +4,8 @@ from ..security.password import hash_password  # Importamos la función de hash_
 from ..schemas.user_schema import UserCreate
 from ..schemas.notebook_schema import NotebookCreate
 
-from ..user_model import User
-from ..notebook_model import Notebook
+from ..models.user_model import User
+from ..models.notebook_model import Notebook
 
 
 def create_user(db: Session, user: UserCreate):
