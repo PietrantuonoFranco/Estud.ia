@@ -12,8 +12,46 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
 
-  const handleSubmit = (event: React.FormEvent) => {
+
+
+  const handleSubmit = async(event: React.FormEvent) => {
     event.preventDefault()
+
+    try {
+      // Aquí iría la lógica para manejar el registro, como llamar a una API
+      console.log("Registrando usuario:", { email, name, lastName, password, confirmPassword })
+
+      if (password !== confirmPassword) {
+        alert("Las contraseñas no coinciden")
+        return
+      }
+
+      const formData = {
+        email,
+        name,
+        lastname: lastName,
+        password,
+      }
+
+      const response = await fetch('http://localhost:5000/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      if (response.ok) {
+        alert("Usuario registrado exitosamente")
+        // Aquí podrías redirigir al usuario a otra página, como la de login
+      } else {
+        const errorData = await response.json()
+        alert("Error al registrar el usuario: " + (errorData.detail || 'Error desconocido'))
+      }
+
+    } catch (error) {
+      console.error("Error al registrar el usuario:", error)
+    }
   }
 
 
