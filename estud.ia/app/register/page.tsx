@@ -5,50 +5,27 @@ import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 
+import { useAuth } from "../contexts/AuthContext"
+
 export default function RegisterPage() {
   const [email, setEmail] = useState("")
   const [name, setName] = useState("")
-  const [lastName, setLastName] = useState("")
+  const [lastname, setLastname] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
 
-
+  const { register } = useAuth()
 
   const handleSubmit = async(event: React.FormEvent) => {
     event.preventDefault()
 
     try {
-      // Aquí iría la lógica para manejar el registro, como llamar a una API
-      console.log("Registrando usuario:", { email, name, lastName, password, confirmPassword })
-
       if (password !== confirmPassword) {
         alert("Las contraseñas no coinciden")
         return
       }
 
-      const formData = {
-        email,
-        name,
-        lastname: lastName,
-        password,
-      }
-
-      const response = await fetch('http://localhost:5000/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
-
-      if (response.ok) {
-        alert("Usuario registrado exitosamente")
-        // Aquí podrías redirigir al usuario a otra página, como la de login
-      } else {
-        const errorData = await response.json()
-        alert("Error al registrar el usuario: " + (errorData.detail || 'Error desconocido'))
-      }
-
+      await register(email, name, lastname, password)
     } catch (error) {
       console.error("Error al registrar el usuario:", error)
     }
@@ -107,15 +84,15 @@ export default function RegisterPage() {
 
             <div className="mb-4">
               <label
-                htmlFor="lastName"
+                htmlFor="lastname"
                 className="mb-2 block text-sm font-medium"
               > Apellido</label>
               <input
                 type="text"
-                id="lastName"
-                value={lastName}
+                id="lastname"
+                value={lastname}
                 placeholder="Doe"
-                onChange={(e) => setLastName(e.target.value)}
+                onChange={(e) => setLastname(e.target.value)}
                 className="w-full rounded-full border border-gray-300 py-3 px-6 focus:border-blue-500 focus:outline-none"
                 required
               />
