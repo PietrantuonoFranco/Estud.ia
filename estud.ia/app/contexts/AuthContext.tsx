@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface User {
   id: string;
@@ -25,6 +26,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   const API_URL = process.env.API_URL || 'http://localhost:5000';
 
@@ -77,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('Login exitoso', response);
       // Después del login exitoso, obtener datos del usuario
       await checkAuth();
+      router.push('/'); // Redirigir a la homepage
     } catch (error) {
       console.error('Error en login:', error);
       throw error;
@@ -110,6 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Después del registro exitoso, obtener datos del usuario
       await checkAuth();
+      router.push('/'); // Redirigir a la homepage
     } catch (error) {
       console.error('Error en registro:', error);
       throw error;
@@ -127,6 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       setUser(null);
+      router.push('/login'); // Redirigir al login
     } catch (error) {
       console.error('Error en logout:', error);
       throw error;
