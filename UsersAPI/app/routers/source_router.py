@@ -7,7 +7,13 @@ from ..database import get_db
 from ..schemas.source_schema import SourceCreate, SourceOut
 from ..schemas.notebook_schema import NotebookOut
 
-from ..crud.source_crud import create_source, get_source, get_all_sources, delete_source, get_notebook_by_source
+from ..crud.source_crud import (
+    create_source as create_source_crud,
+    get_source,
+    get_all_sources,
+    delete_source as delete_source_crud,
+    get_notebook_by_source,
+)
 
 
 # Creamos el router para agrupar estas rutas
@@ -19,7 +25,7 @@ router = APIRouter(
 @router.post("/", response_model=SourceOut, status_code=status.HTTP_201_CREATED)
 def create_source(source: SourceCreate, db: Session = Depends(get_db)):
     """Método para crear una nueva fuente (source)."""    
-    return create_source(db=db, source=source)
+    return create_source_crud(db=db, source=source)
 
 
 @router.get("/", response_model=List[SourceOut], status_code=status.HTTP_200_OK)
@@ -49,7 +55,7 @@ def delete_source(source_id: int, db: Session = Depends(get_db)):
     if not source:
         raise HTTPException(status_code=404, detail="Fuente no encontrada")
     
-    source = delete_source(db, source_id=source_id)
+    source = delete_source_crud(db, source_id=source_id)
 
     return source
 
