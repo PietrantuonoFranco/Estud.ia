@@ -9,7 +9,7 @@ class User(Base):
     email = Column(String(45), unique=True, nullable=False)
     name = Column(String(45), nullable=False)
     lastname = Column(String(45), nullable=False)
-    password = Column(String(45), nullable=False)
+    password = Column(String(255), nullable=False)
     profile_image_url = Column(String(255))
 
     # Relación: Un usuario puede tener varios notebooks
