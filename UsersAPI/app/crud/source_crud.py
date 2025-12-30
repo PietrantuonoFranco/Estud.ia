@@ -40,4 +40,4 @@ def delete_source(db: Session, source_id: int):
 
 def get_notebook_by_source(db: Session, source_id: int):
     """Obtener el notebook asociado a una fuente (source) específica."""
-    return db.query(Notebook).filter(Notebook.sources_id == source_id).first()
+    return db.query(Notebook).join(Source).filter(Source.id == source_id).first()
