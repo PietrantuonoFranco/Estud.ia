@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 
-from ..database import SessionLocal
+from ..database import get_db
 
 from ..schemas.source_schema import SourceCreate, SourceOut
 from ..schemas.notebook_schema import NotebookOut
@@ -15,15 +15,6 @@ router = APIRouter(
     prefix="/sources",
     tags=["sources"]
 )
-
-# Dependencia para obtener la sesión de la base de datos
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
 
 @router.post("/", response_model=SourceOut, status_code=status.HTTP_201_CREATED)
 def create_source(source: SourceCreate, db: Session = Depends(get_db)):

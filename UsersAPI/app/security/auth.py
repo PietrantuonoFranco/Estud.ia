@@ -10,6 +10,8 @@ from ..crud.user_crud import get_user_by_email
 from .token import verify_token, oauth2_scheme
 from .password import verify_password
 
+
+
 async def authenticate_user(db: Session, email: str, password_plana: str):
     user = get_user_by_email(db, email)
     if not user:

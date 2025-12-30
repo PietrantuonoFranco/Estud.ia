@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 
-from ..database import SessionLocal
+from ..database import get_db
 from ..schemas.user_schema import UserCreate, UserOut
 from ..crud.user_crud import create_user, get_user, get_user_by_email, get_all_users
 
@@ -12,14 +12,6 @@ router = APIRouter(
     prefix="/users",
     tags=["users"]
 )
-
-# Dependencia para obtener la sesión de la base de datos
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 # RUTA 1: Crear un usuario (POST)
 @router.post("/", response_model=UserOut, status_code=status.HTTP_201_CREATED)
