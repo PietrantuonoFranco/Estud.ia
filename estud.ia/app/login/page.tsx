@@ -5,14 +5,22 @@ import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 
+import { useAuth } from "../contexts/AuthContext"
+
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
 
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault()
-  }
-
+  const { login } = useAuth()
+  
+    const handleSubmit = async(event: React.FormEvent) => {
+      event.preventDefault()
+      try {
+        await login(email, password)
+      } catch (error) {
+        console.error("Error al registrar el usuario:", error)
+      }
+    }
 
   return (
     <div className="h-full grid grid-cols-2">
