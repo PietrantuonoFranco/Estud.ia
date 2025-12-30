@@ -1,10 +1,13 @@
 "use client"
 
-import { Settings } from "lucide-react"
+import { Settings, LogOut, LogIn, UserRoundPlus } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 
+import { useAuth } from "../contexts/AuthContext"
+
 export default function Header() {
+  const { user, logout } = useAuth()
 
   const handleSettings = async () => {
     try {
@@ -23,21 +26,52 @@ export default function Header() {
         <h1 className="text-lg font-medium text-foreground">Estud.IA</h1>
       </Link>
 
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={handleSettings}          
-          className="cursor-pointer flex items-center gap-2 text-muted-foreground rounded-full py-2 px-4 bg-card hover:bg-[var(--hover-bg)]"
-        >
-          <Settings className="h-4 w-4" />
-          <span>Configuración</span>
-        </button>
+      
+      {user && (
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleSettings}          
+            className="cursor-pointer flex items-center gap-2 text-muted-foreground rounded-full py-2 px-4 bg-card hover:bg-[var(--hover-bg)]"
+          >
+            <Settings className="h-4 w-4" />
+            <span>Configuración</span>
+          </button>
         
-        <div className="h-8 w-8">
-          <Image src="/user-avatar.png" alt="User Avatar" width={32} height={32} className="rounded-full" />
+          <div className="h-8 w-8">
+            <Image src="/user-avatar.png" alt="User Avatar" width={32} height={32} className="rounded-full" />
+          </div>
+  
+          <div className="rounded bg-primary px-2 py-1 text-xs font-medium text-primary-foreground">{user.name} {user.lastname}</div>
+
+          <button
+            type="button"
+            onClick={logout}
+            className="cursor-pointer text-muted-foreground hover:text-foreground"
+          >
+            <LogOut className="h-4 w-4" strokeWidth={2.5}/>
+          </button>
         </div>
-        <div className="rounded bg-primary px-2 py-1 text-xs font-medium text-primary-foreground">Jhon Pérez</div>
-      </div>
+        )}
+
+      {!user && (
+        <div className="flex items-center gap-3">
+          <Link
+            href="/login"
+            className="cursor-pointer flex items-center gap-2 text-muted-foreground rounded-full py-2 px-4 bg-card hover:bg-[var(--hover-bg)]"
+          >
+            <LogIn  className="h-4 w-4" />
+            <span>Iniciar sesión</span>
+          </Link>
+          <Link
+            href="/register"
+            className="cursor-pointer flex items-center gap-2 text-muted-foreground rounded-full py-2 px-4 bg-card hover:bg-[var(--hover-bg)]"
+          >
+            <UserRoundPlus className="h-4 w-4" />
+            <span>Registrarse</span>
+          </Link>
+        </div>
+        )}
     </header>
   )
 }
