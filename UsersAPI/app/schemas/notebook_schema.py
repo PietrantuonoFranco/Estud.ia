@@ -8,7 +8,6 @@ class NotebookBase(BaseModel):
     title: str
     icon: Optional[str] = None
     date: Optional[date] = None
-    collection_name: Optional[str] = None
 
 class NotebookCreate(NotebookBase):
     users_id: int
