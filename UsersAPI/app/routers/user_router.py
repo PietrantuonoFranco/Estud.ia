@@ -4,7 +4,12 @@ from typing import List
 
 from ..database import get_db
 from ..schemas.user_schema import UserCreate, UserOut
-from ..crud.user_crud import create_user, get_user, get_user_by_email, get_all_users
+from ..crud.user_crud import (
+    create_user as create_user_crud,
+    get_user,
+    get_user_by_email,
+    get_all_users,
+)
 
 
 # Creamos el router para agrupar estas rutas
@@ -20,8 +25,8 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db_user = get_user_by_email(db, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="El email ya está registrado")
-    
-    return create_user(db=db, user=user)
+
+    return create_user_crud(db=db, user=user)
 
 # RUTA 2: Obtener todos los usuarios (GET)
 @router.get("/", response_model=List[UserOut])
