@@ -1,19 +1,18 @@
-from sqlalchemy.orm import Session  # Importamos la función de hash_password
+from sqlalchemy.orm import Session
 
-from ..schemas.source_schema import SourceCreate
+from ..schemas.notebook_schema import NotebookCreate
 
 from ..models.source_model import Source
 from ..models.notebook_model import Notebook
 
 
-def create_notebook(db: Session, notebook: SourceCreate):
+def create_notebook(db: Session, notebook: NotebookCreate):
     """Crea un nuevo notebook (cuaderno) en la base de datos."""
     db_notebook = Notebook(
         title=notebook.title,
         icon=notebook.icon,
         date=notebook.date,
-        collection_name=notebook.collection_name,
-        users_id=notebook.users_id
+        users_id=notebook.users_id,
     )
 
     db.add(db_notebook)
@@ -49,4 +48,4 @@ def get_all_sources_by_notebook_id(db: Session, notebook_id: int):
 # --- OPERACIONES DE USER ---
 def get_all_notebooks_by_user_id(db: Session, user_id: int):
     """Obtener todos los notebooks (cuadernos) asociados a un usuario específico."""
-    return db.query(Notebook).filter(Notebook.users_id == user_id).first()
+    return db.query(Notebook).filter(Notebook.users_id == user_id).all()
