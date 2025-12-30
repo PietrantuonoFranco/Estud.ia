@@ -9,7 +9,6 @@ class Notebook(Base):
     title = Column(String(45), nullable=False)
     icon = Column(String(45))
     date = Column(Date)
-    collection_name = Column(String(45))
     
     # Clave foránea
     users_id = Column(Integer, ForeignKey("users.id"), nullable=False)
@@ -17,3 +16,7 @@ class Notebook(Base):
     # Relaciones
     owner = relationship("User", back_populates="notebooks")
     sources = relationship("Source", back_populates="notebook")
+    messages = relationship("Message", back_populates="notebook")
+    summaries = relationship("Summary", back_populates="notebook")
+    flashcards = relationship("Flashcard", back_populates="notebook")
+    quizzes = relationship("Quiz", back_populates="notebook")
