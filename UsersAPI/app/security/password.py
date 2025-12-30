@@ -1,7 +1,7 @@
 from passlib.context import CryptContext
 
-# Configuramos el algoritmo bcrypt
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Configuramos el algoritmo argon2 (más seguro y sin limitaciones de bcrypt)
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 def hash_password(password: str) -> str:
     """Convierte la contraseña plana en un hash seguro."""
