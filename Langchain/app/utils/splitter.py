@@ -36,14 +36,3 @@ class Splitter:
             result.append(dict)
         
         return result
-            
-            
-    
-
-
-
-##Ejemplo de uso con PDF
-#ath = "./Langchain/app/bitcoin_es.pdf"
-#plitter = Splitter()
-#hunks = splitter.split_document(file_path = path)
-#rint(chunks[0])##Imprime el contenido del primer chunk
