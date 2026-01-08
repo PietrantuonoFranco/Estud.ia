@@ -1,9 +1,7 @@
 "use client"
 
-import { Scale } from "lucide-react"
 
 import fonts from "../mocks/fonts.json"
-import message from "./components/mocks/message.json"
 
 import Notebook from "@/app/lib/interfaces/Notebook";
 
@@ -22,12 +20,11 @@ export default function ChatPanel({ notebook }: { notebook: Notebook | null }) {
       <div className="flex-1 overflow-y-auto flex-col items-center space-y-2 px-6 py-8">
         <div className="relative mx-auto max-w-3xl space-y-4">
           <div className="flex flex-col items-center gap-6 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--orange-accent)]/20">
-              <Scale className="h-8 w-8 text-[var(--orange-accent)]" />
+            <div className="flex text-4xl h-16 w-16 items-center justify-center rounded-full bg-[var(--hover-bg)]">
+              {notebook?.icon}
             </div>
 
-            <h1 className="text-4xl font-semibold text-foreground">University Guide to Legislation and Civil Law</h1>
-
+            <h1 className="text-4xl font-semibold text-foreground">{notebook?.title}</h1>
             <p className="text-sm text-muted-foreground">
               {fonts.length === 1 
                 ?
@@ -39,7 +36,7 @@ export default function ChatPanel({ notebook }: { notebook: Notebook | null }) {
           </div>
 
           <div className="p-6 space-y-6 text-sm leading-relaxed text-foreground">
-            <LLMMessage message={message.message}/>
+            <LLMMessage message={notebook?.description}/>
             <UserMessage message={`De la legislación de qué país?`}/>
             <LLMMessage message={`De la República Argentina`}/>
           </div>

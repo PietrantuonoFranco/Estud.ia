@@ -2,7 +2,7 @@
 
 import { Pin, ThumbsUp, ThumbsDown, Copy } from "lucide-react"
 
-export default function LLMMessage ({ message }: { message: string }) {
+export default function LLMMessage ({ message }: { message: string | undefined}) {
   return (
     <div className="flex flex-col space-y-2 pr-24">
       <div className="w-fit flex items-center bg-card px-6 py-3 rounded-3xl">
