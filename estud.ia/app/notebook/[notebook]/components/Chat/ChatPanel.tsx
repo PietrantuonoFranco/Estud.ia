@@ -36,9 +36,10 @@ export default function ChatPanel() {
             </p>
           </div>
 
-          <div className="p-6 text-sm leading-relaxed text-foreground">
-            <UserMessage message={`Hola de qué trata el texto?`}/>
+          <div className="p-6 space-y-6 text-sm leading-relaxed text-foreground">
             <LLMMessage message={message.message}/>
+            <UserMessage message={`De la legislación de qué país?`}/>
+            <LLMMessage message={`De la República Argentina`}/>
           </div>
           <MessageInbox />
         </div>
