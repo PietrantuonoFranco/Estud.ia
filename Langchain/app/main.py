@@ -1,16 +1,18 @@
 from fastapi import FastAPI, UploadFile, File, status, Security
-from .utils.embbedings import EmbeddingGenerator
-from .utils.splitter import Splitter
-from .db.milvus import Async_Milvus_Client
-from .utils.reranker import Reranker
-from .utils.graph import create_rag_graph
-from .security import verify_api_key
 import os
 import shutil
 import traceback
 from contextlib import asynccontextmanager
 from pydantic import BaseModel
+import json
 
+from .utils.embbedings import EmbeddingGenerator
+from .utils.splitter import Splitter
+from .db.milvus import Async_Milvus_Client
+from .utils.reranker import Reranker
+from .utils.graph import create_rag_graph
+from .utils.notebook_graph import create_notebook_graph
+from .security import verify_api_key
 
 UPLOAD_DIRECTORY = os.path.join(os.path.dirname(__file__), "uploaded_files")
 os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
@@ -33,12 +35,20 @@ class RAGResponse(BaseModel):
     refinement_attempts: int
 
 
+class NotebookRequest(BaseModel):
+    file: UploadFile
+
+class NotebookResponse(BaseModel):
+    title: str
+    icon: str
+    description: str
+
 ##Inicializacion de objetos 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     
     ##Instancias de objetos (helpers)
-    global splitter, embedding_generator, reranker, rag_graph, client_milvus
+    global splitter, embedding_generator, reranker, client_milvus, rag_graph, notebook_graph
 
     splitter = Splitter()
     embedding_generator = EmbeddingGenerator()
@@ -52,6 +62,11 @@ async def lifespan(app: FastAPI):
         client_milvus=client_milvus
     )
     
+    # Crear grafo Notebook con dependencias locales
+    notebook_graph = create_notebook_graph(
+        embedding_generator=embedding_generator,
+        client_milvus=client_milvus
+    )
     
     yield
     
@@ -68,7 +83,6 @@ async def healthcheck():
 
 @app.post("/upload_document") 
 async def upload_document_app(file: UploadFile, api_key: str = Security(verify_api_key)):
-    
     try:
         # Validar que sea un PDF
         if not file.filename.endswith('.pdf'):
@@ -161,4 +175,63 @@ async def rag_endpoint(request: RAGRequest, api_key: str = Security(verify_api_k
             "context": "",
             "is_valid": False,
             "refinement_attempts": 0
+        }
+    
+
+@app.post("/create-notebook", response_model=NotebookResponse)
+async def create_notebook(request: NotebookRequest, api_key: str = Security(verify_api_key)):
+    """
+    Endpoint para crear la información básica de un notebook en base a un pdf
+    """
+    try:
+        if not request.file.filename.endswith('.pdf'):
+            return {"error": "Only PDF files are allowed"}
+        
+        # Guardar temporalmente el archivo
+        file_path = os.path.join(UPLOAD_DIRECTORY, request.file.filename)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(request.file.file, buffer)
+        
+        try:
+            # Procesar el documento
+            text_chunks = splitter.split_document(file_path=file_path)
+            texts = [chunk['text'] for chunk in text_chunks]
+            
+            vector_chunks = await embedding_generator.get_document_embedding(text=texts)
+            
+            formatted_data = embedding_generator.format_database(text_chunks=text_chunks, vector_chunks=vector_chunks)
+            
+            await client_milvus.upload_document(data=formatted_data, collection_name="documents_collection")
+            
+            # return {"status": "success", "message": f"Document {request.file.filename} uploaded successfully", "chunks": len(texts)}
+        
+            # Generar título e ícono (placeholder logic)
+            initial_state = {
+                "pdf_id": request.file.filename,
+                "context": "",
+                "generation": "",
+                "is_valid": False
+            }
+
+            result = await notebook_graph.invoke(initial_state)
+
+            result_json = json.loads(result)
+            
+            return NotebookResponse(
+                title=result_json.title,
+                icon=result_json.icon,
+                description=result_json.description
+            )
+
+            
+        finally:
+            # Limpiar archivo temporal después de procesar
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        
+    except Exception as e:
+        traceback.print_exc()
+        return {
+            "error": str(e),
+            "message": "An error occurred while creating the notebook."
         }
