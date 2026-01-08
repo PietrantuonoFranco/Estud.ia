@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey
+from sqlalchemy import Column, Integer, String, Date, ForeignKey, Text
 from sqlalchemy.orm import relationship
 
 from ..database import Base
@@ -9,7 +9,7 @@ class Notebook(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(60), nullable=False)
     icon = Column(String(45), nullable=False)
-    description = Column(String(512), nullable=False)
+    description = Column(Text, nullable=False)
     date = Column(Date, nullable=False)
     
     # Clave foránea

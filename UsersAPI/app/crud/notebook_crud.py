@@ -8,6 +8,8 @@ from ..models.notebook_model import Notebook
 
 def create_notebook(db: Session, notebook: NotebookCreate):
     """Crea un nuevo notebook (cuaderno) en la base de datos."""
+    print("Creating notebook with data:", notebook)
+    
     db_notebook = Notebook(
         title=notebook.title,
         icon=notebook.icon,

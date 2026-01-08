@@ -7,7 +7,7 @@ import datetime as date
 from ..config import conf
 from ..database import get_db
 from ..schemas.source_schema import SourceOut
-from ..schemas.notebook_schema import NotebookOut
+from ..schemas.notebook_schema import NotebookOut, NotebookCreate
 from ..security.auth import get_current_user
 from ..crud.notebook_crud import (
     create_notebook as create_notebook_crud,
@@ -61,15 +61,24 @@ async def create_notebook(file: UploadFile, db: Session = Depends(get_db), curre
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error de conexión: {str(e)}")
 
-    # 3. Procesar respuesta como Diccionario
-    notebook_data = response.json()
-    
-    # Asignar valores usando llaves [], no puntos .
-    notebook_data["date"] = date.datetime.now()
-    notebook_data["users_id"] = current_user.id
+    # 3. Procesar respuesta como Diccionario y normalizar longitudes para evitar truncamientos en DB
+    notebook_response = response.json()
 
-    # 4. Crear en base de datos local
-    # Asegúrate que create_notebook_crud acepte un diccionario o los campos necesarios
+    # Enforce column length limits according to model/DB: title(60), icon(45), description(512)
+    title = str(notebook_response.get("title", ""))[:60]
+    icon = str(notebook_response.get("icon", ""))[:45]
+    description = str(notebook_response.get("description", ""))[:512]
+    
+    # 4. Crear objeto NotebookCreate con los datos de Langchain + datos del usuario
+    notebook_data = NotebookCreate(
+        title=title,
+        icon=icon,
+        description=description,
+        date=date.datetime.now().date(),
+        user_id=current_user.id
+    )
+
+    # 5. Crear en base de datos local
     new_notebook = create_notebook_crud(db=db, notebook=notebook_data)
 
     return new_notebook
