@@ -1,7 +1,3 @@
-from .embbedings import EmbeddingGenerator
-from .reranker import Reranker
-from .splitter import Splitter
-from ..db.milvus import Async_Milvus_Client
 from typing import TypedDict, Annotated, Literal
 from langgraph.graph import StateGraph, END
 from langchain_core.prompts import ChatPromptTemplate
@@ -10,6 +6,9 @@ from langchain.chat_models import init_chat_model
 import operator
 import json
 
+from .embbedings import EmbeddingGenerator
+from .reranker import Reranker
+from ..db.milvus import Async_Milvus_Client
 
 ##Clase estado del grafo
 class RAGState(TypedDict):
@@ -33,7 +32,7 @@ class RAGGraph:
         Args:
             embedding_generator: Generador de embeddings para queries
             reranker: Reranker para ordenar resultados
-            get_document_func: Función para obtener documentos de Milvus
+            client_milvus: Cliente asíncrono de Milvus
         """
         self.embedding_generator = embedding_generator
         self.reranker = reranker
@@ -262,7 +261,7 @@ def create_rag_graph(embedding_generator: EmbeddingGenerator, reranker: Reranker
     Args:
         embedding_generator: Generador de embeddings
         reranker: Reranker de resultados
-        get_document_func: Función para obtener documentos de Milvus
+        client_milvus: Cliente asíncrono de Milvus
     """
     rag_graph = RAGGraph(embedding_generator, reranker, client_milvus)
     rag_graph.build()
