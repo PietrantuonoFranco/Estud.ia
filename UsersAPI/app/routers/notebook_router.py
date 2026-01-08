@@ -49,11 +49,15 @@ async def create_notebook(file: UploadFile, db: Session = Depends(get_db), curre
         response = await http_client.post(
             f"{conf.LANGCHAIN_URI}/create-notebook",
             files=files,
+            headers={"X-API-Key": conf.LANGCHAIN_API_KEY},
             timeout=30.0 # Es buena práctica poner un timeout
         )
+
         response.raise_for_status() # Lanza error si la API externa falla
+
     except httpx.HTTPStatusError as e:
         raise HTTPException(status_code=e.response.status_code, detail="Error en servicio externo de Langchain")
+    
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error de conexión: {str(e)}")
 
