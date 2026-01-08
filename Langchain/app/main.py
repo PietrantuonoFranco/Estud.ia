@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, status, Security
+from fastapi import FastAPI, UploadFile, File, status, Security, HTTPException
 import os
 import shutil
 import traceback
@@ -33,10 +33,6 @@ class RAGResponse(BaseModel):
     context: str
     is_valid: bool
     refinement_attempts: int
-
-
-class NotebookRequest(BaseModel):
-    file: UploadFile
 
 class NotebookResponse(BaseModel):
     title: str
@@ -100,7 +96,7 @@ async def upload_document_app(file: UploadFile, api_key: str = Security(verify_a
             
             vector_chunks = await embedding_generator.get_document_embedding(text=texts)
             
-            formatted_data = embedding_generator.format_database(text_chunks=text_chunks, vector_chunks=vector_chunks)
+            formatted_data = embedding_generator.format_database(text_chunks=text_chunks, vector_chunks=vector_chunks, pdf_id=file.filename)
             
             await client_milvus.upload_document(data=formatted_data, collection_name="documents_collection")
             
@@ -179,48 +175,56 @@ async def rag_endpoint(request: RAGRequest, api_key: str = Security(verify_api_k
     
 
 @app.post("/create-notebook", response_model=NotebookResponse)
-async def create_notebook(request: NotebookRequest, api_key: str = Security(verify_api_key)):
+async def create_notebook(file: UploadFile, api_key: str = Security(verify_api_key)):
     """
     Endpoint para crear la información básica de un notebook en base a un pdf
     """
     try:
-        if not request.file.filename.endswith('.pdf'):
+        if not file.filename.endswith('.pdf'):
             return {"error": "Only PDF files are allowed"}
         
         # Guardar temporalmente el archivo
-        file_path = os.path.join(UPLOAD_DIRECTORY, request.file.filename)
+        file_path = os.path.join(UPLOAD_DIRECTORY, file.filename)
         with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(request.file.file, buffer)
+            shutil.copyfileobj(file.file, buffer)
         
         try:
             # Procesar el documento
             text_chunks = splitter.split_document(file_path=file_path)
+
             texts = [chunk['text'] for chunk in text_chunks]
             
             vector_chunks = await embedding_generator.get_document_embedding(text=texts)
             
-            formatted_data = embedding_generator.format_database(text_chunks=text_chunks, vector_chunks=vector_chunks)
+            formatted_data = embedding_generator.format_database(text_chunks=text_chunks, vector_chunks=vector_chunks, pdf_id=file.filename)
             
             await client_milvus.upload_document(data=formatted_data, collection_name="documents_collection")
-            
-            # return {"status": "success", "message": f"Document {request.file.filename} uploaded successfully", "chunks": len(texts)}
         
             # Generar título e ícono (placeholder logic)
             initial_state = {
-                "pdf_id": request.file.filename,
+                "pdf_id": file.filename,
                 "context": "",
-                "generation": "",
-                "is_valid": False
+                "generation": ""
             }
 
             result = await notebook_graph.invoke(initial_state)
 
-            result_json = json.loads(result)
+            # Limpiar la respuesta de bloques de código markdown si existen
+            generation_text = result["generation"].strip()
+            if generation_text.startswith("```json"):
+                generation_text = generation_text[7:]  # Remover ```json
+            if generation_text.startswith("```"):
+                generation_text = generation_text[3:]  # Remover ```
+            if generation_text.endswith("```"):
+                generation_text = generation_text[:-3]  # Remover ```
+            generation_text = generation_text.strip()
+            
+            result_json = json.loads(generation_text)
             
             return NotebookResponse(
-                title=result_json.title,
-                icon=result_json.icon,
-                description=result_json.description
+                title=result_json["title"],
+                icon=result_json["icon"],
+                description=result_json["description"]
             )
 
             
@@ -231,7 +235,7 @@ async def create_notebook(request: NotebookRequest, api_key: str = Security(veri
         
     except Exception as e:
         traceback.print_exc()
-        return {
-            "error": str(e),
-            "message": "An error occurred while creating the notebook."
-        }
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while creating the notebook: {str(e)}"
+        )

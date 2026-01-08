@@ -15,9 +15,8 @@ class NotebookGraphState(TypedDict):
     pdf_id: str  # ID del PDF subido (puede ser el nombre del archivo o un identificador)
     context: str  # Contexto recuperado del PDF completo
     generation: str  # JSON generado con title, icon y description
-    is_valid: bool  # Si la respuesta es válida según el judge
 
-class NotebookGraph(StateGraph[NotebookGraphState]):
+class NotebookGraph:
     """
     Grafo para la creación de notebooks basado en un PDF
     """
@@ -29,12 +28,6 @@ class NotebookGraph(StateGraph[NotebookGraphState]):
         """
         Inicializa el grafo con los nodos y transiciones necesarias
         """
-        super().__init__(initial_state={
-            "pdf_id": "",
-            "context": "",
-            "generation": "",
-            "is_valid": False
-        })
         self.embedding_generator = embedding_generator
         self.client_milvus = client_milvus
         self.workflow = None
@@ -56,24 +49,27 @@ class NotebookGraph(StateGraph[NotebookGraphState]):
             query_vector = await self.embedding_generator.get_query_embedding(text=generic_query)
             
             # Obtener documentos de Milvus (se puede filtrar por pdf_id si está disponible)
-            filter_expr = f'pdf_id == "{state["pdf_id"]}".strip()' if state.get("pdf_id") else ""
+            pdf_id = state.get("pdf_id", "").strip()
+            filter_expr = f'pdf_id == "{pdf_id}"' if pdf_id else ""
             
             results = await self.client_milvus.get_document(
                 query_vector=query_vector, 
                 collection_name="documents_collection", 
-                filter=filter_expr,
-                limit=10  # Obtener más fragmentos para mejor contexto
+                filter=filter_expr
             )
             
             # Concatenar todos los resultados para tener contexto completo
-            if isinstance(results, list):
+            if isinstance(results, list) and len(results) > 0:
                 context = "\n\n".join([str(doc) for doc in results])
+            elif isinstance(results, list) and len(results) == 0:
+                context = ""
+                print(f"   [RETRIEVE] No se encontraron documentos para pdf_id: '{pdf_id}'")
             else:
-                context = str(results)
+                context = str(results) if results else ""
             
         except Exception as e:
-            context = f"Error al recuperar contexto: {str(e)}"
-            print(f"   Error: {str(e)}")
+            context = ""
+            print(f"   [RETRIEVE] Error: {str(e)}")
         
         return {
             **state,
@@ -86,12 +82,22 @@ class NotebookGraph(StateGraph[NotebookGraphState]):
         """
         print("\n  [GENERATE] Generando metadatos del notebook...")
         
+        # Validar que haya contexto disponible
+        context = state.get("context", "").strip()
+        print(f"\n  [GENERATE] Longitud del contexto: {len(context)} caracteres")
+        
+        if not context:
+            error_json = '{"message": "No puedo realizar la acción con la información provista."}'
+            print(f"\n  [GENERATE] Error: No se encontró contexto para el PDF")
+            return {
+                **state,
+                "generation": error_json
+            }
+        
         model = init_chat_model("google_genai:gemini-2.5-flash-lite")
         
         generator_prompt = ChatPromptTemplate.from_messages([
-            (
-                "system", 
-                """Eres un agente especializado en analizar documentos PDF y generar metadatos para notebooks automáticamente.
+            ("user", """Eres un agente especializado en analizar documentos PDF y generar metadatos para notebooks automáticamente.
 
 Tu tarea es analizar el contenido del documento y generar ÚNICAMENTE un JSON válido con los siguientes campos:
 - title: Título conciso que refleje el contenido principal del documento (máximo 60 caracteres)
@@ -113,8 +119,10 @@ Responde únicamente con el JSON:""")
         
         generator_chain = generator_prompt | model | StrOutputParser()
         
+        print(f"\n  [GENERATE] Invocando modelo con contexto de {len(context)} caracteres")
+        
         generation = await generator_chain.ainvoke({
-            "context": state["context"]
+            "context": context
         })
         
         print(f"\n  [GENERATE] Resultado: {generation[:200]}...")
@@ -123,6 +131,36 @@ Responde únicamente con el JSON:""")
             **state,
             "generation": generation
         }
+
+    def build(self):
+        """
+        Construye y compila el grafo
+        """
+        self.workflow = StateGraph(NotebookGraphState)
+        
+        # Agregar nodos (ahora son métodos de la clase)
+        self.workflow.add_node("retrieve", self.retrieve_context)
+        self.workflow.add_node("generate", self.generate_notebook)
+        
+        # Definir flujo
+        self.workflow.set_entry_point("retrieve")
+        self.workflow.add_edge("retrieve", "generate")
+        self.workflow.add_edge("generate", END)
+
+        
+        # Compilar
+        self.app = self.workflow.compile()
+        
+        return self.app
+    
+    async def invoke(self, initial_state: NotebookGraphState):
+        """
+        Invoca el grafo con un estado inicial
+        """
+        if self.app is None:
+            self.build()
+        
+        return await self.app.ainvoke(initial_state)
 
 
 def create_notebook_graph(embedding_generator: EmbeddingGenerator, client_milvus:Async_Milvus_Client):
