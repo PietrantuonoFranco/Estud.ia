@@ -33,6 +33,7 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - ALGORITHM=${ALGORITHM}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+      - LANGCHAIN_URI=${LANGCHAIN_URI}
     ports:
       - 5000:3000
     depends_on:
