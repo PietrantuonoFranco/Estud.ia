@@ -1,13 +1,12 @@
-from pydantic import BaseModel
-from typing import Optional
-from datetime import date
+from pydantic import BaseModel, Field
+from datetime import datetime
 
 # --- SCHEMAS DE NOTEBOOK ---
 
 class NotebookBase(BaseModel):
     title: str
-    icon: Optional[str] = None
-    date: Optional[date] = None
+    icon: str
+    date: datetime = Field(default_factory=datetime.now)
 
 class NotebookCreate(NotebookBase):
     users_id: int
