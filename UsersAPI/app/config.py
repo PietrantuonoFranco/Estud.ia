@@ -19,4 +19,6 @@ class Settings(BaseSettings):
     ALGORITHM: str = Field(..., validation_alias="ALGORITHM")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(..., validation_alias="ACCESS_TOKEN_EXPIRE_MINUTES")
 
+    LANGCHAIN_URI: str = Field(..., validation_alias="LANGCHAIN_URI")
+
 conf = Settings()
