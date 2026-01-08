@@ -9,11 +9,11 @@ class NotebookBase(BaseModel):
     date: datetime = Field(default_factory=datetime.now)
 
 class NotebookCreate(NotebookBase):
-    users_id: int
+    user_id: int
 
 class NotebookOut(NotebookBase):
     id: int
-    users_id: int
+    user_id: int
 
     class Config:
         from_attributes = True

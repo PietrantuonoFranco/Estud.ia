@@ -11,7 +11,7 @@ class Notebook(Base):
     date = Column(Date)
     
     # Clave foránea
-    users_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
 
     # Relaciones
     owner = relationship("User", back_populates="notebooks")
