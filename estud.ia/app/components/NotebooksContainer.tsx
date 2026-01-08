@@ -95,7 +95,7 @@ export default function NotebooksContainer ({ orderBy, viewMode }: NotebooksCont
       const result = await response.json();
       const notebookId = result.id;
 
-      router.push(`/notebooks/${notebookId}`);
+      router.push(`/notebook/${notebookId}`);
     } catch (error) {
       console.error("Error al subir el archivo:", error);
     }

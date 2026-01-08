@@ -2,6 +2,7 @@
 
 import { Check, LayoutGrid, StretchHorizontal, ChevronDown, Plus } from "lucide-react";
 import { useState } from "react"
+import { useRouter } from 'next/navigation';
 
 interface OptionsBannerProps {
   orderBy: "most-recently" | "title";
@@ -12,15 +13,44 @@ interface OptionsBannerProps {
 
 export default function OptionsBanner ({ orderBy, setOrderBy, viewMode, setViewMode }: OptionsBannerProps) {
   const [openOrderByMenu, setOpenOrderByMenu] = useState(false);
+  const router = useRouter();
+  
+  const API_URL = process.env.API_URL || 'http://localhost:5000';
+  
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = event.target.files?.[0];
+      
+      if (!file) {
+        console.error("No se seleccionó ningún archivo");
+        return;
+      }
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    
+      console.log("Subiendo archivo:", file.name);
+
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      const response = await fetch(`${API_URL}/notebooks/`, {
+        method: "POST",
+        body: formData,
+        credentials: 'include', // Enviar cookies
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al subir el archivo");
+      } else {
+        alert("Archivo subido exitosamente");
+      }
+
+      const result = await response.json();
+      const notebookId = result.id;
+
+      router.push(`/notebook/${notebookId}`);
+    } catch (error) {
+      console.error("Error al subir el archivo:", error);
+    }
   };
-
-  const handleSubmit = () => {
-    
-  }
   
   return (
     <div className="w-full flex items-center justify-between">
@@ -77,13 +107,13 @@ export default function OptionsBanner ({ orderBy, setOrderBy, viewMode, setViewM
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="text-sm text-black font-semibold flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-[var(--purple-accent)] to-[var(--sidebar-border)] to-[var(--purple-accent)] hover:bg-gradient-to-br hover:from-[var(--sidebar-border)] to-[var(--purple-accent)]  transition-all duration-300 ease-in-out cursor-pointer">
+      <div className="text-sm text-black font-semibold flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-[var(--purple-accent)] to-[var(--sidebar-border)] to-[var(--purple-accent)] hover:bg-gradient-to-br hover:from-[var(--sidebar-border)] to-[var(--purple-accent)]  transition-all duration-300 ease-in-out cursor-pointer">
         <input type="file" accept="application/pdf" className="hidden" id="file-upload-banner" onChange={handleFileChange} />
         <label htmlFor="file-upload-banner" className="cursor-pointer rounded-full h-full w-full py-3 px-6 flex items-center justify-center gap-2">
           <Plus className="h-4 w-4" strokeWidth={3}/>
           <span className="font-semibold">Crear cuaderno</span>
         </label>
-      </form>
+      </div>
     </div>
   );
 }
