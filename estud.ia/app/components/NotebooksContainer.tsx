@@ -1,19 +1,11 @@
 "use client"
 
 import { MoreVertical, Plus } from "lucide-react";
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useRouter } from 'next/navigation';
+import Link from "next/link";
 
-import notebooksData from "./mocks/notebooksData.json"
-
-interface Notebook {
-  id: number
-  title: string
-  source: string
-  icon: string
-  date: string
-  sourcesCount: number
-}
+import Notebook from "@/app/lib/interfaces/Notebook";
 
 interface NotebooksContainerProps {
   orderBy: "most-recently" | "title";
@@ -26,45 +18,46 @@ export default function NotebooksContainer ({ orderBy, viewMode }: NotebooksCont
 
   const API_URL = process.env.API_URL || 'http://localhost:5000';
 
-  // Función para parsear fechas en español
-  const parseDate = (dateStr: string): Date => {
-    if (dateStr.includes("Hace")) {
-      const days = parseInt(dateStr.match(/\d+/)?.[0] || "0");
-      const date = new Date();
-      date.setDate(date.getDate() - days);
-      return date;
+  // Función para convertir fecha ISO a formato relativo
+  const formatRelativeDate = (dateStr: string): string => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffMonths = Math.floor(diffDays / 30);
+    const diffYears = Math.floor(diffMonths / 12);
+
+    if (diffDays === 0) {
+      return "Hoy";
+    } else if (diffDays === 1) {
+      return "Hace 1 día";
+    } else if (diffDays < 30) {
+      return `Hace ${diffDays} días`;
+    } else if (diffMonths === 1) {
+      return "Hace 1 mes";
+    } else if (diffMonths < 12) {
+      return `Hace ${diffMonths} meses`;
+    } else if (diffYears === 1) {
+      return "Hace 1 año";
+    } else {
+      return `Hace ${diffYears} años`;
     }
-    
-    const months: { [key: string]: number } = {
-      'ene': 0, 'feb': 1, 'mar': 2, 'abr': 3, 'may': 4, 'jun': 5,
-      'jul': 6, 'ago': 7, 'sept': 8, 'oct': 9, 'nov': 10, 'dic': 11
-    };
-    
-    const parts = dateStr.split(' ');
-    if (parts.length === 3) {
-      const day = parseInt(parts[0]);
-      const month = months[parts[1]];
-      const year = parseInt(parts[2]);
-      return new Date(year, month, day);
-    }
-    
-    return new Date();
   };
 
   // Ordenar notebooks según el criterio seleccionado
   const sortedNotebooks = useMemo(() => {
-    const data = [...notebooksData];
+    const data = [...notebooks];
     
     if (orderBy === "title") {
       return data.sort((a, b) => a.title.localeCompare(b.title));
     } else {
       return data.sort((a, b) => {
-        const dateA = parseDate(a.date);
-        const dateB = parseDate(b.date);
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
         return dateB.getTime() - dateA.getTime();
       });
     }
-  }, [orderBy]);
+  }, [orderBy, notebooks]);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -101,6 +94,29 @@ export default function NotebooksContainer ({ orderBy, viewMode }: NotebooksCont
     }
   };
 
+  const fetchUserNotebooks = async () => {
+    try {
+      const response = await fetch(`${API_URL}/notebooks/`, {
+        method: "GET",
+        credentials: 'include', // Enviar cookies
+      });
+      
+      if (!response.ok) {
+        throw new Error("Error al obtener los cuadernos del usuario");
+      }
+
+      const data = await response.json();
+      
+      setNotebooks(data);
+    } catch (error) {
+      console.error("Error al obtener los cuadernos del usuario:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserNotebooks();
+  }, []);
+
   return (
     <>
     <h1 className="text-4xl font-semibold">Tus cuadernos</h1>
@@ -127,7 +143,8 @@ export default function NotebooksContainer ({ orderBy, viewMode }: NotebooksCont
       </div>
 
       {sortedNotebooks.map((notebook, index) => (
-        <div
+        <Link
+          href={`/notebook/${notebook.id}`}
           key={notebook.id}
           className={`
             group relative flex cursor-pointer flex-col rounded-xl p-4 ${
@@ -143,7 +160,11 @@ export default function NotebooksContainer ({ orderBy, viewMode }: NotebooksCont
               ? "justify-between"
               : "gap-4"
           }`}>
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted text-2xl">
+            <div className={`flex items-center justify-center rounded-lg bg-muted text-2xl ${
+              viewMode === "grid" 
+                ? "h-10 w-10"
+                : "h-14 w-14"
+            }`}>
               {notebook.icon}
             </div>
             <button
@@ -160,10 +181,10 @@ export default function NotebooksContainer ({ orderBy, viewMode }: NotebooksCont
           <div>
             <h3 className={`text-lg font-medium text-foreground ${viewMode === "grid" ? "mb-2" : "mb-1"}`}>{notebook.title}</h3>
             <p className="text-sm text-foreground">
-              {notebook.sourcesCount} fuente · {notebook.date}
+              {notebook.sourcesCount = 1} fuente · {formatRelativeDate(notebook.date)}
             </p>
           </div>
-        </div>
+        </Link>
       ))}
     </div>
     </>
