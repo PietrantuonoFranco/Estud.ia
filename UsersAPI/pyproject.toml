@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.127.0",
+    "httpx>=0.28.1",
     "passlib[argon2]>=1.7.4",
     "psycopg2-binary>=2.9.11",
     "pydantic-settings>=2.12.0",
