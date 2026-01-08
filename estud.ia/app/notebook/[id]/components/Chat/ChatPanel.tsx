@@ -1,16 +1,18 @@
 "use client"
 
-import { Scale, ThumbsUp, ThumbsDown, Copy, Send } from "lucide-react"
+import { Scale } from "lucide-react"
 
 import fonts from "../mocks/fonts.json"
 import message from "./components/mocks/message.json"
+
+import Notebook from "@/app/lib/interfaces/Notebook";
 
 import MessageInbox from "./components/MessageInbox"
 import LLMMessage from "./components/LLMMessage"
 import UserMessage from "./components/UserMessage"
 
 
-export default function ChatPanel() {
+export default function ChatPanel({ notebook }: { notebook: Notebook | null }) {
   return (
     <div className="flex flex-1 flex-col bg-background">
       <div className="flex items-center justify-between border-b border-border px-6 py-4.5">

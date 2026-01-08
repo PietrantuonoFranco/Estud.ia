@@ -10,6 +10,8 @@ import {
   StickyNote
 } from "lucide-react"
 
+import Notebook from "@/app/lib/interfaces/Notebook";
+
 const studioTools = [
   { icon: FileText, label: "Resumen", color: "orange" },
   { icon: BookOpen, label: "Tarjetas didácticas", color: "green" },
@@ -22,7 +24,7 @@ const recentItems = [
   { type: "flashcards", title: "Derecho Fichas", sources: 1, time: "Hace 14 d" },
 ]
 
-export default function StudioPanel() {
+export default function StudioPanel({ notebook }: { notebook: Notebook | null }) {
   const [openPanel, setOpenPanel] = useState(true);
 
   return (

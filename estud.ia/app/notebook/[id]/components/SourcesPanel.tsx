@@ -4,11 +4,13 @@ import { Plus, FileText, Check, PanelLeft } from "lucide-react";
 import fonts from "./mocks/fonts.json";
 import { useState } from "react";
 
+import Notebook from "@/app/lib/interfaces/Notebook";
+
 interface Font  {
   name: string
 }
 
-export default function SourcesPanel() {
+export default function SourcesPanel({ notebook }: { notebook: Notebook | null }) {
   const [openPanel, setOpenPanel] = useState(true);
   const [selectedFonts, setSelectedFonts] = useState<Font[]>([]);
 
