@@ -11,6 +11,7 @@ def create_notebook(db: Session, notebook: NotebookCreate):
     db_notebook = Notebook(
         title=notebook.title,
         icon=notebook.icon,
+        description=notebook.description,
         date=notebook.date,
         user_id=notebook.user_id,
     )
