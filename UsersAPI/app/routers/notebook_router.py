@@ -40,14 +40,33 @@ async def shutdown_event():
 async def create_notebook(file: UploadFile, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para crear un nuevo notebook."""
 
-    response = await http_client.get(conf.LANGCHAIN_URI + "/create_notebook/", params={"file_name": file})
+    # Leer el contenido del archivo
+    file_content = await file.read()
+    
+    files = {'file': (file.filename, file_content, file.content_type)}
 
-    notebook_metadata = response.json()
-    notebook_metadata.date = date.datetime.now()
+    try:
+        response = await http_client.post(
+            f"{conf.LANGCHAIN_URI}/create-notebook",
+            files=files,
+            timeout=30.0 # Es buena práctica poner un timeout
+        )
+        response.raise_for_status() # Lanza error si la API externa falla
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail="Error en servicio externo de Langchain")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error de conexión: {str(e)}")
 
-    notebook_metadata.users_id = current_user.id
+    # 3. Procesar respuesta como Diccionario
+    notebook_data = response.json()
+    
+    # Asignar valores usando llaves [], no puntos .
+    notebook_data["date"] = date.datetime.now()
+    notebook_data["users_id"] = current_user.id
 
-    new_notebook = create_notebook_crud(db=db, notebook=notebook_metadata)
+    # 4. Crear en base de datos local
+    # Asegúrate que create_notebook_crud acepte un diccionario o los campos necesarios
+    new_notebook = create_notebook_crud(db=db, notebook=notebook_data)
 
     return new_notebook
 

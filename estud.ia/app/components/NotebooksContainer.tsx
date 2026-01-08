@@ -2,6 +2,7 @@
 
 import { MoreVertical, Plus } from "lucide-react";
 import { useState, useMemo } from "react"
+import { useRouter } from 'next/navigation';
 
 import notebooksData from "./mocks/notebooksData.json"
 
@@ -21,6 +22,9 @@ interface NotebooksContainerProps {
 
 export default function NotebooksContainer ({ orderBy, viewMode }: NotebooksContainerProps) {
   const [notebooks, setNotebooks] = useState<Notebook[]>([]);
+  const router = useRouter();
+
+  const API_URL = process.env.API_URL || 'http://localhost:5000';
 
   // Función para parsear fechas en español
   const parseDate = (dateStr: string): Date => {
@@ -62,13 +66,39 @@ export default function NotebooksContainer ({ orderBy, viewMode }: NotebooksCont
     }
   }, [orderBy]);
 
-  const handleSubmit = () => {
-    
-  }
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = event.target.files?.[0];
+      
+      if (!file) {
+        console.error("No se seleccionó ningún archivo");
+        return;
+      }
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    
+      console.log("Subiendo archivo:", file.name);
+
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      const response = await fetch(`${API_URL}/notebooks/`, {
+        method: "POST",
+        body: formData,
+        credentials: 'include', // Enviar cookies
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al subir el archivo");
+      } else {
+        alert("Archivo subido exitosamente");
+      }
+
+      const result = await response.json();
+      const notebookId = result.id;
+
+      router.push(`/notebooks/${notebookId}`);
+    } catch (error) {
+      console.error("Error al subir el archivo:", error);
+    }
   };
 
   return (
@@ -80,7 +110,7 @@ export default function NotebooksContainer ({ orderBy, viewMode }: NotebooksCont
           : "flex flex-col gap-4"
       }`}
     >
-      <form onSubmit={handleSubmit} className={`group cursor-pointer w-full space-y-2 flex justify-center items-center border-2 border-dashed border-border rounded-xl hover:bg-card transition-colors duration-300 p-6 ${
+      <div className={`group cursor-pointer w-full space-y-2 flex justify-center items-center border-2 border-dashed border-border rounded-xl hover:bg-card transition-colors duration-300 p-6 ${
         viewMode === "grid" 
           ? "h-48 "
           : "hidden"
@@ -94,7 +124,7 @@ export default function NotebooksContainer ({ orderBy, viewMode }: NotebooksCont
           </div>
           <h3 className="mb-2 text-lg font-medium text-foreground">Crear cuaderno</h3>
         </label>
-      </form>
+      </div>
 
       {sortedNotebooks.map((notebook, index) => (
         <div
