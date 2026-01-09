@@ -1,10 +1,10 @@
 import React from "react";
 
-import Message from "@/app/lib/interfaces/Message";
-import Notebook from "@/app/lib/interfaces/Notebook";
-import Summary from "@/app/lib/interfaces/Summary";
-import Flashcard from "@/app/lib/interfaces/Flashcard";
-import Quiz from "@/app/lib/interfaces/Quiz";
+import Message from "@/app/lib/interfaces/entities/Message";
+import Notebook from "@/app/lib/interfaces/entities/Notebook";
+import Summary from "@/app/lib/interfaces/entities/Summary";
+import Flashcard from "@/app/lib/interfaces/entities/Flashcard";
+import Quiz from "@/app/lib/interfaces/entities/Quiz";
 
 export default interface ChatInformationContextType {
   notebook: Notebook | null;
