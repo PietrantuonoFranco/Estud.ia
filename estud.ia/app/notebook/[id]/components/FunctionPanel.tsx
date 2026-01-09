@@ -10,7 +10,7 @@ import {
   StickyNote
 } from "lucide-react"
 
-import Notebook from "@/app/lib/interfaces/Notebook";
+import { useChatInformationContext } from "../contexts/ChatInformationContext";
 
 const studioTools = [
   { icon: FileText, label: "Resumen", color: "orange" },
@@ -24,7 +24,9 @@ const recentItems = [
   { type: "flashcards", title: "Derecho Fichas", sources: 1, time: "Hace 14 d" },
 ]
 
-export default function StudioPanel({ notebook }: { notebook: Notebook | null }) {
+export default function StudioPanel() {
+  const { notebook } = useChatInformationContext();
+  
   const [openPanel, setOpenPanel] = useState(true);
 
   return (

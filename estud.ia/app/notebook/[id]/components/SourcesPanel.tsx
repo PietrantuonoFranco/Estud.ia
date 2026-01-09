@@ -4,15 +4,17 @@ import { Plus, FileText, Check, PanelLeft } from "lucide-react";
 import fonts from "./mocks/fonts.json";
 import { useState } from "react";
 
-import Notebook from "@/app/lib/interfaces/Notebook";
+import { useChatInformationContext } from "../contexts/ChatInformationContext";
 
 interface Font  {
   name: string
 }
 
-export default function SourcesPanel({ notebook }: { notebook: Notebook | null }) {
+export default function SourcesPanel() {
   const [openPanel, setOpenPanel] = useState(true);
   const [selectedFonts, setSelectedFonts] = useState<Font[]>([]);
+
+  const { notebook } = useChatInformationContext();
 
   const selectFont = (font: Font) => {
     if (selectedFonts.includes(font)) {

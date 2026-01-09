@@ -3,14 +3,15 @@
 
 import fonts from "../mocks/fonts.json"
 
-import Notebook from "@/app/lib/interfaces/Notebook";
-
 import MessageInbox from "./components/MessageInbox"
 import LLMMessage from "./components/LLMMessage"
 import UserMessage from "./components/UserMessage"
 
+import { useChatInformationContext } from "../../contexts/ChatInformationContext";
 
-export default function ChatPanel({ notebook }: { notebook: Notebook | null }) {
+export default function ChatPanel() {
+  const { notebook } = useChatInformationContext();
+
   return (
     <div className="flex flex-1 flex-col bg-background">
       <div className="flex items-center justify-between border-b border-border px-6 py-4.5">
