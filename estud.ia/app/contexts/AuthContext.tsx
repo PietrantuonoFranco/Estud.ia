@@ -3,23 +3,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  lastname: string;
-  created_at: string;
-}
-
-interface AuthContextType {
-  user: User | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string, lastname: string) => Promise<void>;
-  logout: () => Promise<void>;
-  checkAuth: () => Promise<void>;
-}
+import User from '@/app/lib/interfaces/entities/User';
+import AuthContextType from '@/app/lib/interfaces/contexts/AuthContextType';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
