@@ -2,12 +2,35 @@
 
 import { Pin, ThumbsUp, ThumbsDown, Copy } from "lucide-react"
 
+const extractResponse = (message: string | undefined): string => {
+  if (!message) return "";
+  
+  // Buscar el patrón de respuesta entre "**Respuesta:**" y "2. **Justificación"
+  const responseMatch = message.match(/\*\*Respuesta:\*\*\s*(.+?)(?=\s*2\.\s*\*\*Justificación|$)/s);
+  
+  if (responseMatch && responseMatch[1]) {
+    return responseMatch[1].trim();
+  }
+  
+  // Si no encuentra el patrón, devuelve el mensaje original sin etiquetas
+  return message.replace(/^<|>$/g, "").trim();
+};
+
 export default function LLMMessage ({ message }: { message: string | undefined}) {
+
+  const response = extractResponse(message);
+  const formattedMessage = response.replace(/\n/g, '<br/>');
+
   return (
     <div className="flex flex-col space-y-2 pr-24">
       <div className="w-fit flex items-center bg-card px-6 py-3 rounded-3xl">
         <p>
-          {message}
+          {formattedMessage ? (
+            <span
+              className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: formattedMessage }} />
+          ) : (
+            <></>
+          )}
         </p>
       </div>
 
