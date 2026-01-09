@@ -4,10 +4,10 @@ from ..database import Base
 
 
 class Quiz(Base):
-    __tablename__ = "quiz"
+    __tablename__ = "quizzes"
 
     id = Column(Integer, primary_key=True, index=True)
-    notebook_id = Column(Integer, ForeignKey("notebook.id"), nullable=False)
+    notebook_id = Column(Integer, ForeignKey("notebooks.id"), nullable=False)
     notebook_users_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     notebook = relationship("Notebook", back_populates="quizzes")

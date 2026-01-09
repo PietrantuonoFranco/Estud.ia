@@ -9,7 +9,7 @@ class Source(Base):
     pdf_file = Column(LargeBinary) # Para el tipo BLOB del diagrama
     
     # Claves foráneas
-    notebook_id = Column(Integer, ForeignKey("notebook.id"), nullable=False)
+    notebook_id = Column(Integer, ForeignKey("notebooks.id"), nullable=False)
 
     # Relación
     notebook = relationship("Notebook", back_populates="sources")

@@ -9,7 +9,7 @@ class Flashcard(Base):
     id = Column(Integer, primary_key=True, index=True)
     question = Column(String(255), nullable=False)
     answer = Column(String(255), nullable=False)
-    notebook_id = Column(Integer, ForeignKey("notebook.id"), nullable=False)
+    notebook_id = Column(Integer, ForeignKey("notebooks.id"), nullable=False)
     notebook_users_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     notebook = relationship("Notebook", back_populates="flashcards")

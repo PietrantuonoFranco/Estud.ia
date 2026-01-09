@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 from ..database import Base
 
 class Notebook(Base):
-    __tablename__ = "notebook"
+    __tablename__ = "notebooks"
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(60), nullable=False)

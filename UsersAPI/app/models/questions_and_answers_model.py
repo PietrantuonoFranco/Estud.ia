@@ -12,6 +12,6 @@ class QuestionsAndAnswers(Base):
     incorrect_answer_1 = Column(String(255), nullable=False)
     incorrect_answer_2 = Column(String(255), nullable=False)
     incorrect_answer_3 = Column(String(255), nullable=False)
-    quiz_id = Column(Integer, ForeignKey("quiz.id"), nullable=False)
+    quiz_id = Column(Integer, ForeignKey("quizzes.id"), nullable=False)
 
     quiz = relationship("Quiz", back_populates="questions")
