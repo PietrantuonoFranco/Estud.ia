@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useContext, useEffect } from "react"
+import React, { useState, useContext, useEffect, useRef } from "react"
 import { useParams } from "next/navigation";
 
 import ChatInformationContextType from "@/app/lib/interfaces/contexts/ChatInformationContextType";
@@ -35,6 +35,7 @@ export function ChatInformationProvider({ children }: { children: React.ReactNod
   
 
   const API_URL = process.env.API_URL || 'http://localhost:5000';
+  const isSending = useRef(false);
   
     useEffect(() => {
       if (id) {
@@ -47,8 +48,9 @@ export function ChatInformationProvider({ children }: { children: React.ReactNod
               throw new Error('Failed to fetch notebook');
             }
         
-            const data: Notebook = await response.json();
+            const data: Notebook & { messages?: Message[] } = await response.json();
               setNotebook(data);
+              setMessages(data.messages ?? []);
             } catch (error) {
               console.error(error);
           }
@@ -57,6 +59,73 @@ export function ChatInformationProvider({ children }: { children: React.ReactNod
           fetchNotebook();
       }
     }, [id]);
+
+    useEffect(() => {
+      if (!notebook || messages.length === 0) return;
+    
+      const last = messages[messages.length - 1];
+      if (!last.is_user_message || isSending.current) return;
+
+      // Si el mensaje tiene un ID temporal (Date.now()), aún no ha sido creado en la BD
+      const isOptimistic = typeof last.id === 'number' && last.id > 1000000000000;
+      if (!isOptimistic) return;
+
+      const controller = new AbortController();
+      isSending.current = true;
+    
+      const send = async () => {
+        try {
+          // 1. Create the user message in the DB
+          const userMessageRes = await fetch(`${API_URL}/messages/user`, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              text: last.text,
+              notebook_id: notebook.id,
+            }),
+            signal: controller.signal,
+          });
+    
+          if (!userMessageRes.ok) throw new Error("Could not create user message");
+    
+          const userMessageData = await userMessageRes.json();
+          const createdUserMessage = userMessageData;
+
+          // Replace the optimistic message with the one from the server
+          setMessages((prev) => 
+            prev.map((msg) => msg.id === last.id ? createdUserMessage : msg)
+          );
+
+          // 2. Now send the request to the LLM
+          const llmRes = await fetch(`${API_URL}/messages/llm`, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              text: last.text,
+              notebook_id: notebook.id,
+            }),
+            signal: controller.signal,
+          });
+    
+          if (!llmRes.ok) throw new Error("Could not get LLM response");
+    
+          const llmData = await llmRes.json();
+          setMessages((prev) => [...prev, llmData]);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          isSending.current = false;
+        }
+      };
+    
+      send();
+      return () => {
+        controller.abort();
+        isSending.current = false;
+      };
+    }, [messages, notebook, API_URL, setMessages]);
 
   return (
     <ChatInformationContext.Provider

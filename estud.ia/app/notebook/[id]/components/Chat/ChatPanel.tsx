@@ -10,7 +10,7 @@ import UserMessage from "./components/UserMessage"
 import { useChatInformationContext } from "../../contexts/ChatInformationContext";
 
 export default function ChatPanel() {
-  const { notebook } = useChatInformationContext();
+  const { notebook, messages } = useChatInformationContext();
 
   return (
     <div className="flex flex-1 flex-col bg-background">
@@ -38,8 +38,13 @@ export default function ChatPanel() {
 
           <div className="p-6 space-y-6 text-sm leading-relaxed text-foreground">
             <LLMMessage message={notebook?.description}/>
-            <UserMessage message={`De la legislación de qué país?`}/>
-            <LLMMessage message={`De la República Argentina`}/>
+
+            {messages?.map((message, index) => (
+              message.is_user_message ? 
+                <UserMessage key={index} message={message.text} />
+              :
+                <LLMMessage key={index} message={message.text} />
+            ))}
           </div>
           <MessageInbox />
         </div>
