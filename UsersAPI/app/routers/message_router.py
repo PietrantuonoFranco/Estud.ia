@@ -1,9 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
+import httpx
+from pydantic import BaseModel
 
+from ..config import conf
 from ..database import get_db
 from ..schemas.message_schema import MessageCreate, MessageOut
+from ..security.auth import get_current_user
 from ..crud.message_crud import (
     create_message,
     get_all_messages,
@@ -13,46 +17,118 @@ from ..crud.message_crud import (
     get_messages_by_user,
 )
 
+class MessageRequest(BaseModel):
+    text: str
+    notebook_id: int
+
 router = APIRouter(prefix="/messages", tags=["messages"])
+http_client = httpx.AsyncClient()
+
+@router.on_event("startup")
+async def startup_event():
+    pass
+
+@router.on_event("shutdown")
+async def shutdown_event():
+    await http_client.aclose()
 
 
 @router.post("/", response_model=MessageOut, status_code=status.HTTP_201_CREATED)
-def create_message_endpoint(message: MessageCreate, db: Session = Depends(get_db)):
+async def create_message_endpoint(message: MessageCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    """Método para crear un nuevo mensaje."""
+    return create_message(db=db, message=message)
+
+@router.post("/user", response_model=MessageOut, status_code=status.HTTP_201_CREATED)
+async def create_user_message(message: MessageRequest, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    """Método para crear un mensaje enviado por el usuario."""
+    message_data = message.dict()
+    message_data['is_user_message'] = True
+    message_data['text'] = message.text
+    message_data['notebook_id'] = message.notebook_id
+    message_data['notebook_users_id'] = current_user.id
+
+    message = MessageCreate(**message_data)
+    return create_message(db=db, message=message)
+
+@router.post("/llm", response_model=MessageOut, status_code=status.HTTP_201_CREATED)
+async def create_llm_message(message: MessageRequest
+, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    """Método para crear un mensaje generado por el LLM basado en la entrada del usuario."""
+    message_data = message.dict()
+    message_data['is_user_message'] = False
+    message_data['text'] = message.text
+    message_data['notebook_id'] = message.notebook_id
+    message_data['notebook_users_id'] = current_user.id
+    
+    try:
+        response = await http_client.post(
+            f"{conf.LANGCHAIN_URI}/chat/rag",
+            json={"question": message.text},
+            headers={"X-API-Key": conf.LANGCHAIN_API_KEY},
+            timeout=30.0
+        )
+
+        response.raise_for_status()
+
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail="Error en servicio externo de Langchain")
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error de conexión: {str(e)}")
+
+    message_response_data = response.json()
+    message_data['text'] = message_response_data.get('generation', '')
+
+    message = MessageCreate(**message_data)
+    
     return create_message(db=db, message=message)
 
 
 @router.get("/", response_model=List[MessageOut], status_code=status.HTTP_200_OK)
-def read_messages(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+async def read_messages(skip: int = 0, limit: int = 10, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    """Método para obtener todos los mensajes con paginación."""
     return get_all_messages(db, skip=skip, limit=limit)
 
 
 @router.get("/{message_id}", response_model=MessageOut, status_code=status.HTTP_200_OK)
-def read_message(message_id: int, db: Session = Depends(get_db)):
+async def read_message(message_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    """Método para obtener un mensaje por su ID."""
     message = get_message(db, message_id=message_id)
+    
     if not message:
-        raise HTTPException(status_code=404, detail="Mensaje no encontrado")
+        raise HTTPException(status_code=404, detail="Message not found")
+    
     return message
 
 
 @router.delete("/{message_id}", response_model=MessageOut, status_code=status.HTTP_200_OK)
-def delete_message_endpoint(message_id: int, db: Session = Depends(get_db)):
+async def delete_message_endpoint(message_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    """Método para eliminar un mensaje por su ID."""
     message = get_message(db, message_id=message_id)
+    
     if not message:
-        raise HTTPException(status_code=404, detail="Mensaje no encontrado")
-    return delete_message(db, message_id=message_id)
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    return await delete_message(db, message_id=message_id)
 
 
 @router.get("/notebook/{notebook_id}", response_model=List[MessageOut], status_code=status.HTTP_200_OK)
-def read_messages_by_notebook(notebook_id: int, db: Session = Depends(get_db)):
+async def read_messages_by_notebook(notebook_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    """Método para obtener todos los mensajes de un notebook específico."""
     messages = get_messages_by_notebook(db, notebook_id=notebook_id)
+    
     if not messages:
-        raise HTTPException(status_code=404, detail="No se encontraron mensajes para este notebook")
+        raise HTTPException(status_code=404, detail="Notebook messages not found")
+    
     return messages
 
 
-@router.get("/user/{user_id}", response_model=List[MessageOut], status_code=status.HTTP_200_OK)
-def read_messages_by_user(user_id: int, db: Session = Depends(get_db)):
-    messages = get_messages_by_user(db, user_id=user_id)
+@router.get("/user/", response_model=List[MessageOut], status_code=status.HTTP_200_OK)
+async def read_messages_by_user(user_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    """Método para obtener todos los mensajes de un usuario específico."""
+    messages = get_messages_by_user(db, user_id=current_user.id)
+    
     if not messages:
-        raise HTTPException(status_code=404, detail="No se encontraron mensajes para este usuario")
+        raise HTTPException(status_code=404, detail="User messages not found")
+    
     return messages
