@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from "react"
 import { useRouter } from 'next/navigation';
 import Link from "next/link";
 
-import Notebook from "@/app/lib/interfaces/Notebook";
+import Notebook from "@/app/lib/interfaces/entities/Notebook";
 
 interface NotebooksContainerProps {
   orderBy: "most-recently" | "title";
