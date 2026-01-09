@@ -9,6 +9,8 @@ def create_message(db: Session, message: MessageCreate):
     db.add(db_message)
     db.commit()
     db.refresh(db_message)
+    # Asegurar que el objeto tenga todos los atributos antes de retornar
+    db.expunge(db_message)
     return db_message
 
 

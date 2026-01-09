@@ -122,7 +122,8 @@ export function ChatInformationProvider({ children }: { children: React.ReactNod
     
       send();
       return () => {
-        controller.abort();
+        // Evitar abortar la petición del LLM por cambios en el estado.
+        // Mantener la petición en curso hasta completar o desmontar el componente.
         isSending.current = false;
       };
     }, [messages, notebook, API_URL, setMessages]);

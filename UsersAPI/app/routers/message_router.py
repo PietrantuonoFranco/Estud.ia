@@ -65,7 +65,7 @@ async def create_llm_message(message: MessageRequest
             f"{conf.LANGCHAIN_URI}/chat/rag",
             json={"question": message.text},
             headers={"X-API-Key": conf.LANGCHAIN_API_KEY},
-            timeout=30.0
+            timeout=60.0
         )
 
         response.raise_for_status()
