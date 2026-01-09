@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from ..schemas.notebook_schema import NotebookCreate
 
@@ -30,7 +30,12 @@ def get_all_notebooks(db: Session, skip: int = 0, limit: int = 10):
 
 def get_notebook(db: Session, notebook_id: int):
     """Obtener un notebook (cuaderno) por su ID."""
-    return db.query(Notebook).filter(Notebook.id == notebook_id).first()
+    return (
+        db.query(Notebook)
+        .options(selectinload(Notebook.messages))
+        .filter(Notebook.id == notebook_id)
+        .first()
+    )
 
 def delete_notebook(db: Session, notebook_id: int):
     """Eliminar un notebook (cuaderno) por su ID."""

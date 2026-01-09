@@ -1,5 +1,8 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
+from typing import List
+
+from .message_schema import MessageOut
 
 # --- SCHEMAS DE NOTEBOOK ---
 
@@ -15,6 +18,7 @@ class NotebookCreate(NotebookBase):
 class NotebookOut(NotebookBase):
     id: int
     user_id: int
+    messages: List[MessageOut] = []
 
     class Config:
         from_attributes = True

@@ -28,7 +28,6 @@ http_client = httpx.AsyncClient()
 
 @router.on_event("startup")
 async def startup_event():
-    # El cliente se puede configurar aquí (timeouts, headers, etc.)
     pass
 
 @router.on_event("shutdown")
