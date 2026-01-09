@@ -102,7 +102,7 @@ class NotebookGraph:
 Tu tarea es analizar el contenido del documento y generar ÚNICAMENTE un JSON válido con los siguientes campos:
 - title: Título conciso que refleje el contenido principal del documento (máximo 60 caracteres)
 - icon: Un emoji representativo del tema del documento
-- description: Descripción clara y concisa del contenido (máximo 512 caracteres)
+- description: Descripción clara y concisa del contenido (máximo 768 caracteres)
 
 Instrucciones obligatorias:
 1. Usa EXCLUSIVAMENTE la información del contexto proporcionado
