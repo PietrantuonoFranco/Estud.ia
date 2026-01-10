@@ -22,6 +22,14 @@ export default function LLMMessage ({ message }: { message: string | undefined})
   const response = extractResponse(message);
   const formattedMessage = response.replace(/\n/g, '<br/>');
 
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(response);
+    } catch (err) {
+      console.error('Error al copiar:', err);
+    }
+  };
+
   return (
     <div className="flex flex-col space-y-2 pr-24">
       <div className="w-fit flex items-center bg-card px-6 py-3 rounded-3xl">
@@ -44,18 +52,24 @@ export default function LLMMessage ({ message }: { message: string | undefined})
         </button>
 
         <button
+          type="button"
+          onClick={handleCopy}
           className="cursor-pointer text-muted-foreground"
         >
           <Copy className="h-4 w-4" />
         </button>
         
         <button
+          type="button"
+          onClick={() => {}}
           className="cursor-pointer text-muted-foreground"
         >
           <ThumbsUp className="h-4 w-4" />
         </button>
         
         <button
+          type="button"
+          onClick={() => {}}
           className="cursor-pointer text-muted-foreground"
         >
           <ThumbsDown className="h-4 w-4" />
