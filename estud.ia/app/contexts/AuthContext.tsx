@@ -61,7 +61,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(error.detail || 'Error al iniciar sesión');
       }
 
-      console.log('Login exitoso', response);
       // Después del login exitoso, obtener datos del usuario
       await checkAuth();
       router.push('/'); // Redirigir a la homepage
