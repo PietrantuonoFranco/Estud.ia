@@ -1,26 +1,23 @@
 "use client"
 
 import { Plus, FileText, Check, PanelLeft } from "lucide-react";
-import fonts from "./mocks/fonts.json";
 import { useState } from "react";
 
 import { useChatInformationContext } from "../contexts/ChatInformationContext";
 
-interface Font  {
-  name: string
-}
+import Source from "@/app/lib/interfaces/entities/Source";
 
 export default function SourcesPanel() {
   const [openPanel, setOpenPanel] = useState(true);
-  const [selectedFonts, setSelectedFonts] = useState<Font[]>([]);
+  const [selectedSources, setSelectedSources] = useState<Source[]>([]);
 
-  const { notebook } = useChatInformationContext();
+  const { sources } = useChatInformationContext();
 
-  const selectFont = (font: Font) => {
-    if (selectedFonts.includes(font)) {
-      setSelectedFonts(selectedFonts.filter(f => f !== font))
+  const selectSource = (source: Source) => {
+    if (selectedSources.includes(source)) {
+      setSelectedSources(selectedSources.filter(f => f !== source))
     } else {
-      setSelectedFonts([...selectedFonts, font])
+      setSelectedSources([...selectedSources, source])
     }
   }
   
@@ -66,33 +63,33 @@ export default function SourcesPanel() {
               
               <button
                 type="button"
-                onClick={() => setSelectedFonts(
-                  selectedFonts.length >= 1 ?
+                onClick={() => setSelectedSources(
+                  selectedSources.length >= 1 ?
                     []
                   :
-                    fonts
+                    sources ?? []
                 )}
                 className={`${ openPanel ? "cursor-pointer h-6 w-6 relative border border-gray-500 rounded-md" : "hidden" }`}
               >
-                {selectedFonts.length === fonts.length && (
+                {selectedSources.length === sources?.length && (
                     <Check className="absolute h-4 w-4 left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 text-[var(--green-accent)]" /> 
                   )}
               </button>
             </div>
 
-            {fonts.map((font, index) => (
+            {sources?.map((source, index) => (
               <div key={index} className={`flex items-center rounded-lg bg-[var(--hover-bg)] text-sm ${ openPanel ? "justify-between px-3 py-2.5" : "justify-center p-3"}`}>
                 <div className="flex items-center">
                   <FileText className="h-4 w-4 text-red-500" />
-                  <span className={`${ openPanel ? "font-medium text-foreground ml-3" : "hidden" }`}>{font.name}</span>
+                  <span className={`${ openPanel ? "font-medium text-foreground ml-3" : "hidden" }`}>{source.name}</span>
                 </div>
 
                 <button
                   type="button"
-                  onClick={() => selectFont(font)}
+                  onClick={() => selectSource(source)}
                   className={`${ openPanel ? "cursor-pointer h-6 w-6 relative border border-gray-500 rounded-md" : "hidden" }`}
                 >
-                  {selectedFonts.includes(font) && (
+                  {selectedSources.includes(source) && (
                     <Check className="absolute h-4 w-4 left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 text-[var(--green-accent)]" /> 
                   )}
                 </button>

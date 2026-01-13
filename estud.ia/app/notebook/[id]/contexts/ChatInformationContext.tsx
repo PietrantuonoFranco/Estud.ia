@@ -9,7 +9,7 @@ import Message from "@/app/lib/interfaces/entities/Message";
 import Summary from "@/app/lib/interfaces/entities/Summary";
 import Flashcard from "@/app/lib/interfaces/entities/Flashcard";
 import Quiz from "@/app/lib/interfaces/entities/Quiz";
-
+import Source from "@/app/lib/interfaces/entities/Source";
 
 const ChatInformationContext = React.createContext<ChatInformationContextType | null>(null);
 
@@ -29,6 +29,7 @@ export function ChatInformationProvider({ children }: { children: React.ReactNod
   const [summaries, setSummaries] = useState<Summary[]>([]);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [sources, setSources] = useState<Source[]>([]);
 
   const params = useParams();
   const id = params.id as string; // Extract the id from the route parameters
@@ -48,15 +49,19 @@ export function ChatInformationProvider({ children }: { children: React.ReactNod
               throw new Error('Failed to fetch notebook');
             }
         
-            const data: Notebook & { messages?: Message[] } = await response.json();
-              setNotebook(data);
-              setMessages(data.messages ?? []);
-            } catch (error) {
-              console.error(error);
+            const data: Notebook & { messages?: Message[], sources?: Source[] } = await response.json();
+
+            console.log("Fetched notebook data:", data);
+            setNotebook(data);
+            setMessages(data.messages ?? []);
+            setSources(data.sources ?? []);
+            
+          } catch (error) {
+            console.error(error);
           }
-          };
+        };
   
-          fetchNotebook();
+        fetchNotebook();
       }
     }, [id]);
 
@@ -141,6 +146,8 @@ export function ChatInformationProvider({ children }: { children: React.ReactNod
         setFlashcards,
         quizzes,
         setQuizzes,
+        sources,
+        setSources,
       }}
     >
       {children}
