@@ -122,6 +122,9 @@ async def create_notebook(files: List[UploadFile], db: Session = Depends(get_db)
                 db.add(source)
         db.commit()
         
+        # Recargar el notebook con todas sus relaciones
+        db.refresh(new_notebook)
+        
         return new_notebook
         
     except HTTPException:

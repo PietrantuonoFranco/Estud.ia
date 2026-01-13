@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import List
 
 from .message_schema import MessageOut
+from .source_schema import SourceOut
 
 # --- SCHEMAS DE NOTEBOOK ---
 
@@ -19,6 +20,7 @@ class NotebookOut(NotebookBase):
     id: int
     user_id: int
     messages: List[MessageOut] = []
+    sources: List[SourceOut] = []
 
     class Config:
         from_attributes = True

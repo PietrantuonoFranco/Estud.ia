@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session, selectinload, joinedload
 
 from ..schemas.notebook_schema import NotebookCreate
 
@@ -32,7 +32,8 @@ def get_notebook(db: Session, notebook_id: int):
     """Obtener un notebook (cuaderno) por su ID."""
     return (
         db.query(Notebook)
-        .options(selectinload(Notebook.messages))
+        .options(joinedload(Notebook.messages))
+        .options(joinedload(Notebook.sources))
         .filter(Notebook.id == notebook_id)
         .first()
     )
