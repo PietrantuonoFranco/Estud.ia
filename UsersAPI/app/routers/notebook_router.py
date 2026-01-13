@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
 from typing import List
 import httpx
@@ -78,10 +78,8 @@ async def create_notebook(files: List[UploadFile], db: Session = Depends(get_db)
                 headers={"X-API-Key": conf.LANGCHAIN_API_KEY},
                 timeout=60.0
             )
+            
             response.raise_for_status()
-
-
-            response.raise_for_status() # Lanza error si la API externa falla
 
         except httpx.HTTPStatusError as e:
             print(f"HTTPStatusError: {e.response.status_code} - {e.response.text}")
@@ -184,3 +182,87 @@ async def read_notebooks_by_user_id(user_id: int, db: Session = Depends(get_db))
         raise HTTPException(status_code=404, detail="No se encontraron notebooks para este usuario")
     
     return notebooks
+
+@router.post("/{notebook_id}/add-sources", response_model=NotebookOut, status_code=status.HTTP_200_OK)
+async def add_sources_to_notebook(notebook_id: int, files: List[UploadFile] = File(...), db: Session = Depends(get_db)):
+    """Método para agregar fuentes a un notebook."""
+
+    notebook = get_notebook_crud(db, notebook_id=notebook_id)
+
+    if not notebook:
+        raise HTTPException(status_code=404, detail="Notebook not found")
+    
+    try:
+        # Validar tipos de archivo y crear sources en DB
+        source_ids = []
+        file_contents = []
+        
+        for file in files:
+            if not file.filename.lower().endswith(('.pdf')):
+                raise HTTPException(status_code=400, detail="Invalid file type. Only PDFs are allowed.")
+            
+            # Leer el contenido del archivo
+            content = await file.read()
+            file_contents.append((file.filename, file.content_type, content))
+            
+            source_data = SourceCreate(
+                name=file.filename,
+                notebook_id=None
+            )
+
+            new_file = create_source(db=db, source=source_data)
+            source_ids.append(new_file.id)
+
+        # Preparar TODO en una sola lista para el parámetro files
+        multipart_data = []
+
+        for (filename, content_type, content), source_id in zip(file_contents, source_ids):
+            # Agregar el archivo
+            multipart_data.append(('files', (filename, content, content_type)))
+            # Agregar el ID como un campo de formulario simple
+            multipart_data.append(('source_ids', (None, str(source_id)))) # None indica que no es un archivo
+
+        try:
+            response = await http_client.post(
+                f"{conf.LANGCHAIN_URI}/upload-pdfs",
+                files=multipart_data, # Enviamos todo aquí
+                headers={"X-API-Key": conf.LANGCHAIN_API_KEY},
+                timeout=60.0
+            )
+            
+            response.raise_for_status()
+
+        except httpx.HTTPStatusError as e:
+            print(f"HTTPStatusError: {e.response.status_code} - {e.response.text}")
+            raise HTTPException(status_code=e.response.status_code, detail=f"An error has occurred with Langchain service: {e.response.text}")
+        
+        except Exception as e:
+            print(f"Connection Error: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            raise HTTPException(status_code=500, detail=f"Connection error: {str(e)}")
+
+        # 6. Asociar las fuentes (sources) al notebook creado
+        for source_id in source_ids:
+            source = db.query(Source).filter(Source.id == source_id).first()
+
+            if source:
+                source.notebook_id = notebook.id
+                db.add(source)
+
+        db.commit()
+        
+        # Recargar el notebook con todas sus relaciones
+        db.refresh(notebook)
+        
+        return notebook
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Unexpected error in add_sources_to_notebook: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+    
+    return notebook
