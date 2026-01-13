@@ -268,3 +268,36 @@ async def create_notebook(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred while creating the notebook: {str(e)}"
         )
+    
+@app.post("/delete-pdfs", status_code=status.HTTP_200_OK)
+async def delete_pdfs(request: dict, api_key: str = Security(verify_api_key)):
+    """
+    Endpoint para eliminar documentos PDF de la colección en Milvus.
+    """
+    try:
+        pdf_ids = request.get("pdf_ids", [])
+        
+        if not pdf_ids or not isinstance(pdf_ids, list):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="pdf_ids must be a non-empty list"
+            )
+        
+        res = await client_milvus.delete_documents(
+            collection_name="documents_collection",
+            ids=pdf_ids
+        )
+        
+        if not res:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No documents were deleted. Please check the provided IDs."
+            )
+
+        return {"status": "success", "message": f"Documents with IDs {pdf_ids} deleted successfully"}
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while deleting the collection: {str(e)}"
+        )
