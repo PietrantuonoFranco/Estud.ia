@@ -1,6 +1,6 @@
 "use client"
 
-import { Plus, FileText, Check, PanelLeft } from "lucide-react";
+import { Plus, FileText, Check, PanelLeft, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { useChatInformationContext } from "../contexts/ChatInformationContext";
@@ -11,7 +11,9 @@ export default function SourcesPanel() {
   const [openPanel, setOpenPanel] = useState(true);
   const [selectedSources, setSelectedSources] = useState<Source[]>([]);
 
-  const { sources } = useChatInformationContext();
+  const { sources, setSources } = useChatInformationContext();
+  
+  const API_URL = process.env.API_URL || 'http://localhost:5000';
 
   const selectSource = (source: Source) => {
     if (selectedSources.includes(source)) {
@@ -29,7 +31,53 @@ export default function SourcesPanel() {
   const handleSubmit = () => {
     
   }
-  
+
+  const handleDeleteSources = async () => {
+    try {
+      const pdf_ids = selectedSources.map(source => parseInt(source.id, 10));
+
+      console.log("Deleting sources with IDs:", pdf_ids);
+
+      const response = await fetch(`${API_URL}/sources/delete-various`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ pdf_ids }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Server error:", response.status, errorText);
+        throw new Error(`Failed to delete sources: ${response.status}`);
+      }
+
+      setSelectedSources([]);
+      setSources(sources.filter(source => !selectedSources.includes(source)));
+    } catch (error) {
+      console.error("Error deleting sources:", error);
+    }
+  }
+
+  const handleDeleteOneSource = async (source: Source) => {
+    try {
+      const response = await fetch(`${API_URL}/sources/${source.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete sources");
+      }
+
+      setSelectedSources(selectedSources.filter(s => s !== source));
+      setSources(sources.filter(s => s !== source));
+    } catch (error) {
+      console.error("Error deleting source:", error);
+    }
+  }
+
   return (
     <div className={`${ openPanel ? "w-90" : "w-18" } flex flex-col border-r border-border bg-[var(--panel-bg)]`}>
       <div className={`flex items-center border-b border-border px-4 py-3 ${ openPanel ? "justify-between" : "justify-center"}`}>
@@ -55,12 +103,22 @@ export default function SourcesPanel() {
       </div>
 
 
-      <div className="flex-1 px-4">
+      <div className="flex-1 px-4 border-t border-border bg-[var(--panel-bg)]">
         <div className="h-[calc(100vh-20rem)]">
           <div className="space-y-2">
-            <div className={`${ openPanel ? "flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-[var(--hover-bg)]" : "hidden"}`}>
-              <span className="text-muted-foreground font-semibold">Seleccionar todas las fuentes</span>
-              
+            <div className={`${ openPanel ? "flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-[var(--hover-bg)] group" : "hidden"}`}>
+              <span className="group-hover:hidden text-muted-foreground font-semibold py-1 px-2">Seleccionar todas las fuentes</span>
+
+              <button
+                  type="button"
+                  onClick={() => handleDeleteSources()}
+                  name="delete-selected-sources"
+                  className={`${ openPanel ? "cursor-pointer hidden group-hover:flex items-center font-medium text-red-500 py-1 px-2 rounded-md hover:bg-red-800/15 hover:shadow-md transition-all duration-200 ease-in-out" : "hidden" }`}
+                >
+                  <Trash2 className="h-4 w-4 mr-3"/>
+                  Eliminar fuentes seleccionadas
+                </button>
+
               <button
                 type="button"
                 onClick={() => setSelectedSources(
@@ -78,11 +136,21 @@ export default function SourcesPanel() {
             </div>
 
             {sources?.map((source, index) => (
-              <div key={index} className={`flex items-center rounded-lg bg-[var(--hover-bg)] text-sm ${ openPanel ? "justify-between px-3 py-2.5" : "justify-center p-3"}`}>
-                <div className="flex items-center">
+              <div key={index} className={`group flex items-center rounded-lg bg-[var(--hover-bg)] text-sm ${ openPanel ? "justify-between px-3 py-2.5" : "justify-center p-3"}`}>
+                <div className="group-hover:hidden flex items-center py-1 px-2">
                   <FileText className="h-4 w-4 text-red-500" />
                   <span className={`${ openPanel ? "font-medium text-foreground ml-3" : "hidden" }`}>{source.name}</span>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleDeleteOneSource(source)}
+                  name="delete-source"
+                  className={`${ openPanel ? "cursor-pointer hidden group-hover:flex items-center font-medium text-red-500 py-1 px-2 rounded-md hover:bg-red-800/15 hover:shadow-md transition-all duration-200 ease-in-out" : "hidden" }`}
+                >
+                  <Trash2 className="h-4 w-4 mr-3"/>
+                  Eliminar
+                </button>
 
                 <button
                   type="button"
