@@ -103,21 +103,11 @@ export default function SourcesPanel() {
       </div>
 
 
-      <div className="flex-1 px-4 border-t border-border bg-[var(--panel-bg)]">
+      <div className="flex-1 py-2 px-4 border-t border-border bg-[var(--panel-bg)]">
         <div className="h-[calc(100vh-20rem)]">
           <div className="space-y-2">
             <div className={`${ openPanel ? "flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-[var(--hover-bg)] group" : "hidden"}`}>
-              <span className="group-hover:hidden text-muted-foreground font-semibold py-1 px-2">Seleccionar todas las fuentes</span>
-
-              <button
-                  type="button"
-                  onClick={() => handleDeleteSources()}
-                  name="delete-selected-sources"
-                  className={`${ openPanel ? "cursor-pointer hidden group-hover:flex items-center font-medium text-red-500 py-1 px-2 rounded-md hover:bg-red-800/15 hover:shadow-md transition-all duration-200 ease-in-out" : "hidden" }`}
-                >
-                  <Trash2 className="h-4 w-4 mr-3"/>
-                  Eliminar fuentes seleccionadas
-                </button>
+              <span className="text-muted-foreground font-semibold py-1 px-2">Seleccionar todas las fuentes</span>
 
               <button
                 type="button"
@@ -164,6 +154,20 @@ export default function SourcesPanel() {
               </div>
             ))}
           </div>
+
+          {selectedSources.length > 0 && (
+            <div className="w-full h-full flex flex-col items-center justify-end py-2">
+              <button
+                type="button"
+                onClick={() => handleDeleteSources()}
+                name="delete-selected-sources"
+                className={`${ openPanel ? "cursor-pointer w-full flex items-center justify-center font-medium text-red-500 py-3 px-6 rounded-3xl bg-gradient-to-br from-red-800/25 to-red-800/15 hover:to-red-800/25 hover:shadow-md transition-all duration-200 ease-in-out" : "hidden" }`}
+              >
+                <Trash2 className="h-4 w-4 mr-3"/>
+                Eliminar fuentes seleccionadas
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
