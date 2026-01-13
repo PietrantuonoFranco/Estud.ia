@@ -2,7 +2,7 @@ import Message from "./Message";
 import Summary from "./Summary";
 import Flashcard from "./Flashcard";
 import Quiz from "./Quiz";
-
+import Source from "./Source";
 
 export default interface Notebook {
   id: number
@@ -10,12 +10,12 @@ export default interface Notebook {
   description: string
   icon: string
   date: string
-  sourcesCount: number
 
   messages: Message[]
   summaries: Summary[]
   flashcards: Flashcard[]
   quizzes: Quiz[]
+  sources: Source[]
 
   user_id: number
 }
