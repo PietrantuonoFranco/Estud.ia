@@ -1,9 +1,10 @@
-from fastapi import FastAPI, UploadFile, File, status, Security, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, status, Security, HTTPException
 import os
 import shutil
 import traceback
 from contextlib import asynccontextmanager
 from pydantic import BaseModel
+from typing import List
 import json
 
 from .utils.embbedings import EmbeddingGenerator
@@ -33,6 +34,13 @@ class RAGResponse(BaseModel):
     context: str
     is_valid: bool
     refinement_attempts: int
+
+class SourceRequest(BaseModel):
+    id: int
+    file: UploadFile
+
+class NotebookRequest(BaseModel):
+    sources: list[SourceRequest]
 
 class NotebookResponse(BaseModel):
     title: str
@@ -175,34 +183,52 @@ async def rag_endpoint(request: RAGRequest, api_key: str = Security(verify_api_k
     
 
 @app.post("/create-notebook", response_model=NotebookResponse)
-async def create_notebook(file: UploadFile, api_key: str = Security(verify_api_key)):
+async def create_notebook(
+    files: List[UploadFile] = File(...),
+    source_ids: List[int] = Form(...),
+    api_key: str = Security(verify_api_key)
+):
     """
-    Endpoint para crear la información básica de un notebook en base a un pdf
+    Endpoint para crear la información básica de un notebook en base a uno o más PDFs
     """
     try:
-        if not file.filename.endswith('.pdf'):
-            return {"error": "Only PDF files are allowed"}
+        # Validar que haya la misma cantidad de archivos e IDs
+        if len(files) != len(source_ids):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="El número de archivos y source_ids debe coincidir"
+            )
         
-        # Guardar temporalmente el archivo
-        file_path = os.path.join(UPLOAD_DIRECTORY, file.filename)
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        # Guardar todos los archivos temporalmente
+        for file in files:
+            if not file.filename.endswith('.pdf'):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Only PDF files are allowed"
+                )
+            
+            file_path = os.path.join(UPLOAD_DIRECTORY, file.filename)
+            
+            with open(file_path, "wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
         
         try:
-            # Procesar el documento
-            text_chunks = splitter.split_document(file_path=file_path)
+            # Procesar cada archivo con su ID correspondiente
+            for file, source_id in zip(files, source_ids):
+                file_path = os.path.join(UPLOAD_DIRECTORY, file.filename)
+                text_chunks = splitter.split_document(file_path=file_path)
 
-            texts = [chunk['text'] for chunk in text_chunks]
+                texts = [chunk['text'] for chunk in text_chunks]
             
-            vector_chunks = await embedding_generator.get_document_embedding(text=texts)
+                vector_chunks = await embedding_generator.get_document_embedding(text=texts)
             
-            formatted_data = embedding_generator.format_database(text_chunks=text_chunks, vector_chunks=vector_chunks, pdf_id=file.filename)
+                formatted_data = embedding_generator.format_database(text_chunks=text_chunks, vector_chunks=vector_chunks, pdf_id=source_id)
             
-            await client_milvus.upload_document(data=formatted_data, collection_name="documents_collection")
+                await client_milvus.upload_document(data=formatted_data, collection_name="documents_collection")
         
-            # Generar título e ícono (placeholder logic)
+            # Generar título, ícono y descripción usando el grafo
             initial_state = {
-                "pdf_id": file.filename,
+                "pdfs_ids": source_ids,
                 "context": "",
                 "generation": ""
             }
@@ -229,12 +255,15 @@ async def create_notebook(file: UploadFile, api_key: str = Security(verify_api_k
 
             
         finally:
-            # Limpiar archivo temporal después de procesar
-            if os.path.exists(file_path):
-                os.remove(file_path)
+            # Limpiar archivos temporales después de procesar
+            for file in files:
+                file_path = os.path.join(UPLOAD_DIRECTORY, file.filename)
+                if os.path.exists(file_path):
+                    os.remove(file_path)
         
     except Exception as e:
         traceback.print_exc()
+        
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred while creating the notebook: {str(e)}"

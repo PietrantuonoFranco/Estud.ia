@@ -12,8 +12,8 @@ class NotebookGraphState(TypedDict):
     """
     Estado del grafo para la creación de notebooks
     """
-    pdf_id: str  # ID del PDF subido (puede ser el nombre del archivo o un identificador)
-    context: str  # Contexto recuperado del PDF completo
+    pdfs_ids: list[int]  # IDs de los PDFs subidos
+    context: str  # Contexto recuperado de todos los PDFs
     generation: str  # JSON generado con title, icon y description
 
 class NotebookGraph:
@@ -35,11 +35,14 @@ class NotebookGraph:
 
     async def retrieve_context(self, state: NotebookGraphState) -> NotebookGraphState:
         """
-        Recupera todo el contexto del PDF automáticamente sin necesidad de una query específica.
-        Se obtienen los fragmentos más representativos del documento para su análisis.
+        Recupera todo el contexto de uno o más PDFs automáticamente.
+        Se obtienen los fragmentos más representativos de cada documento para su análisis.
         """
 
-        print(f"\n [RETRIEVE] Recuperando contexto completo del PDF: '{state['pdf_id']}'")
+        pdf_ids = state.get('pdfs_ids', [])
+        print(f"\n [RETRIEVE] Recuperando contexto de {len(pdf_ids)} PDF(s): {pdf_ids}")
+        
+        all_contexts = []
         
         try:
             # Query genérica para obtener una visión general del documento
@@ -48,24 +51,33 @@ class NotebookGraph:
             # Generar embedding de la query genérica
             query_vector = await self.embedding_generator.get_query_embedding(text=generic_query)
             
-            # Obtener documentos de Milvus (se puede filtrar por pdf_id si está disponible)
-            pdf_id = state.get("pdf_id", "").strip()
-            filter_expr = f'pdf_id == "{pdf_id}"' if pdf_id else ""
+            # Iterar sobre cada PDF ID y recuperar su contexto
+            for pdf_id in pdf_ids:
+                print(f"   [RETRIEVE] Procesando PDF ID: {pdf_id}")
+                
+                # Filtrar por pdf_id específico
+                filter_expr = f'pdf_id == {pdf_id}'
+                
+                results = await self.client_milvus.get_document(
+                    query_vector=query_vector, 
+                    collection_name="documents_collection", 
+                    filter=filter_expr
+                )
+                
+                # Procesar resultados de este PDF
+                if isinstance(results, list) and len(results) > 0:
+                    pdf_context = "\n\n".join([str(doc) for doc in results])
+                    all_contexts.append(f"--- Documento {pdf_id} ---\n{pdf_context}")
+                    print(f"   [RETRIEVE] Recuperados {len(results)} fragmentos del PDF {pdf_id}")
+                elif isinstance(results, list) and len(results) == 0:
+                    print(f"   [RETRIEVE] No se encontraron documentos para pdf_id: {pdf_id}")
+                else:
+                    if results:
+                        all_contexts.append(f"--- Documento {pdf_id} ---\n{str(results)}")
             
-            results = await self.client_milvus.get_document(
-                query_vector=query_vector, 
-                collection_name="documents_collection", 
-                filter=filter_expr
-            )
-            
-            # Concatenar todos los resultados para tener contexto completo
-            if isinstance(results, list) and len(results) > 0:
-                context = "\n\n".join([str(doc) for doc in results])
-            elif isinstance(results, list) and len(results) == 0:
-                context = ""
-                print(f"   [RETRIEVE] No se encontraron documentos para pdf_id: '{pdf_id}'")
-            else:
-                context = str(results) if results else ""
+            # Combinar todos los contextos
+            context = "\n\n".join(all_contexts) if all_contexts else ""
+            print(f"   [RETRIEVE] Contexto total: {len(context)} caracteres")
             
         except Exception as e:
             context = ""
@@ -99,19 +111,20 @@ class NotebookGraph:
         generator_prompt = ChatPromptTemplate.from_messages([
             ("user", """Eres un agente especializado en analizar documentos PDF y generar metadatos para notebooks automáticamente.
 
-Tu tarea es analizar el contenido del documento y generar ÚNICAMENTE un JSON válido con los siguientes campos:
-- title: Título conciso que refleje el contenido principal del documento (máximo 60 caracteres)
-- icon: Un emoji representativo del tema del documento
-- description: Descripción clara y concisa del contenido (máximo 768 caracteres)
+Tu tarea es analizar el contenido de uno o más documentos y generar ÚNICAMENTE un JSON válido con los siguientes campos:
+- title: Título conciso que refleje el contenido principal de los documentos (máximo 255 caracteres, sin comillas ni detalles excesivos)
+- icon: Un emoji representativo del tema de los documentos
+- description: Descripción clara y concisa del contenido (máximo 1024 caracteres)
 
 Instrucciones obligatorias:
-1. Usa EXCLUSIVAMENTE la información del contexto proporcionado
-2. NO inventes información que no esté en el documento
-3. Si el contenido es insuficiente o inadecuado, devuelve: {{"message": "No puedo realizar la acción con la información provista."}}
-4. Responde SOLO con el JSON, sin texto adicional ni explicaciones
-5. El JSON debe ser válido y poder parsearse directamente
+1. Si hay múltiples documentos, crea un título y descripción que unifique sus temas
+2. Usa EXCLUSIVAMENTE la información del contexto proporcionado
+3. NO inventes información que no esté en los documentos
+4. Si el contenido es insuficiente o inadecuado, devuelve: {{"message": "No puedo realizar la acción con la información provista."}}
+5. Responde SOLO con el JSON, sin texto adicional ni explicaciones
+6. El JSON debe ser válido y poder parsearse directamente
 
-Contexto del documento:
+Contexto de los documentos:
 {context}
 
 Responde únicamente con el JSON:""")
