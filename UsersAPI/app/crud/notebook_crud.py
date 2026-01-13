@@ -26,7 +26,14 @@ def create_notebook(db: Session, notebook: NotebookCreate):
 
 def get_all_notebooks(db: Session, skip: int = 0, limit: int = 10):
     """Obtener todas las fuentes (sources) con paginación."""
-    return db.query(Notebook).offset(skip).limit(limit).all()
+    return (
+        db.query(Notebook)
+            .options(joinedload(Notebook.messages))
+            .options(joinedload(Notebook.sources))
+            .offset(skip)
+            .limit(limit)
+            .all()
+    )
 
 def get_notebook(db: Session, notebook_id: int):
     """Obtener un notebook (cuaderno) por su ID."""
