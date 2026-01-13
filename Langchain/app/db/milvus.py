@@ -12,7 +12,12 @@ class Async_Milvus_Client:
     
     def __init__(self):
         self.client = AsyncMilvusClient(uri=uri, db_name="estudia_db")
-       
+    
+    async def delete_documents(self, collection_name: str, ids: list[int]):
+        return await self.client.delete(
+            collection_name=collection_name,
+            ids=ids
+        )
 
     async def upload_document(self,data: list[dict], collection_name : str,  ):
         
