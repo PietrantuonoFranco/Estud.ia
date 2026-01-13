@@ -1,8 +1,5 @@
 "use client"
 
-
-import fonts from "../mocks/fonts.json"
-
 import MessageInbox from "./components/MessageInbox"
 import LLMMessage from "./components/LLMMessage"
 import UserMessage from "./components/UserMessage"
@@ -10,7 +7,7 @@ import UserMessage from "./components/UserMessage"
 import { useChatInformationContext } from "../../contexts/ChatInformationContext";
 
 export default function ChatPanel() {
-  const { notebook, messages } = useChatInformationContext();
+  const { notebook, messages, sources } = useChatInformationContext();
 
   return (
     <div className="flex flex-1 flex-col bg-background">
@@ -27,11 +24,11 @@ export default function ChatPanel() {
 
             <h1 className="text-4xl font-semibold text-foreground">{notebook?.title}</h1>
             <p className="text-sm text-muted-foreground">
-              {fonts.length === 1 
+              {sources.length === 1 
                 ?
                   "1 fuente"
                 :
-                  fonts.length + " fuentes"
+                  sources.length + " fuentes"
               }
             </p>
           </div>
