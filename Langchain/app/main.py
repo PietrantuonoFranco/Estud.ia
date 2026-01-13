@@ -25,6 +25,7 @@ class ContextRequest(BaseModel):
 
 class RAGRequest(BaseModel):
     question: str
+    pdf_ids: List[int]
     filter: str = ""
 
 
@@ -167,6 +168,7 @@ async def rag_endpoint(request: RAGRequest, api_key: str = Security(verify_api_k
             "question": request.question,
             "query": request.question,
             "context": "",
+            "pdf_ids": request.pdf_ids,
             "generation": "",
             "is_valid": False,
             "refinement_attempts": 0,

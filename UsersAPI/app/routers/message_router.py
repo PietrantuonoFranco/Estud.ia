@@ -8,6 +8,7 @@ from ..config import conf
 from ..database import get_db
 from ..schemas.message_schema import MessageCreate, MessageOut
 from ..security.auth import get_current_user
+from ..crud.notebook_crud import get_notebook
 from ..crud.message_crud import (
     create_message,
     get_all_messages,
@@ -57,13 +58,21 @@ async def create_llm_message(message: MessageRequest
     message_data = message.dict()
     message_data['is_user_message'] = False
     message_data['text'] = message.text
+
+    notebook = get_notebook(db, notebook_id=message.notebook_id)
+    if not notebook:
+        raise HTTPException(status_code=404, detail="Notebook not found")
+    
     message_data['notebook_id'] = message.notebook_id
     message_data['notebook_users_id'] = current_user.id
     
     try:
         response = await http_client.post(
             f"{conf.LANGCHAIN_URI}/chat/rag",
-            json={"question": message.text},
+            json={
+                "question": message.text,
+                "pdf_ids": [source.id for source in notebook.sources],
+            },
             headers={"X-API-Key": conf.LANGCHAIN_API_KEY},
             timeout=60.0
         )

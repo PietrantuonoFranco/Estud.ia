@@ -29,17 +29,24 @@ class Async_Milvus_Client:
         print(f"resultado de la insercion: {res}, en la coleccion: {collection_name}")
 
 
-    async def get_document(self, query_vector: list[float], collection_name: str, filter: str):
+    async def get_document(self, query_vector: list[float], collection_name: str, filter: str = "", ids: list[int] = None):
+        
+        # Construir filtro por IDs si se proporcionan
+        if ids and len(ids) > 0:
+            ids_filter = f"pdf_id in {ids}"
+            # Combinar con filtro existente si lo hay
+            final_filter = f"({filter}) and ({ids_filter})" if filter else ids_filter
+        else:
+            final_filter = filter
         
         res = await self.client.search(
-            
             collection_name=collection_name,
             anns_field = "vector_chunk",
             data = [query_vector],
             limit = 5,
             search_params={"metric_type":"COSINE"},
-            filter = filter,
-            output_fields = ["text_chunk"]
+            filter = final_filter,
+            output_fields = ["text_chunk", "pdf_id"]
         )
         
         lista = []
@@ -48,7 +55,7 @@ class Async_Milvus_Client:
             for hit in hits:
                 lista.append(hit)
         
-        print(lista)     
+        print(f"Documentos encontrados con filtro '{final_filter}': {len(lista)}")     
         return lista
 
                       
@@ -75,6 +82,7 @@ class Milvus_Sync_Client:
         schema.add_field(field_name="id", datatype=DataType.INT64, is_primary=True, auto_id=True)
         schema.add_field(field_name="vector_chunk", datatype=DataType.FLOAT_VECTOR, dim=3072) ##dim 1536 | recomendada para Gemini
         schema.add_field(field_name="text_chunk", datatype=DataType.VARCHAR, max_length=2000)
+        schema.add_field(field_name="pdf_id", datatype=DataType.INT64)  # Campo para filtrar por PDF
         schema.add_field(field_name="metadata", datatype=DataType.JSON, nullable=True) ##Datos adicionales que sirven para filtrar la busqueda
 
         ## <-- Indices -->

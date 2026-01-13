@@ -16,6 +16,7 @@ class RAGState(TypedDict):
     question: str  # Pregunta original
     query: str  # Query refinada (puede cambiar)
     context: str  # Contexto recuperado
+    pdf_ids: list[int]  # IDs de los PDFs utilizados como contexto
     generation: str  # Respuesta generada
     is_valid: bool  # Si la respuesta es válida según el judge
     refinement_attempts: Annotated[int, operator.add]  # Contador de intentos
@@ -54,7 +55,7 @@ class RAGGraph:
             results = await self.client_milvus.get_document(
                 query_vector=query_vector, 
                 collection_name="documents_collection", 
-                filter=""
+                ids=state["pdf_ids"]
             )
             
             # Reranking
