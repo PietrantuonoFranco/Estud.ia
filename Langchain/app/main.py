@@ -119,6 +119,21 @@ async def upload_document_app(file: UploadFile, api_key: str = Security(verify_a
         traceback.print_exc()
         return {"error": str(e)}
 
+@app.post("/upload-pdfs") 
+async def upload_document_app(
+    files: List[UploadFile] = File(...),
+    source_ids: List[int] = Form(...),
+    api_key: str = Security(verify_api_key)
+):
+    try:
+        await upload_documents(files=files, source_ids=source_ids)
+
+        return {"status": "success", "message": f"{len(files)} documents uploaded successfully", "source_ids": source_ids}
+        
+    except Exception as e:
+        traceback.print_exc()
+        return {"error": str(e)}
+
 
 
 @app.get("/get_context") ## De prueba / depuracion 
@@ -192,74 +207,34 @@ async def create_notebook(
     Endpoint para crear la información básica de un notebook en base a uno o más PDFs
     """
     try:
-        # Validar que haya la misma cantidad de archivos e IDs
-        if len(files) != len(source_ids):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="El número de archivos y source_ids debe coincidir"
-            )
+        await upload_documents(files=files, source_ids=source_ids)
         
-        # Guardar todos los archivos temporalmente
-        for file in files:
-            if not file.filename.endswith('.pdf'):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Only PDF files are allowed"
-                )
-            
-            file_path = os.path.join(UPLOAD_DIRECTORY, file.filename)
-            
-            with open(file_path, "wb") as buffer:
-                shutil.copyfileobj(file.file, buffer)
-        
-        try:
-            # Procesar cada archivo con su ID correspondiente
-            for file, source_id in zip(files, source_ids):
-                file_path = os.path.join(UPLOAD_DIRECTORY, file.filename)
-                text_chunks = splitter.split_document(file_path=file_path)
+        # Generar título, ícono y descripción usando el grafo
+        initial_state = {
+            "pdfs_ids": source_ids,
+            "context": "",
+            "generation": ""
+        }
 
-                texts = [chunk['text'] for chunk in text_chunks]
-            
-                vector_chunks = await embedding_generator.get_document_embedding(text=texts)
-            
-                formatted_data = embedding_generator.format_database(text_chunks=text_chunks, vector_chunks=vector_chunks, pdf_id=source_id)
-            
-                await client_milvus.upload_document(data=formatted_data, collection_name="documents_collection")
-        
-            # Generar título, ícono y descripción usando el grafo
-            initial_state = {
-                "pdfs_ids": source_ids,
-                "context": "",
-                "generation": ""
-            }
+        result = await notebook_graph.invoke(initial_state)
 
-            result = await notebook_graph.invoke(initial_state)
-
-            # Limpiar la respuesta de bloques de código markdown si existen
-            generation_text = result["generation"].strip()
-            if generation_text.startswith("```json"):
-                generation_text = generation_text[7:]  # Remover ```json
-            if generation_text.startswith("```"):
-                generation_text = generation_text[3:]  # Remover ```
-            if generation_text.endswith("```"):
-                generation_text = generation_text[:-3]  # Remover ```
-            generation_text = generation_text.strip()
+        # Limpiar la respuesta de bloques de código markdown si existen
+        generation_text = result["generation"].strip()
+        if generation_text.startswith("```json"):
+            generation_text = generation_text[7:]  # Remover ```json
+        if generation_text.startswith("```"):
+            generation_text = generation_text[3:]  # Remover ```
+        if generation_text.endswith("```"):
+            generation_text = generation_text[:-3]  # Remover ```
+        generation_text = generation_text.strip()
             
-            result_json = json.loads(generation_text)
+        result_json = json.loads(generation_text)
             
-            return NotebookResponse(
-                title=result_json["title"],
-                icon=result_json["icon"],
-                description=result_json["description"]
-            )
-
-            
-        finally:
-            # Limpiar archivos temporales después de procesar
-            for file in files:
-                file_path = os.path.join(UPLOAD_DIRECTORY, file.filename)
-                if os.path.exists(file_path):
-                    os.remove(file_path)
+        return NotebookResponse(
+            title=result_json["title"],
+            icon=result_json["icon"],
+            description=result_json["description"]
+        )
         
     except Exception as e:
         traceback.print_exc()
@@ -300,4 +275,58 @@ async def delete_pdfs(request: dict, api_key: str = Security(verify_api_key)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred while deleting the collection: {str(e)}"
+        )
+    
+
+async def upload_documents(files: List[UploadFile] = File(...), source_ids: List[int] = Form(...)):
+    """
+    Función auxiliar para subir múltiples documentos PDF y procesarlos.
+    """
+    try:
+        # Validar que haya la misma cantidad de archivos e IDs
+        if len(files) != len(source_ids):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="El número de archivos y source_ids debe coincidir"
+            )
+        
+        # Guardar todos los archivos temporalmente
+        for file in files:
+            if not file.filename.endswith('.pdf'):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Only PDF files are allowed"
+                )
+            
+            file_path = os.path.join(UPLOAD_DIRECTORY, file.filename)
+            
+            with open(file_path, "wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
+        
+        try:
+            # Procesar cada archivo con su ID correspondiente
+            for file, source_id in zip(files, source_ids):
+                file_path = os.path.join(UPLOAD_DIRECTORY, file.filename)
+                text_chunks = splitter.split_document(file_path=file_path)
+
+                texts = [chunk['text'] for chunk in text_chunks]
+            
+                vector_chunks = await embedding_generator.get_document_embedding(text=texts)
+            
+                formatted_data = embedding_generator.format_database(text_chunks=text_chunks, vector_chunks=vector_chunks, pdf_id=source_id)
+            
+                await client_milvus.upload_document(data=formatted_data, collection_name="documents_collection")
+        finally:
+                # Limpiar archivos temporales después de procesar
+                for file in files:
+                    file_path = os.path.join(UPLOAD_DIRECTORY, file.filename)
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+        
+    except Exception as e:
+        traceback.print_exc()
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while uploading documents: {str(e)}"
         )
