@@ -59,19 +59,21 @@ export default function NotebooksContainer ({ orderBy, viewMode }: NotebooksCont
     }
   }, [orderBy, notebooks]);
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilesChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
-      const file = event.target.files?.[0];
+      const files = event.target.files;
       
-      if (!file) {
+      if (!files || files.length === 0) {
         console.error("No se seleccionó ningún archivo");
         return;
       }
 
-      console.log("Subiendo archivo:", file.name);
-
       const formData = new FormData();
-      formData.append("file", file);
+
+      for (let i = 0; i < files.length; i++) {
+        console.log("Subiendo archivo:", files[i].name);
+        formData.append("files", files[i]);
+      }
       
       const response = await fetch(`${API_URL}/notebooks/`, {
         method: "POST",
@@ -132,7 +134,7 @@ export default function NotebooksContainer ({ orderBy, viewMode }: NotebooksCont
           : "hidden"
           }
         `}>
-        <input type="file" accept="application/pdf" className="hidden" id="file-upload" onChange={handleFileChange} />
+        <input type="file" accept="application/pdf" className="hidden" id="file-upload" multiple onChange={handleFilesChange} />
 
         <label htmlFor="file-upload" className="cursor-pointer h-full w-full flex flex-col items-center justify-center">
           <div className="flex justify-center items-center p-2 rounded-full bg-card group-hover:bg-card/80">

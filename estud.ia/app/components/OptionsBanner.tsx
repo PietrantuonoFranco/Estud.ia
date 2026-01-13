@@ -17,19 +17,21 @@ export default function OptionsBanner ({ orderBy, setOrderBy, viewMode, setViewM
   
   const API_URL = process.env.API_URL || 'http://localhost:5000';
   
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilesChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
-      const file = event.target.files?.[0];
+      const files = event.target.files;
       
-      if (!file) {
+      if (!files || files.length === 0) {
         console.error("No se seleccionó ningún archivo");
         return;
       }
 
-      console.log("Subiendo archivo:", file.name);
-
       const formData = new FormData();
-      formData.append("file", file);
+
+      for (let i = 0; i < files.length; i++) {
+        console.log("Subiendo archivo:", files[i].name);
+        formData.append("files", files[i]);
+      }
       
       const response = await fetch(`${API_URL}/notebooks/`, {
         method: "POST",
@@ -108,7 +110,7 @@ export default function OptionsBanner ({ orderBy, setOrderBy, viewMode, setViewM
       </div>
 
       <div className="text-sm text-black font-semibold flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-[var(--purple-accent)] to-[var(--sidebar-border)] to-[var(--purple-accent)] hover:bg-gradient-to-br hover:from-[var(--sidebar-border)] to-[var(--purple-accent)]  transition-all duration-300 ease-in-out cursor-pointer">
-        <input type="file" accept="application/pdf" className="hidden" id="file-upload-banner" onChange={handleFileChange} />
+        <input type="file" multiple accept="application/pdf" className="hidden" id="file-upload-banner" onChange={handleFilesChange} />
         <label htmlFor="file-upload-banner" className="cursor-pointer rounded-full h-full w-full py-3 px-6 flex items-center justify-center gap-2">
           <Plus className="h-4 w-4" strokeWidth={3}/>
           <span className="font-semibold">Crear cuaderno</span>
