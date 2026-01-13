@@ -183,7 +183,7 @@ export default function NotebooksContainer ({ orderBy, viewMode }: NotebooksCont
           <div>
             <h3 className={`text-lg font-medium text-foreground ${viewMode === "grid" ? "mb-2" : "mb-1"}`}>{notebook.title}</h3>
             <p className="text-sm text-foreground">
-              {notebook.sourcesCount = 1} fuente · {formatRelativeDate(notebook.date)}
+              {notebook.sources.length === 1 ? "1 fuente" : `${notebook.sources.length} fuentes`} · {formatRelativeDate(notebook.date)}
             </p>
           </div>
         </Link>
