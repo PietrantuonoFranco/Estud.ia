@@ -9,7 +9,7 @@ from ..models.notebook_model import Notebook
 def create_source(db: Session, source: SourceCreate):
     """Crea una nueva fuente (source) en la base de datos."""
     db_source = Source(
-        pdf_file=source.pdf_file,
+        name=source.name,
         notebook_id=source.notebook_id,
     )
 

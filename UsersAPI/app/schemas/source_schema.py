@@ -1,17 +1,16 @@
 from pydantic import BaseModel
-
+from typing import Optional
 # --- SCHEMAS DE SOURCE ---
 
 class SourceBase(BaseModel):
-    notebook_id: int
-
+    name: str
+    notebook_id: int | None = None
+    
 class SourceCreate(SourceBase):
-    # Contenido binario del PDF a almacenar
-    pdf_file: bytes
+    pass
 
 class SourceOut(SourceBase):
     id: int
-    # No incluimos pdf_file en la salida por defecto porque es pesado (binario)
     
     class Config:
         from_attributes = True
