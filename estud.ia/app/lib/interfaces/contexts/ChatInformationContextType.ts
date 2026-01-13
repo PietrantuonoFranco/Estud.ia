@@ -5,6 +5,7 @@ import Notebook from "@/app/lib/interfaces/entities/Notebook";
 import Summary from "@/app/lib/interfaces/entities/Summary";
 import Flashcard from "@/app/lib/interfaces/entities/Flashcard";
 import Quiz from "@/app/lib/interfaces/entities/Quiz";
+import Source from "@/app/lib/interfaces/entities/Source";
 
 export default interface ChatInformationContextType {
   notebook: Notebook | null;
@@ -17,4 +18,6 @@ export default interface ChatInformationContextType {
   setFlashcards: React.Dispatch<React.SetStateAction<Flashcard[]>>;
   quizzes: Quiz[];
   setQuizzes: React.Dispatch<React.SetStateAction<Quiz[]>>;
+  sources: Source[];
+  setSources: React.Dispatch<React.SetStateAction<Source[]>>;
 }
