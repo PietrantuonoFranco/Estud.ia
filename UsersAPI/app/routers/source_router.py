@@ -85,7 +85,7 @@ async def delete_various_sources(
         print(f"Connection Error: {str(e)}")
         import traceback
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Connection Error: {str(e)}")    
+        raise HTTPException(status_code=500, detail=f"Connection Error: {str(e)}")
 
     deleted_sources = []
 
@@ -103,13 +103,37 @@ async def delete_various_sources(
 
 
 @router.delete("/{source_id}", response_model=SourceOut, status_code=status.HTTP_200_OK)
-def delete_source(source_id: int, db: Session = Depends(get_db)):
+async def delete_source(source_id: int, db: Session = Depends(get_db)):
     """Método para eliminar una fuente (source) por su ID."""
     source = get_source(db, source_id=source_id)
 
     if not source:
         raise HTTPException(status_code=404, detail="Fuente no encontrada")
+
+    pdf_ids = []
+    pdf_ids.append(source_id)
+
+
+    try:
+        response = await http_client.post(
+            f"{conf.LANGCHAIN_URI}/delete-pdfs",
+            json={"pdf_ids": pdf_ids}, # Enviamos todo aquí
+            headers={"X-API-Key": conf.LANGCHAIN_API_KEY},
+            timeout=60.0
+        )
+
+        response.raise_for_status()
     
+    except httpx.HTTPStatusError as e:
+        print(f"HTTPStatusError: {e.response.status_code} - {e.response.text}")
+        raise HTTPException(status_code=e.response.status_code, detail=f"Has occurred an error with Langchain service: {e.response.text}")
+        
+    except Exception as e:
+        print(f"Connection Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Connection Error: {str(e)}")  
+
     source = delete_source_crud(db, source_id=source_id)
 
     return source
