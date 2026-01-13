@@ -10,7 +10,7 @@ from ..schemas.notebook_schema import NotebookOut, NotebookCreate
 from ..schemas.source_schema import SourceOut, SourceCreate
 from ..models.source_model import Source
 from ..security.auth import get_current_user
-from ..crud.source_crud import create_source
+from ..crud.source_crud import create_source, delete_source as delete_source_crud
 from ..crud.notebook_crud import (
     create_notebook as create_notebook_crud,
     get_notebook as get_notebook_crud,
@@ -82,10 +82,24 @@ async def create_notebook(files: List[UploadFile], db: Session = Depends(get_db)
             response.raise_for_status()
 
         except httpx.HTTPStatusError as e:
+            # Limpieza: eliminar sources creados si Langchain falla
+            try:
+                for source_id in source_ids:
+                    delete_source_crud(db, source_id=source_id)
+                db.commit()
+            finally:
+                pass
             print(f"HTTPStatusError: {e.response.status_code} - {e.response.text}")
             raise HTTPException(status_code=e.response.status_code, detail=f"Error en servicio externo de Langchain: {e.response.text}")
         
         except Exception as e:
+            # Limpieza: eliminar sources creados si hay error de conexión
+            try:
+                for source_id in source_ids:
+                    delete_source_crud(db, source_id=source_id)
+                db.commit()
+            finally:
+                pass
             print(f"Connection Error: {str(e)}")
             import traceback
             traceback.print_exc()
@@ -233,10 +247,24 @@ async def add_sources_to_notebook(notebook_id: int, files: List[UploadFile] = Fi
             response.raise_for_status()
 
         except httpx.HTTPStatusError as e:
+            # Limpieza: eliminar sources creados si Langchain falla
+            try:
+                for source_id in source_ids:
+                    delete_source_crud(db, source_id=source_id)
+                db.commit()
+            finally:
+                pass
             print(f"HTTPStatusError: {e.response.status_code} - {e.response.text}")
             raise HTTPException(status_code=e.response.status_code, detail=f"An error has occurred with Langchain service: {e.response.text}")
         
         except Exception as e:
+            # Limpieza: eliminar sources creados si hay error de conexión
+            try:
+                for source_id in source_ids:
+                    delete_source_crud(db, source_id=source_id)
+                db.commit()
+            finally:
+                pass
             print(f"Connection Error: {str(e)}")
             import traceback
             traceback.print_exc()
