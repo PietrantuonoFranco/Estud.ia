@@ -11,7 +11,7 @@ export default function SourcesPanel() {
   const [openPanel, setOpenPanel] = useState(true);
   const [selectedSources, setSelectedSources] = useState<Source[]>([]);
 
-  const { sources, setSources } = useChatInformationContext();
+  const { sources, setSources, notebook } = useChatInformationContext();
   
   const API_URL = process.env.API_URL || 'http://localhost:5000';
 
@@ -23,14 +23,41 @@ export default function SourcesPanel() {
     }
   }
   
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    
-  };
+  const handleFilesChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const files = event.target.files;
+      
+      if (!files || files.length === 0) {
+        console.error("No se seleccionó ningún archivo");
+        return;
+      }
 
-  const handleSubmit = () => {
-    
-  }
+      const formData = new FormData();
+
+      for (let i = 0; i < files.length; i++) {
+        console.log("Subiendo archivos:", files[i].name);
+        formData.append("files", files[i]);
+      }
+      
+      const response = await fetch(`${API_URL}/notebooks/${notebook?.id}/add-sources`, {
+        method: "POST",
+        body: formData,
+        credentials: 'include', // Enviar cookies
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al subir el archivo");
+      } else {
+        alert("Archivos subidos exitosamente");
+      }
+      
+      const responseData = await response.json();
+
+      setSources(responseData.sources);
+    } catch (error) {
+      console.error("Error al subir el archivo:", error);
+    }
+  };
 
   const handleDeleteSources = async () => {
     try {
@@ -93,18 +120,18 @@ export default function SourcesPanel() {
       </div>
 
       <div className="p-4">
-        <form onSubmit={handleSubmit} className={`text-sm text-black font-semibold w-full flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-[var(--purple-accent)] to-[var(--sidebar-border)] to-[var(--purple-accent)] hover:bg-gradient-to-br hover:from-[var(--sidebar-border)] to-[var(--purple-accent)]  transition-all duration-300 ease-in-out cursor-pointer `}>
-          <input type="file" accept="application/pdf" className="hidden" id="file-upload" onChange={handleFileChange} />
+        <div className={`text-sm text-black font-semibold w-full flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-[var(--purple-accent)] to-[var(--sidebar-border)] to-[var(--purple-accent)] hover:bg-gradient-to-br hover:from-[var(--sidebar-border)] to-[var(--purple-accent)]  transition-all duration-300 ease-in-out cursor-pointer `}>
+          <input type="file" accept="application/pdf" multiple className="hidden" id="file-upload" onChange={handleFilesChange} />
           <label htmlFor="file-upload" className="cursor-pointer rounded-full h-full w-full py-3 px-6 flex items-center justify-center gap-2">
             <Plus className="h-4 w-4" strokeWidth={3}/>
             <span className={`${ openPanel ? "font-semibold" : "hidden" }`}>Agregar fuentes</span>
           </label>
-        </form>
+        </div>
       </div>
 
 
-      <div className="flex-1 py-2 px-4 border-t border-border bg-[var(--panel-bg)]">
-        <div className="h-[calc(100vh-20rem)]">
+      <div className="flex-1 py-2 border-t border-border bg-[var(--panel-bg)] flex flex-col">
+        <div className="flex-1 overflow-y-auto px-4 ">
           <div className="space-y-2">
             <div className={`${ openPanel ? "flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-[var(--hover-bg)] group" : "hidden"}`}>
               <span className="text-muted-foreground font-semibold py-1 px-2">Seleccionar todas las fuentes</span>
@@ -154,21 +181,21 @@ export default function SourcesPanel() {
               </div>
             ))}
           </div>
-
-          {selectedSources.length > 0 && (
-            <div className="w-full h-full flex flex-col items-center justify-end py-2">
-              <button
-                type="button"
-                onClick={() => handleDeleteSources()}
-                name="delete-selected-sources"
-                className={`${ openPanel ? "cursor-pointer w-full flex items-center justify-center font-medium text-red-500 py-3 px-6 rounded-3xl bg-gradient-to-br from-red-800/25 to-red-800/15 hover:to-red-800/25 hover:shadow-md transition-all duration-200 ease-in-out" : "hidden" }`}
-              >
-                <Trash2 className="h-4 w-4 mr-3"/>
-                Eliminar fuentes seleccionadas
-              </button>
-            </div>
-          )}
         </div>
+
+        {selectedSources.length > 0 && (
+          <div className="w-full px-4 pb-2 pt-4 mt-2 border-t border-border">
+            <button
+              type="button"
+              onClick={() => handleDeleteSources()}
+              name="delete-selected-sources"
+              className={`${ openPanel ? "cursor-pointer w-full flex items-center justify-center text-sm font-semibold text-red-500 py-3 px-6 rounded-3xl bg-red-800/15 hover:hover:bg-red-800/20 hover:shadow-md transition-all duration-300 ease-in-out" : "hidden" }`}
+            >
+              <Trash2 className="h-4 w-4 mr-3"/>
+              Eliminar seleccionadas
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
