@@ -32,7 +32,7 @@ export default function LLMMessage ({ message }: { message: string | undefined})
 
   return (
     <div className="flex flex-col space-y-2 pr-24">
-      <div className="w-fit flex items-center bg-card px-6 py-3 rounded-3xl">
+      <div className="w-fit flex items-center bg-[var(--hover-bg)] px-6 py-3 rounded-3xl rounded-bl-md">
         <p>
           {formattedMessage ? (
             <span
