@@ -10,6 +10,7 @@ import Source from "@/app/lib/interfaces/entities/Source";
 export default function SourcesPanel() {
   const [openPanel, setOpenPanel] = useState(true);
   const [selectedSources, setSelectedSources] = useState<Source[]>([]);
+  const [tooltip, setTooltip] = useState<{ visible: boolean; text: string; x: number; y: number }>({ visible: false, text: "", x: 0, y: 0 });
 
   const { sources, setSources, notebook } = useChatInformationContext();
   
@@ -22,6 +23,18 @@ export default function SourcesPanel() {
       setSelectedSources([...selectedSources, source])
     }
   }
+
+  const showTooltip = (e: React.MouseEvent<HTMLDivElement>, text: string) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setTooltip({
+      visible: true,
+      text,
+      x: rect.right + 34,
+      y: rect.top + rect.height / 2,
+    });
+  };
+
+  const hideTooltip = () => setTooltip(prev => ({ ...prev, visible: false }));
   
   const handleFilesChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -131,7 +144,7 @@ export default function SourcesPanel() {
 
 
       <div className="flex-1 py-2 border-t border-border bg-[var(--panel-bg)] flex flex-col">
-        <div className="flex-1 overflow-y-auto px-4 ">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 ">
           <div className="space-y-2">
             <div className={`${ openPanel ? "flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-[var(--hover-bg)] group" : "hidden"}`}>
               <span className="text-muted-foreground font-semibold py-1 px-2">Seleccionar todas las fuentes</span>
@@ -153,8 +166,15 @@ export default function SourcesPanel() {
             </div>
 
             {sources?.map((source, index) => (
-              <div key={index} className={`group flex items-center rounded-lg bg-[var(--hover-bg)] text-sm ${ openPanel ? "justify-between px-3 py-2.5" : "justify-center p-3"}`}>
-                <div className={`${ openPanel ? "py-1 px-2 group-hover:hidden" : "" } flex items-center`}>
+              <div
+                key={index}
+                onMouseEnter={(e) => { if (!openPanel) showTooltip(e, source.name); }}
+                onMouseLeave={() => { if (!openPanel) hideTooltip(); }}
+                className={`group relative flex items-center rounded-lg bg-card hover:bg-[var(--hover-bg)] text-sm ${ openPanel ? "justify-between px-3 py-2.5" : "justify-center p-3"}`}
+              >
+                <div
+                  className={`${ openPanel ? "py-1 px-2 group-hover:hidden" : "" } flex items-center`}
+                >
                   <FileText className="h-4 w-4 text-red-500" />
                   <span className={`${ openPanel ? "font-medium text-foreground ml-3" : "hidden" }`}>{source.name}</span>
                 </div>
@@ -197,6 +217,15 @@ export default function SourcesPanel() {
           </div>
         )}
       </div>
+      {/* Global tooltip overlay using fixed positioning to avoid scrollbars */}
+      {!openPanel && tooltip.visible && (
+        <div
+          className="z-50 bg-card border border-border text-sm shadow-lg rounded-md px-3 py-1.5 whitespace-nowrap text-foreground pointer-events-none"
+          style={{ position: "fixed", left: tooltip.x, top: tooltip.y, transform: "translateY(-50%)" }}
+        >
+          {tooltip.text}
+        </div>
+      )}
     </div>
   )
 }
