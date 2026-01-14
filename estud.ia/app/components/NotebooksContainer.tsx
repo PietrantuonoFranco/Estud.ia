@@ -10,9 +10,12 @@ import Notebook from "@/app/lib/interfaces/entities/Notebook";
 interface NotebooksContainerProps {
   orderBy: "most-recently" | "title";
   viewMode: "grid" | "list";
+  onStartUpload?: () => void;
+  onProgressUpdate?: (progress: number) => void;
+  onUploadComplete?: () => void;
 }
 
-export default function NotebooksContainer ({ orderBy, viewMode }: NotebooksContainerProps) {
+export default function NotebooksContainer ({ orderBy, viewMode, onStartUpload, onProgressUpdate, onUploadComplete }: NotebooksContainerProps) {
   const [notebooks, setNotebooks] = useState<Notebook[]>([]);
   const router = useRouter();
 
@@ -61,6 +64,7 @@ export default function NotebooksContainer ({ orderBy, viewMode }: NotebooksCont
 
   const handleFilesChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
+      onStartUpload?.();
       const files = event.target.files;
       
       if (!files || files.length === 0) {
@@ -75,11 +79,15 @@ export default function NotebooksContainer ({ orderBy, viewMode }: NotebooksCont
         formData.append("files", files[i]);
       }
       
+      onProgressUpdate?.(30);
+      
       const response = await fetch(`${API_URL}/notebooks/`, {
         method: "POST",
         body: formData,
         credentials: 'include', // Enviar cookies
       });
+
+      onProgressUpdate?.(70);
 
       if (!response.ok) {
         throw new Error("Error al subir el archivo");
@@ -90,9 +98,15 @@ export default function NotebooksContainer ({ orderBy, viewMode }: NotebooksCont
       const result = await response.json();
       const notebookId = result.id;
 
-      router.push(`/notebook/${notebookId}`);
+      onProgressUpdate?.(90);
+      
+      setTimeout(() => {
+        onUploadComplete?.();
+        router.push(`/notebook/${notebookId}`);
+      }, 100);
     } catch (error) {
       console.error("Error al subir el archivo:", error);
+      onUploadComplete?.();
     }
   };
 
