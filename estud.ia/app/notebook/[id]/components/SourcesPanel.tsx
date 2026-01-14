@@ -1,6 +1,6 @@
 "use client"
 
-import { Plus, FileText, Check, PanelLeft, Trash2 } from "lucide-react";
+import { FilePlusCorner, FileText, Check, PanelLeft, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { useChatInformationContext } from "../contexts/ChatInformationContext";
@@ -120,10 +120,10 @@ export default function SourcesPanel() {
       </div>
 
       <div className="p-4">
-        <div className={`text-sm text-black font-semibold w-full flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-[var(--purple-accent)] to-[var(--sidebar-border)] to-[var(--purple-accent)] hover:bg-gradient-to-br hover:from-[var(--sidebar-border)] to-[var(--purple-accent)]  transition-all duration-300 ease-in-out cursor-pointer `}>
+        <div className={`text-sm text-black font-semibold flex items-center justify-center gap-2 bg-gradient-to-br from-[var(--purple-accent)] to-[var(--sidebar-border)] to-[var(--purple-accent)] hover:bg-gradient-to-br hover:from-[var(--sidebar-border)] to-[var(--purple-accent)]  transition-all duration-300 ease-in-out cursor-pointer ${ openPanel ? "w-full py-3 px-6 rounded-full" : "py-2.75 px-1 rounded-lg" }`}>
           <input type="file" accept="application/pdf" multiple className="hidden" id="file-upload" onChange={handleFilesChange} />
-          <label htmlFor="file-upload" className="cursor-pointer rounded-full h-full w-full py-3 px-6 flex items-center justify-center gap-2">
-            <Plus className="h-4 w-4" strokeWidth={3}/>
+          <label htmlFor="file-upload" className="cursor-pointer rounded-lg h-full w-full flex items-center justify-center gap-2">
+            <FilePlusCorner className="h-4 w-4" strokeWidth={3}/>
             <span className={`${ openPanel ? "font-semibold" : "hidden" }`}>Agregar fuentes</span>
           </label>
         </div>
@@ -154,7 +154,7 @@ export default function SourcesPanel() {
 
             {sources?.map((source, index) => (
               <div key={index} className={`group flex items-center rounded-lg bg-[var(--hover-bg)] text-sm ${ openPanel ? "justify-between px-3 py-2.5" : "justify-center p-3"}`}>
-                <div className="group-hover:hidden flex items-center py-1 px-2">
+                <div className={`${ openPanel ? "py-1 px-2 group-hover:hidden" : "" } flex items-center`}>
                   <FileText className="h-4 w-4 text-red-500" />
                   <span className={`${ openPanel ? "font-medium text-foreground ml-3" : "hidden" }`}>{source.name}</span>
                 </div>
