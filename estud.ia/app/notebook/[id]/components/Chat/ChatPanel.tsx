@@ -1,6 +1,8 @@
 "use client"
 
 import { useRef, useEffect } from "react"
+import { MessageSquareText } from "lucide-react"
+
 import MessageInbox from "./components/MessageInbox"
 import LLMMessage from "./components/LLMMessage"
 import UserMessage from "./components/UserMessage"
@@ -19,7 +21,8 @@ export default function ChatPanel() {
 
   return (
     <div className="flex flex-1 flex-col bg-background">
-      <div className="flex items-center justify-between border-b border-border px-6 py-4.5">
+      <div className="flex items-center space-x-2 border-b border-border px-6 py-4.5">
+        <MessageSquareText className="h-4 w-4 text-[var(--blue-accent)]" />
         <h2 className="text-sm font-medium text-foreground">Chat</h2>
       </div>
 
@@ -41,7 +44,7 @@ export default function ChatPanel() {
             </p>
           </div>
 
-          <div className="p-6 space-y-6 text-sm leading-relaxed text-foreground">
+          <div className="p-6 space-y-3 text-sm leading-relaxed text-foreground">
             <LLMMessage message={notebook?.description}/>
 
             {messages?.map((message, index) => (

@@ -7,15 +7,18 @@ import {
   BookOpen,
   HelpCircle,
   MoreVertical,
-  StickyNote
+  StickyNote,
+  MessageSquareText
 } from "lucide-react"
 
 import { useChatInformationContext } from "../contexts/ChatInformationContext";
+import OptionButton from "./OptionButton";
 
 const studioTools = [
-  { icon: FileText, label: "Resumen", color: "orange" },
-  { icon: BookOpen, label: "Tarjetas didácticas", color: "green" },
-  { icon: HelpCircle, label: "Cuestionario", color: "purple" },
+  { optionName: "chat", icon: MessageSquareText, label: "Chat", color: "blue" },
+  { optionName: "flashcards", icon: BookOpen, label: "Tarjetas didácticas", color: "green" },
+  { optionName: "summary", icon: FileText, label: "Resumen", color: "orange" },
+  { optionName: "quiz", icon: HelpCircle, label: "Cuestionario", color: "purple" },
 ]
 
 const recentItems = [
@@ -43,23 +46,23 @@ export default function StudioPanel() {
 
       <div className="flex-1">
         <div className={`grid grid-cols-1 ${ openPanel ? "md:grid-cols-2" : ""} p-4 gap-3`}>
-          {studioTools.map((tool, idx) => {
-            const Icon = tool.icon
+          {studioTools.map((tool, idx, index) => {
             const colorClasses = {
               purple: "bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]",
               green: "bg-[var(--green-accent)]/10 text-[var(--green-accent)]",
               orange: "bg-[var(--orange-accent)]/10 text-[var(--orange-accent)]",
-              gray: "bg-muted/50 text-muted-foreground",
+              blue: "bg-[var(--blue-accent)]/10 text-[var(--blue-accent)]",
             }[tool.color]
 
             return (
-              <button
-                key={idx}
-                className={`cursor-pointer flex flex-col w-full gap-2 rounded-lg p-3 text-left transition-colors hover:bg-[var(--hover-bg)] ${colorClasses}`}
-              >
-                <Icon className="h-4 w-4" />
-                <span className={`${ openPanel ? "text-sm font-medium" : "hidden"}`}>{tool.label}</span>
-              </button>
+              <OptionButton
+                key={idx.toString()}
+                optionName={tool.optionName}
+                icon={tool.icon}
+                label={tool.label}
+                colorClasses={colorClasses}
+                openPanel={openPanel}
+              />
             )
           })}
         </div>
@@ -103,3 +106,4 @@ export default function StudioPanel() {
     </div>
   )
 }
+

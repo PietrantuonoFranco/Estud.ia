@@ -1,10 +1,12 @@
 'use client';
 
 import { ChatInformationProvider } from "./contexts/ChatInformationContext";
+import { OptionContextProvider } from "./contexts/OptionContext";
+
 
 import SourcesPanel from "./components/SourcesPanel";
-import ChatPanel from "./components/Chat/ChatPanel";
 import StudioPanel from "./components/FunctionPanel";
+import OptionContainer from "./components/OptionContainer";
 
 
 export default function Home() {
@@ -13,8 +15,11 @@ export default function Home() {
     <div className="flex overflow-hidden bg-background">
       <ChatInformationProvider>
         <SourcesPanel/>
-        <ChatPanel/>
-        <StudioPanel/>
+        
+        <OptionContextProvider>
+          <OptionContainer/>
+          <StudioPanel/>
+        </OptionContextProvider>
       </ChatInformationProvider>     
     </div>
   )
