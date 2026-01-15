@@ -41,6 +41,7 @@ def get_notebook(db: Session, notebook_id: int):
         db.query(Notebook)
         .options(joinedload(Notebook.messages))
         .options(joinedload(Notebook.sources))
+        .options(joinedload(Notebook.flashcards))
         .filter(Notebook.id == notebook_id)
         .first()
     )

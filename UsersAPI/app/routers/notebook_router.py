@@ -8,9 +8,11 @@ from ..config import conf
 from ..database import get_db
 from ..schemas.notebook_schema import NotebookOut, NotebookCreate
 from ..schemas.source_schema import SourceOut, SourceCreate
+from ..schemas.flashcard_schema import FlashcardCreate, FlashcardOut
 from ..models.source_model import Source
 from ..security.auth import get_current_user
 from ..crud.source_crud import create_source, delete_source as delete_source_crud
+from ..crud.flashcard_crud import create_flashcard
 from ..crud.notebook_crud import (
     create_notebook as create_notebook_crud,
     get_notebook as get_notebook_crud,
@@ -198,7 +200,7 @@ async def read_notebooks_by_user_id(user_id: int, db: Session = Depends(get_db))
     return notebooks
 
 @router.post("/{notebook_id}/add-sources", response_model=NotebookOut, status_code=status.HTTP_200_OK)
-async def add_sources_to_notebook(notebook_id: int, files: List[UploadFile] = File(...), db: Session = Depends(get_db)):
+async def add_sources_to_notebook(notebook_id: int, files: List[UploadFile] = File(...), db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para agregar fuentes a un notebook."""
 
     notebook = get_notebook_crud(db, notebook_id=notebook_id)
@@ -293,4 +295,69 @@ async def add_sources_to_notebook(notebook_id: int, files: List[UploadFile] = Fi
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
     
-    return notebook
+
+@router.post("/{notebook_id}/flashcards", response_model=List[FlashcardOut], status_code=status.HTTP_200_OK)
+async def add_flashcards_to_notebook(notebook_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    try:
+        print(f"Fetching notebook with ID: {notebook_id}")
+        notebook = get_notebook_crud(db, notebook_id=notebook_id)
+
+        if not notebook:
+            raise HTTPException(status_code=404, detail="Notebook not found")
+        
+        print(f"Notebook found: {notebook.title}, source_ids: {[source.id for source in notebook.sources]}")
+        
+        if not notebook.sources or len(notebook.sources) == 0:
+            raise HTTPException(status_code=400, detail="Notebook has no sources to generate flashcards from")
+        
+        # Convert source_ids to integers
+        pdf_ids = [source.id for source in notebook.sources]
+        
+        print(f"Sending request to Langchain with pdf_ids: {pdf_ids}")
+        
+        try:
+            response = await http_client.post(
+                f"{conf.LANGCHAIN_URI}/create-flashcards",
+                json={"pdf_ids": pdf_ids},
+                headers={"X-API-Key": conf.LANGCHAIN_API_KEY},
+                timeout=60.0
+            )
+            
+            response.raise_for_status()
+            print(f"Langchain response status: {response.status_code}")
+
+        except httpx.HTTPStatusError as e:
+            print(f"HTTPStatusError: {e.response.status_code} - {e.response.text}")
+            raise HTTPException(status_code=e.response.status_code, detail=f"An error has occurred with Langchain service: {e.response.text}")
+        
+        except Exception as e:
+            print(f"Connection Error: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            raise HTTPException(status_code=500, detail=f"Connection error: {str(e)}")
+
+        flashcard_response = response.json()
+        print(f"Flashcard response: {flashcard_response}")
+
+        new_flashcards = []
+      
+        for fc in flashcard_response.get("flashcards", []):
+            new_flashcard = FlashcardCreate(
+                question=fc["question"],
+                answer=fc["answer"],
+                notebook_id=notebook_id,
+                notebook_users_id=notebook.user_id
+            )
+
+            new_flashcards.append(create_flashcard(db=db, flashcard=new_flashcard))
+
+        print(f"Created {len(new_flashcards)} flashcards")
+        return new_flashcards
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Unexpected error in add_flashcards_to_notebook: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
