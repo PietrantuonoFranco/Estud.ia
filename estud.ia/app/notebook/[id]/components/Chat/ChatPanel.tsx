@@ -1,5 +1,6 @@
 "use client"
 
+import { useRef, useEffect } from "react"
 import MessageInbox from "./components/MessageInbox"
 import LLMMessage from "./components/LLMMessage"
 import UserMessage from "./components/UserMessage"
@@ -8,6 +9,13 @@ import { useChatInformationContext } from "../../contexts/ChatInformationContext
 
 export default function ChatPanel() {
   const { notebook, messages, sources } = useChatInformationContext();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   return (
     <div className="flex flex-1 flex-col bg-background">
@@ -15,7 +23,7 @@ export default function ChatPanel() {
         <h2 className="text-sm font-medium text-foreground">Chat</h2>
       </div>
 
-      <div className="flex-1 overflow-y-auto flex-col items-center space-y-2 px-6 py-8">
+      <div className="flex-1 overflow-y-auto flex-col items-center space-y-2 px-6 py-8" ref={scrollContainerRef}>
         <div className="relative mx-auto max-w-3xl space-y-4">
           <div className="flex flex-col items-center gap-6 text-center">
             <div className="flex text-4xl h-16 w-16 items-center justify-center rounded-full bg-[var(--hover-bg)]">
