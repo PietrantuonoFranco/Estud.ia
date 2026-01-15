@@ -49,7 +49,7 @@ export function Flashcard({ cards, className }: FlashcardProps) {
           )}
           style={{
             transformStyle: "preserve-3d",
-            transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+            transform: isFlipped ? "rotateY(-180deg)" : "rotateY(0deg)",
           }}
         >
           {/* Frente - Pregunta */}
