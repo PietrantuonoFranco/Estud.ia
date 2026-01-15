@@ -99,6 +99,9 @@ async def upload_document_app(
     source_ids: List[int] = Form(...),
     api_key: str = Security(verify_api_key)
 ):
+    """
+    Endpoint to upload multiple PDF documents and process them.
+    """
     try:
         await upload_documents(files=files, source_ids=source_ids)
 
@@ -112,7 +115,9 @@ async def upload_document_app(
 
 @app.get("/get_context") ## De prueba / depuracion 
 async def get_context_app(request: ContextRequest, api_key: str = Security(verify_api_key) ):
-    
+    """
+    Endpoint to get context from Milvus based on a query
+    """
     try:
         query_vector = await embedding_generator.get_query_embedding(text=request.query)
         
@@ -130,11 +135,11 @@ async def get_context_app(request: ContextRequest, api_key: str = Security(verif
 @app.post("/chat/rag", response_model=RAGResponse)
 async def rag_endpoint(request: RAGRequest, api_key: str = Security(verify_api_key)):
     """
-    Endpoint RAG con LangGraph - Valida respuesta con LLM as Judge
-    y refina query si es necesario
+    RAG endpoint with LangGraph - Validates response with LLM as Judge
+    and refines query if necessary
     """
     try:
-        # Estado inicial del grafo
+        # Initial state of the graph
         initial_state = {
             "question": request.question,
             "query": request.question,
@@ -146,7 +151,7 @@ async def rag_endpoint(request: RAGRequest, api_key: str = Security(verify_api_k
             "retrieval_attempts": 0
         }
         
-        # Invocar el grafo (async wrapper on graph app)
+        # Invoke the graph (async wrapper on graph app)
         result = await rag_graph.invoke(initial_state)
         
         return RAGResponse(
@@ -162,7 +167,7 @@ async def rag_endpoint(request: RAGRequest, api_key: str = Security(verify_api_k
         return {
             "error": str(e),
             "question": request.question,
-            "generation": f"Error procesando la solicitud: {str(e)}",
+            "generation": f"Error processing the request: {str(e)}",
             "context": "",
             "is_valid": False,
             "refinement_attempts": 0
@@ -176,12 +181,12 @@ async def create_notebook(
     api_key: str = Security(verify_api_key)
 ):
     """
-    Endpoint para crear la información básica de un notebook en base a uno o más PDFs
+    Endpoint to create the basic information of a notebook based on one or more PDFs
     """
     try:
         await upload_documents(files=files, source_ids=source_ids)
         
-        # Generar título, ícono y descripción usando el grafo
+        # Generate title, icon, and description using the graph
         initial_state = {
             "pdfs_ids": source_ids,
             "context": "",
@@ -190,7 +195,7 @@ async def create_notebook(
 
         result = await notebook_graph.invoke(initial_state)
 
-        # Limpiar la respuesta de bloques de código markdown si existen
+        # Clean the response from markdown code blocks if they exist
         generation_text = correct_generation_text(result["generation"])
             
         result_json = json.loads(generation_text)
@@ -212,7 +217,7 @@ async def create_notebook(
 @app.post("/delete-pdfs", status_code=status.HTTP_200_OK)
 async def delete_pdfs(request: dict, api_key: str = Security(verify_api_key)):
     """
-    Endpoint para eliminar documentos PDF de la colección en Milvus.
+    Endpoint to delete PDF documents from the Milvus collection.
     """
     try:
         pdf_ids = request.get("pdf_ids", [])
@@ -245,7 +250,7 @@ async def delete_pdfs(request: dict, api_key: str = Security(verify_api_key)):
 
 async def upload_documents(files: List[UploadFile] = File(...), source_ids: List[int] = Form(...)):
     """
-    Función auxiliar para subir múltiples documentos PDF y procesarlos.
+    Helper function to upload multiple PDF documents and process them.
     """
     try:
         # Validate that the number of files matches the number of IDs
@@ -297,6 +302,9 @@ async def upload_documents(files: List[UploadFile] = File(...), source_ids: List
         )
     
 def correct_generation_text(text: str) -> str:
+    """
+    Helper function to clean markdown code blocks from LLM generation.
+    """
     generation_text = text.strip()
     
     if generation_text.startswith("```json"):
