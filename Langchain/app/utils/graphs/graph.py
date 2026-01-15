@@ -6,9 +6,9 @@ from langchain.chat_models import init_chat_model
 import operator
 import json
 
-from .embbedings import EmbeddingGenerator
-from .reranker import Reranker
-from ..db.milvus import Async_Milvus_Client
+from ..embbedings import EmbeddingGenerator
+from ..reranker import Reranker
+from ...db.milvus import Async_Milvus_Client
 
 ##Clase estado del grafo
 class RAGState(TypedDict):

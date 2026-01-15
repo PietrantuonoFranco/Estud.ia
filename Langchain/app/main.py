@@ -11,8 +11,8 @@ from .utils.embbedings import EmbeddingGenerator
 from .utils.splitter import Splitter
 from .db.milvus import Async_Milvus_Client
 from .utils.reranker import Reranker
-from .utils.graph import create_rag_graph
-from .utils.notebook_graph import create_notebook_graph
+from .utils.graphs.graph import create_rag_graph
+from .utils.graphs.notebook_graph import create_notebook_graph
 from .security import verify_api_key
 
 UPLOAD_DIRECTORY = os.path.join(os.path.dirname(__file__), "uploaded_files")
