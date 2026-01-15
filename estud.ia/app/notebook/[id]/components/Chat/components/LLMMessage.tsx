@@ -53,9 +53,9 @@ export default function LLMMessage ({ message, isLoading }: { message: string | 
         </p>
       </div>
 
-      <div className="flex items-center gap-4 pt-2">
+      <div className="flex items-center gap-2">
         <button
-          className="cursor-pointer flex items-center gap-2 text-muted-foreground px-3 py-1.5 rounded-full border border-border"
+          className="cursor-pointer flex items-center gap-2 text-muted-foreground px-3 py-1.5 rounded-full border border-border  hover:bg-card/50 hover:shadow-md transition-shadow duration-300"
         >
           <Pin className="h-4 w-4" />
           Guardar en las notas
@@ -64,7 +64,7 @@ export default function LLMMessage ({ message, isLoading }: { message: string | 
         <button
           type="button"
           onClick={handleCopy}
-          className="cursor-pointer text-muted-foreground"
+          className="cursor-pointer text-muted-foreground p-2 hover:bg-[var(--hover-bg)] hover:rounded-full hover:shadow-md transition-shadow duration-300"
         >
           <Copy className="h-4 w-4" />
         </button>
@@ -72,7 +72,7 @@ export default function LLMMessage ({ message, isLoading }: { message: string | 
         <button
           type="button"
           onClick={() => {}}
-          className="cursor-pointer text-muted-foreground"
+          className="cursor-pointer text-muted-foreground p-2 hover:bg-[var(--hover-bg)] hover:rounded-full hover:shadow-md transition-shadow duration-300"
         >
           <ThumbsUp className="h-4 w-4" />
         </button>
@@ -80,7 +80,7 @@ export default function LLMMessage ({ message, isLoading }: { message: string | 
         <button
           type="button"
           onClick={() => {}}
-          className="cursor-pointer text-muted-foreground"
+          className="cursor-pointer text-muted-foreground p-2 hover:bg-[var(--hover-bg)] hover:rounded-full hover:shadow-md transition-shadow duration-300"
         >
           <ThumbsDown className="h-4 w-4" />
         </button>
