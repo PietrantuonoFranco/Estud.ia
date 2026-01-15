@@ -21,11 +21,11 @@ UPLOAD_DIRECTORY = os.path.join(os.path.dirname(__file__), "uploaded_files")
 os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
 
 
-##Inicializacion de objetos 
+## Object initialization
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     
-    ##Instancias de objetos (helpers)
+    ## Object instances (helpers)
     global splitter, embedding_generator, reranker, client_milvus, rag_graph, notebook_graph
 
     splitter = Splitter()
@@ -33,14 +33,14 @@ async def lifespan(app: FastAPI):
     reranker = Reranker()
     client_milvus = Async_Milvus_Client()
     
-    ##Crear grafo RAG con dependencias locales (sin requests HTTP internos)
+    ## Create RAG graph with local dependencies (without internal HTTP requests)
     rag_graph = create_rag_graph(
         embedding_generator=embedding_generator,
         reranker=reranker,
         client_milvus=client_milvus
     )
     
-    # Crear grafo Notebook con dependencias locales
+    # Create Notebook graph with local dependencies
     notebook_graph = create_notebook_graph(
         embedding_generator=embedding_generator,
         client_milvus=client_milvus
@@ -134,8 +134,6 @@ async def rag_endpoint(request: RAGRequest, api_key: str = Security(verify_api_k
     y refina query si es necesario
     """
     try:
-        
-        
         # Estado inicial del grafo
         initial_state = {
             "question": request.question,
@@ -151,7 +149,6 @@ async def rag_endpoint(request: RAGRequest, api_key: str = Security(verify_api_k
         # Invocar el grafo (async wrapper on graph app)
         result = await rag_graph.invoke(initial_state)
         
-       
         return RAGResponse(
             question=result["question"],
             generation=result["generation"],
@@ -194,14 +191,7 @@ async def create_notebook(
         result = await notebook_graph.invoke(initial_state)
 
         # Limpiar la respuesta de bloques de código markdown si existen
-        generation_text = result["generation"].strip()
-        if generation_text.startswith("```json"):
-            generation_text = generation_text[7:]  # Remover ```json
-        if generation_text.startswith("```"):
-            generation_text = generation_text[3:]  # Remover ```
-        if generation_text.endswith("```"):
-            generation_text = generation_text[:-3]  # Remover ```
-        generation_text = generation_text.strip()
+        generation_text = correct_generation_text(result["generation"])
             
         result_json = json.loads(generation_text)
             
@@ -258,14 +248,14 @@ async def upload_documents(files: List[UploadFile] = File(...), source_ids: List
     Función auxiliar para subir múltiples documentos PDF y procesarlos.
     """
     try:
-        # Validar que haya la misma cantidad de archivos e IDs
+        # Validate that the number of files matches the number of IDs
         if len(files) != len(source_ids):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="El número de archivos y source_ids debe coincidir"
+                detail="The number of files and source_ids must match"
             )
         
-        # Guardar todos los archivos temporalmente
+        # Save all files temporarily
         for file in files:
             if not file.filename.endswith('.pdf'):
                 raise HTTPException(
@@ -279,7 +269,7 @@ async def upload_documents(files: List[UploadFile] = File(...), source_ids: List
                 shutil.copyfileobj(file.file, buffer)
         
         try:
-            # Procesar cada archivo con su ID correspondiente
+            # Process each file with its corresponding ID
             for file, source_id in zip(files, source_ids):
                 file_path = os.path.join(UPLOAD_DIRECTORY, file.filename)
                 text_chunks = splitter.split_document(file_path=file_path)
@@ -292,7 +282,7 @@ async def upload_documents(files: List[UploadFile] = File(...), source_ids: List
             
                 await client_milvus.upload_document(data=formatted_data, collection_name="documents_collection")
         finally:
-                # Limpiar archivos temporales después de procesar
+                # Clean up temporary files after processing
                 for file in files:
                     file_path = os.path.join(UPLOAD_DIRECTORY, file.filename)
                     if os.path.exists(file_path):
@@ -305,3 +295,19 @@ async def upload_documents(files: List[UploadFile] = File(...), source_ids: List
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred while uploading documents: {str(e)}"
         )
+    
+def correct_generation_text(text: str) -> str:
+    generation_text = text.strip()
+    
+    if generation_text.startswith("```json"):
+        generation_text = generation_text[7:]  # Remove ```json
+    
+    if generation_text.startswith("```"):
+        generation_text = generation_text[3:]  # Remove ```
+    
+    if generation_text.endswith("```"):
+        generation_text = generation_text[:-3]  # Remove ```
+    
+    generation_text = generation_text.strip()
+    
+    return generation_text
