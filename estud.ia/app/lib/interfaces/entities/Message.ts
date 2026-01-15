@@ -3,4 +3,5 @@ export default interface Message {
   notebook_id: number;
   is_user_message: boolean;
   text: string;
+  isLoading?: boolean;
 }

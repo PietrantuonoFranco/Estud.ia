@@ -17,7 +17,7 @@ const extractResponse = (message: string | undefined): string => {
   return message.trim();
 };
 
-export default function LLMMessage ({ message }: { message: string | undefined}) {
+export default function LLMMessage ({ message, isLoading }: { message: string | undefined, isLoading?: boolean}) {
 
   const response = extractResponse(message);
   const formattedMessage = response.replace(/\n/g, '<br/>');
@@ -29,6 +29,16 @@ export default function LLMMessage ({ message }: { message: string | undefined})
       console.error('Error al copiar:', err);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col space-y-2 pr-24">
+        <div className="w-fit flex items-center bg-[var(--hover-bg)] px-6 py-3 rounded-3xl rounded-bl-md">
+          <svg xmlns="http://www.w3.org/2000/svg" width="34px" height="34px" viewBox="0 0 24 24"><circle cx={18} cy={12} r={0} fill="currentColor"><animate attributeName="r" begin={0.67} calcMode="spline" dur="1.5s" keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8" repeatCount="indefinite" values="0;2;0;0"></animate></circle><circle cx={12} cy={12} r={0} fill="currentColor"><animate attributeName="r" begin={0.33} calcMode="spline" dur="1.5s" keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8" repeatCount="indefinite" values="0;2;0;0"></animate></circle><circle cx={6} cy={12} r={0} fill="currentColor"><animate attributeName="r" begin={0} calcMode="spline" dur="1.5s" keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8" repeatCount="indefinite" values="0;2;0;0"></animate></circle></svg>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col space-y-2 pr-24">

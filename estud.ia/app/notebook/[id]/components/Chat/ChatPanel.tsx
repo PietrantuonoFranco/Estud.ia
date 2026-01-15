@@ -40,7 +40,7 @@ export default function ChatPanel() {
               message.is_user_message ? 
                 <UserMessage key={index} message={message.text} />
               :
-                <LLMMessage key={index} message={message.text} />
+                <LLMMessage key={index} message={message.text} isLoading={message.isLoading} />
             ))}
           </div>
           <MessageInbox />

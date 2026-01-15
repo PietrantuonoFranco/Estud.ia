@@ -102,7 +102,17 @@ export function ChatInformationProvider({ children }: { children: React.ReactNod
             prev.map((msg) => msg.id === last.id ? createdUserMessage : msg)
           );
 
-          // 2. Now send the request to the LLM
+          // 2. Add a loading message for the LLM response
+          const loadingMessage: Message = {
+            id: Date.now() + 1,
+            notebook_id: notebook.id,
+            is_user_message: false,
+            text: "",
+            isLoading: true,
+          };
+          setMessages((prev) => [...prev, loadingMessage]);
+
+          // 3. Now send the request to the LLM
           const llmRes = await fetch(`${API_URL}/messages/llm`, {
             method: "POST",
             credentials: "include",
@@ -117,7 +127,9 @@ export function ChatInformationProvider({ children }: { children: React.ReactNod
           if (!llmRes.ok) throw new Error("Could not get LLM response");
     
           const llmData = await llmRes.json();
-          setMessages((prev) => [...prev, llmData]);
+          setMessages((prev) => 
+            prev.map((msg) => msg.id === loadingMessage.id ? llmData : msg)
+          );
         } catch (err) {
           console.error(err);
         } finally {
