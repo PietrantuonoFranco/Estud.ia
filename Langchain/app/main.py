@@ -3,17 +3,22 @@ import os
 import shutil
 import traceback
 from contextlib import asynccontextmanager
-from pydantic import BaseModel
 from typing import List
 import json
 
 from .utils.embbedings import EmbeddingGenerator
 from .utils.splitter import Splitter
+
 from .utils.dtos_schemas.rag_dtos_schemas import RAGRequest, RAGResponse, ContextRequest
 from .utils.dtos_schemas.notebook_dtos_schemas import NotebookResponse
+from .utils.dtos_schemas.flashcards_dtos_schemas import FlashcardResponse, Flashcard, FlashcardRequest
+
 from .utils.reranker import Reranker
+
 from .utils.graphs.graph import create_rag_graph
 from .utils.graphs.notebook_graph import create_notebook_graph
+from .utils.graphs.flashcard_graph import create_flashcard_graph
+
 from .db.milvus import Async_Milvus_Client
 from .security import verify_api_key
 
@@ -26,7 +31,7 @@ os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
 async def lifespan(app: FastAPI):
     
     ## Object instances (helpers)
-    global splitter, embedding_generator, reranker, client_milvus, rag_graph, notebook_graph
+    global splitter, embedding_generator, reranker, client_milvus, rag_graph, notebook_graph, flashcard_graph
 
     splitter = Splitter()
     embedding_generator = EmbeddingGenerator()
@@ -45,6 +50,12 @@ async def lifespan(app: FastAPI):
         embedding_generator=embedding_generator,
         client_milvus=client_milvus
     )
+
+    # Create Flashcard graph with local dependencies
+    flashcard_graph = create_flashcard_graph(
+        embedding_generator=embedding_generator,
+        client_milvus=client_milvus
+    )
     
     yield
     
@@ -55,9 +66,11 @@ app = FastAPI(lifespan=lifespan, openapi_url="/api/v1")
 def root():
     return {"message": "Langchain App is running"}
 
+
 @app.get("/healthcheck", status_code=status.HTTP_200_OK)
 async def healthcheck():
     return {"status": "ok", "message": "Service is healthy"}
+
 
 @app.post("/upload_document") 
 async def upload_document_app(file: UploadFile, api_key: str = Security(verify_api_key)):
@@ -93,6 +106,7 @@ async def upload_document_app(file: UploadFile, api_key: str = Security(verify_a
         traceback.print_exc()
         return {"error": str(e)}
 
+
 @app.post("/upload-pdfs") 
 async def upload_document_app(
     files: List[UploadFile] = File(...),
@@ -110,7 +124,6 @@ async def upload_document_app(
     except Exception as e:
         traceback.print_exc()
         return {"error": str(e)}
-
 
 
 @app.get("/get_context") ## De prueba / depuracion 
@@ -213,7 +226,8 @@ async def create_notebook(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred while creating the notebook: {str(e)}"
         )
-    
+
+
 @app.post("/delete-pdfs", status_code=status.HTTP_200_OK)
 async def delete_pdfs(request: dict, api_key: str = Security(verify_api_key)):
     """
@@ -247,6 +261,52 @@ async def delete_pdfs(request: dict, api_key: str = Security(verify_api_key)):
             detail=f"An error occurred while deleting the collection: {str(e)}"
         )
     
+
+@app.post("/create-flashcards", response_model=FlashcardResponse, status_code=status.HTTP_200_OK)
+async def create_flashcards(
+    request: FlashcardRequest,
+    api_key: str = Security(verify_api_key)
+):
+    """
+    Endpoint to create flashcards based on one or more PDFs
+    """
+    try:
+        initial_state = {
+            "pdfs_ids": request.pdf_ids,
+            "context": "",
+            "generation": ""
+        }
+        
+        # Invoke the graph (async wrapper on graph app)
+        result = await flashcard_graph.invoke(initial_state)
+        
+        # Clean the response from markdown code blocks if they exist
+        generation_text = correct_generation_text(result["generation"])
+        
+        result_json = json.loads(generation_text)
+        
+        # Handle multiple formats: direct array or object with "flashcards"/"preguntas" key
+        if isinstance(result_json, list):
+            flashcards_data = result_json
+        elif isinstance(result_json, dict) and "flashcards" in result_json:
+            flashcards_data = result_json["flashcards"]
+        elif isinstance(result_json, dict) and "preguntas" in result_json:
+            flashcards_data = result_json["preguntas"]
+        else:
+            print(f"Unexpected response format: {result_json}")
+            raise ValueError(f"Invalid flashcard format in LLM response. Expected list or dict with 'flashcards'/'preguntas' key, got: {type(result_json)}")
+
+        return FlashcardResponse(
+            flashcards=[Flashcard(question=fc["question"], answer=fc["answer"]) for fc in flashcards_data]
+        )
+        
+    except Exception as e:
+        traceback.print_exc()
+        return {
+            "error": str(e),
+            "generation": f"Error processing the request: {str(e)}",
+            "context": ""
+        }
 
 async def upload_documents(files: List[UploadFile] = File(...), source_ids: List[int] = Form(...)):
     """
