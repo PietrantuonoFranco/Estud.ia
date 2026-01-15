@@ -9,44 +9,17 @@ import json
 
 from .utils.embbedings import EmbeddingGenerator
 from .utils.splitter import Splitter
-from .db.milvus import Async_Milvus_Client
+from .utils.dtos_schemas.rag_dtos_schemas import RAGRequest, RAGResponse, ContextRequest
+from .utils.dtos_schemas.notebook_dtos_schemas import NotebookResponse
 from .utils.reranker import Reranker
 from .utils.graphs.graph import create_rag_graph
 from .utils.graphs.notebook_graph import create_notebook_graph
+from .db.milvus import Async_Milvus_Client
 from .security import verify_api_key
 
 UPLOAD_DIRECTORY = os.path.join(os.path.dirname(__file__), "uploaded_files")
 os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
 
-class ContextRequest(BaseModel):
-    query: str
-    filter : str
-
-
-class RAGRequest(BaseModel):
-    question: str
-    pdf_ids: List[int]
-    filter: str = ""
-
-
-class RAGResponse(BaseModel):
-    question: str
-    generation: str
-    context: str
-    is_valid: bool
-    refinement_attempts: int
-
-class SourceRequest(BaseModel):
-    id: int
-    file: UploadFile
-
-class NotebookRequest(BaseModel):
-    sources: list[SourceRequest]
-
-class NotebookResponse(BaseModel):
-    title: str
-    icon: str
-    description: str
 
 ##Inicializacion de objetos 
 @asynccontextmanager
