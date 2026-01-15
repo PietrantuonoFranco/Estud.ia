@@ -30,7 +30,7 @@ export default function FlashcardContainer() {
     <main className="flex flex-col min-h-[100dvh]">
       <div className="flex items-center space-x-2 border-b border-border px-6 py-4.5">
         <BookOpen className="h-4 w-4 text-[var(--green-accent)]" />
-        <h2 className="text-sm font-medium text-foreground">Flashcards</h2>
+        <h2 className="text-sm font-medium text-foreground">Tarjetas Didácticas</h2>
       </div>
 
       <div className="flex-1 flex items-center justify-center p-4">
@@ -42,7 +42,7 @@ export default function FlashcardContainer() {
 
             <h1 className="text-4xl font-semibold text-foreground">{notebook?.title}</h1>
             <p className="text-sm text-muted-foreground">
-              Flashcards de estudio
+              Tarjetas didácticas de estudio
             </p>
           </div>
           <Flashcard cards={flashcards} />
