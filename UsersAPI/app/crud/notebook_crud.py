@@ -28,7 +28,6 @@ def get_all_notebooks(db: Session, skip: int = 0, limit: int = 10):
     """Obtener todas las fuentes (sources) con paginación."""
     return (
         db.query(Notebook)
-            .options(joinedload(Notebook.messages))
             .options(joinedload(Notebook.sources))
             .offset(skip)
             .limit(limit)
