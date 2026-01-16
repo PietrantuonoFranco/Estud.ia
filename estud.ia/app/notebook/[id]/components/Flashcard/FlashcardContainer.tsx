@@ -5,25 +5,6 @@ import { Flashcard } from "./Flashcard"
 import { useChatInformationContext } from "../../contexts/ChatInformationContext";
 import { useOptionContext } from "../../contexts/OptionContext";
 
-const flashcardsData = [
-  {
-    question: "¿Qué es React?",
-    answer: "Una biblioteca de JavaScript para construir interfaces de usuario",
-  },
-  {
-    question: "¿Qué es un componente en React?",
-    answer: "Una pieza reutilizable de código que devuelve elementos de React",
-  },
-  {
-    question: "¿Qué es JSX?",
-    answer: "Una extensión de sintaxis de JavaScript que permite escribir HTML en React",
-  },
-  {
-    question: "¿Qué son los hooks en React?",
-    answer: "Funciones que permiten usar estado y otras características en componentes funcionales",
-  },
-]
-
 export default function FlashcardContainer() {
   const { notebook, flashcards } = useChatInformationContext();
   const { isLoading } = useOptionContext();
@@ -73,7 +54,7 @@ export default function FlashcardContainer() {
                   Tarjetas didácticas de estudio
                 </p>
               </div>
-              <Flashcard cards={flashcards} />
+              <Flashcard cards={notebook?.flashcards} />
               <p className="mt-6 text-center text-sm text-muted-foreground">Haz click en la tarjeta para ver la respuesta</p>
             </>
           )}

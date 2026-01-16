@@ -55,7 +55,7 @@ export function ChatInformationProvider({ children }: { children: React.ReactNod
             setNotebook(data);
             setMessages(data.messages ?? []);
             setSources(data.sources ?? []);
-            
+            setFlashcards(data.flashcards ?? []);
           } catch (error) {
             console.error(error);
           }

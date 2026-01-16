@@ -34,7 +34,7 @@ export function OptionContextProvider({ children }: { children: React.ReactNode 
   const [option, setOption] = useState<OptionEnum | string>(OptionEnum.CHAT);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { notebook, setFlashcards } = useChatInformationContext();
+  const { notebook, setNotebook, setFlashcards } = useChatInformationContext();
   
   const API_URL = process.env.API_URL || 'http://localhost:5000';
   
@@ -59,6 +59,12 @@ export function OptionContextProvider({ children }: { children: React.ReactNode 
         
         console.log("Fetched flashcards data:", data);
         setFlashcards(data);
+        
+        // Update the notebook with the new flashcards
+        setNotebook((prev) => {
+          if (!prev) return prev;
+          return { ...prev, flashcards: data };
+        });
       } catch (error) {
         console.error(error);
       } finally {
@@ -69,7 +75,7 @@ export function OptionContextProvider({ children }: { children: React.ReactNode 
     if (option === "flashcards" && notebook && (!notebook.flashcards || notebook.flashcards.length === 0)) {
       fetchFlashcards();
     }
-  }, [option, notebook, API_URL, setFlashcards]);
+  }, [option, notebook, API_URL, setFlashcards, setNotebook]);
 
   return (
     <OptionContext.Provider
