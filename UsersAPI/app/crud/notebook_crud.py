@@ -4,6 +4,7 @@ from ..schemas.notebook_schema import NotebookCreate
 
 from ..models.source_model import Source
 from ..models.notebook_model import Notebook
+from ..models.quiz_model import Quiz
 
 
 def create_notebook(db: Session, notebook: NotebookCreate):
@@ -41,6 +42,7 @@ def get_notebook(db: Session, notebook_id: int):
         .options(joinedload(Notebook.messages))
         .options(joinedload(Notebook.sources))
         .options(joinedload(Notebook.flashcards))
+        .options(joinedload(Notebook.quizzes).joinedload(Quiz.questions))
         .filter(Notebook.id == notebook_id)
         .first()
     )
