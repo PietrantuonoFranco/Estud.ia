@@ -9,7 +9,7 @@ export default function OptionContainer() {
   const { option } = useOptionContext();
 
   return (
-    <div className="min-h-[100dvh] flex-1 overflow-y-auto">
+    <div className="flex-1 overflow-y-auto">
       {option === "chat" && <ChatPanel/>}
       {option === "flashcards" && <FlascardContainer/>}
     </div>

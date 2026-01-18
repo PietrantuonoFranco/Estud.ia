@@ -10,8 +10,8 @@ export default function FlashcardContainer() {
   const { isLoading } = useOptionContext();
 
   return (
-    <main className="flex flex-col min-h-[100dvh]">
-      <div className="flex items-center space-x-2 border-b border-border px-6 py-4.5">
+    <main className="flex flex-col items-center">
+      <div className="w-full sticky top-0 flex items-center space-x-2 border-b border-border px-6 py-4.5 bg-[var(--panel-bg)] z-10">
         <BookOpen className="h-4 w-4 text-[var(--green-accent)]" />
         <h2 className="text-sm font-medium text-foreground">Tarjetas Didácticas</h2>
       </div>
