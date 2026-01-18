@@ -6,13 +6,19 @@ import datetime as date
 
 from ..config import conf
 from ..database import get_db
+
 from ..schemas.notebook_schema import NotebookOut, NotebookCreate
 from ..schemas.source_schema import SourceOut, SourceCreate
 from ..schemas.flashcard_schema import FlashcardCreate, FlashcardOut
+from ..schemas.quiz_schema import QuizWithQuestions, QuizCreate, QuestionCreate
+
 from ..models.source_model import Source
+
 from ..security.auth import get_current_user
+
 from ..crud.source_crud import create_source, delete_source as delete_source_crud
 from ..crud.flashcard_crud import create_flashcard
+from ..crud.quiz_crud import create_quiz
 from ..crud.notebook_crud import (
     create_notebook as create_notebook_crud,
     get_notebook as get_notebook_crud,
@@ -358,6 +364,96 @@ async def add_flashcards_to_notebook(notebook_id: int, db: Session = Depends(get
         raise
     except Exception as e:
         print(f"Unexpected error in add_flashcards_to_notebook: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+    
+@router.post("/{notebook_id}/quiz", response_model=QuizWithQuestions, status_code=status.HTTP_200_OK)
+async def add_quiz_to_notebook(notebook_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    try:
+        print(f"Fetching notebook with ID: {notebook_id}")
+        notebook = get_notebook_crud(db, notebook_id=notebook_id)
+
+        if not notebook:
+            raise HTTPException(status_code=404, detail="Notebook not found")
+        
+        if not notebook.sources or len(notebook.sources) == 0:
+            raise HTTPException(status_code=400, detail="Notebook has no sources to generate flashcards from")
+        
+        
+        # Convert source_ids to integers
+        pdf_ids = [source.id for source in notebook.sources]
+        
+        try:
+            response = await http_client.post(
+                f"{conf.LANGCHAIN_URI}/create-questions-and-answers",
+                json={"pdf_ids": pdf_ids},
+                headers={"X-API-Key": conf.LANGCHAIN_API_KEY},
+                timeout=60.0
+            )
+            
+            response.raise_for_status()
+
+        except httpx.HTTPStatusError as e:
+            raise HTTPException(status_code=e.response.status_code, detail=f"An error has occurred with Langchain service: {e.response.text}")
+        
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            raise HTTPException(status_code=500, detail=f"Connection error: {str(e)}")
+
+        questions_response = response.json()
+        print(f"Questions response: {questions_response}")
+
+
+        # Build question payloads (do not set quiz_id yet)
+        new_questions = []
+        for q in questions_response.get("question_and_answers", []):
+            new_question = QuestionCreate(
+                question=q.get("question"),
+                answer=q.get("answer"),
+                incorrect_answer_1=q.get("incorrect_answer_1", ""),
+                incorrect_answer_2=q.get("incorrect_answer_2", ""),
+                incorrect_answer_3=q.get("incorrect_answer_3", ""),
+            )
+            new_questions.append(new_question)
+
+        # Create quiz with questions in DB
+        quiz_payload = QuizCreate(
+            notebook_id=int(notebook_id),
+            notebook_users_id=current_user.id,
+            questions=new_questions,
+        )
+
+        created_quiz = create_quiz(db, quiz_payload)
+
+        # Prepare response matching QuizWithQuestions
+        questions_out = []
+        for qq in created_quiz.questions:
+            questions_out.append({
+                "id": qq.id,
+                "question": qq.question,
+                "answer": qq.answer,
+                "incorrect_answer_1": qq.incorrect_answer_1,
+                "incorrect_answer_2": qq.incorrect_answer_2,
+                "incorrect_answer_3": qq.incorrect_answer_3,
+                "quiz_id": qq.quiz_id,
+            })
+
+        response_body = {
+            "id": created_quiz.id,
+            "notebook_id": created_quiz.notebook_id,
+            "notebook_users_id": created_quiz.notebook_users_id,
+            "questions_and_answers": questions_out,
+        }
+
+        print(f"Created quiz id={created_quiz.id} with {len(questions_out)} questions")
+        return response_body
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Unexpected error in add_quiz_to_notebook: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
