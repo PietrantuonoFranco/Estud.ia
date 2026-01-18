@@ -11,7 +11,8 @@ from .utils.splitter import Splitter
 
 from .utils.dtos_schemas.rag_dtos_schemas import RAGRequest, RAGResponse, ContextRequest
 from .utils.dtos_schemas.notebook_dtos_schemas import NotebookResponse
-from .utils.dtos_schemas.flashcards_dtos_schemas import FlashcardResponse, Flashcard, FlashcardRequest
+from .utils.dtos_schemas.flashcards_dtos_schemas import FlashcardResponse, Flashcard
+from .utils.dtos_schemas.base_request_schema import BaseRequest
 
 from .utils.reranker import Reranker
 
@@ -264,7 +265,7 @@ async def delete_pdfs(request: dict, api_key: str = Security(verify_api_key)):
 
 @app.post("/create-flashcards", response_model=FlashcardResponse, status_code=status.HTTP_200_OK)
 async def create_flashcards(
-    request: FlashcardRequest,
+    request: BaseRequest,
     api_key: str = Security(verify_api_key)
 ):
     """

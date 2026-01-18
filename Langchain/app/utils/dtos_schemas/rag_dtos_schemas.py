@@ -1,16 +1,14 @@
 from pydantic import BaseModel
-from typing import List
 
+from .base_request_schema import BaseRequest
 
 class ContextRequest(BaseModel):
     query: str
     filter : str
 
 
-class RAGRequest(BaseModel):
+class RAGRequest(BaseRequest):
     question: str
-    pdf_ids: List[int]
-    filter: str = ""
 
 
 class RAGResponse(BaseModel):
