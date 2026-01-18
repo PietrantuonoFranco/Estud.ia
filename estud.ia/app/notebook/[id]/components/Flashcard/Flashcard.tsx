@@ -3,9 +3,7 @@
 import { useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
-function cn(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(" ");
-}
+import cn from "@/app/lib/utils/cn"
 
 interface FlashcardData {
   question: string
