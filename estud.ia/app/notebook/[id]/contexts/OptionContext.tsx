@@ -34,30 +34,27 @@ export function OptionContextProvider({ children }: { children: React.ReactNode 
   const [option, setOption] = useState<OptionEnum | string>(OptionEnum.CHAT);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { notebook, setNotebook, setFlashcards } = useChatInformationContext();
+  const { notebook, setNotebook, setFlashcards, setQuizzes } = useChatInformationContext();
   
   const API_URL = process.env.API_URL || 'http://localhost:5000';
   
   useEffect(() => {
-    const fetchFlashcards = async () => {
+    const createFlashcard = async () => {
       if (!notebook?.id) return;
       
       setIsLoading(true);
       try {
-        console.log("Fetching flashcards for notebook ID:", notebook.id);
-
         const response = await fetch(`${API_URL}/notebooks/${notebook.id}/flashcards`, {
           method: 'POST',
           credentials: 'include',
         });
         
         if (!response.ok) {
-          throw new Error('Failed to fetch flashcards');
+          throw new Error('Failed to create flashcards');
         }
 
         const data = await response.json();
         
-        console.log("Fetched flashcards data:", data);
         setFlashcards(data);
         
         // Update the notebook with the new flashcards
@@ -72,10 +69,44 @@ export function OptionContextProvider({ children }: { children: React.ReactNode 
       }
     };
 
+    const createQuiz = async () => {
+      if (!notebook?.id) return;
+      
+      setIsLoading(true);
+      try {
+        const response = await fetch(`${API_URL}/notebooks/${notebook.id}/quiz`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to create quiz');
+        }
+
+        const data = await response.json();
+        
+        setQuizzes(prev => [...prev, data]);
+        
+        // Update the notebook with the new quizzes
+        setNotebook((prev) => {
+          if (!prev) return prev;
+          return { ...prev, quizzes: [...(prev.quizzes || []), data] };
+        });
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     if (option === "flashcards" && notebook && (!notebook.flashcards || notebook.flashcards.length === 0)) {
-      fetchFlashcards();
+      createFlashcard();
     }
-  }, [option, notebook, API_URL, setFlashcards, setNotebook]);
+
+    if (option === "quiz" && notebook && (!notebook.quizzes || notebook.quizzes.length === 0)) {
+      createQuiz();
+    }
+  }, [option, notebook, API_URL, setFlashcards, setNotebook, setQuizzes]);
 
   return (
     <OptionContext.Provider
