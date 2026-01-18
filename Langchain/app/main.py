@@ -19,6 +19,7 @@ from .utils.reranker import Reranker
 from .utils.graphs.graph import create_rag_graph
 from .utils.graphs.notebook_graph import create_notebook_graph
 from .utils.graphs.flashcard_graph import create_flashcard_graph
+from .utils.graphs.question_and_answers_graph import create_question_and_answer_graph
 
 from .db.milvus import Async_Milvus_Client
 from .security import verify_api_key
@@ -32,7 +33,7 @@ os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
 async def lifespan(app: FastAPI):
     
     ## Object instances (helpers)
-    global splitter, embedding_generator, reranker, client_milvus, rag_graph, notebook_graph, flashcard_graph
+    global splitter, embedding_generator, reranker, client_milvus, rag_graph, notebook_graph, flashcard_graph, question_and_answer_graph
 
     splitter = Splitter()
     embedding_generator = EmbeddingGenerator()
@@ -57,9 +58,16 @@ async def lifespan(app: FastAPI):
         embedding_generator=embedding_generator,
         client_milvus=client_milvus
     )
+
+    # Create Question and Answer graph with local dependencies
+    question_and_answer_graph = create_question_and_answer_graph(
+        embedding_generator=embedding_generator,
+        client_milvus=client_milvus
+    )
     
     yield
-    
+
+
 app = FastAPI(lifespan=lifespan, openapi_url="/api/v1")
     
 
@@ -308,6 +316,75 @@ async def create_flashcards(
             "generation": f"Error processing the request: {str(e)}",
             "context": ""
         }
+
+
+@app.post("/create-questions-and-answers", status_code=status.HTTP_200_OK)
+async def create_questions(
+    request: BaseRequest,
+    api_key: str = Security(verify_api_key)
+):
+    """
+    Endpoint to create questions based on one or more PDFs
+    """
+    try:
+        initial_state = {
+            "pdfs_ids": request.pdf_ids,
+            "context": "",
+            "generation": ""
+        }
+        
+        # Invoke the graph (async wrapper on graph app)
+        result = await question_and_answer_graph.invoke(initial_state)
+        
+        # Clean the response from markdown code blocks if they exist
+        generation_text = correct_generation_text(result["generation"])
+        
+        result_json = json.loads(generation_text)
+        
+        # Handle multiple formats: direct array or object with "questions_and_answers" or "question_and_answers" key
+        if isinstance(result_json, list):
+            raw_items = result_json
+        elif isinstance(result_json, dict) and "questions_and_answers" in result_json:
+            raw_items = result_json["questions_and_answers"]
+        elif isinstance(result_json, dict) and "question_and_answers" in result_json:
+            raw_items = result_json["question_and_answers"]
+        else:
+            print(f"Unexpected response format: {result_json}")
+            raise ValueError(f"Invalid questions format in LLM response. Expected list or dict with 'questions_and_answers' key, got: {type(result_json)}")
+
+        # Normalize each item: accept common misspellings and ensure expected keys
+        normalized = []
+        for fc in raw_items:
+            if not isinstance(fc, dict):
+                continue
+            q = fc.get("question") or fc.get("pregunta")
+            a = fc.get("answer") or fc.get("respuesta")
+            ia1 = fc.get("incorrect_answer_1") or fc.get("incorrec_answer_1") or fc.get("incorrect_answer1") or fc.get("incorrec_answer1") or ""
+            ia2 = fc.get("incorrect_answer_2") or fc.get("incorrec_answer_2") or fc.get("incorrect_answer2") or fc.get("incorrec_answer2") or ""
+            ia3 = fc.get("incorrect_answer_3") or fc.get("incorrec_answer_3") or fc.get("incorrect_answer3") or fc.get("incorrec_answer3") or ""
+
+            if not q or not a:
+                # Skip malformed items
+                continue
+
+            normalized.append({
+                "question": q,
+                "answer": a,
+                "incorrect_answer_1": ia1,
+                "incorrect_answer_2": ia2,
+                "incorrect_answer_3": ia3,
+            })
+
+        return {"question_and_answers": normalized, "generation": generation_text, "context": ""}
+        
+    except Exception as e:
+        traceback.print_exc()
+        return {
+            "error": str(e),
+            "generation": f"Error processing the request: {str(e)}",
+            "context": ""
+        }
+
 
 async def upload_documents(files: List[UploadFile] = File(...), source_ids: List[int] = Form(...)):
     """
