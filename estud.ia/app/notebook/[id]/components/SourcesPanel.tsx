@@ -133,7 +133,7 @@ export default function SourcesPanel() {
       </div>
 
       <div className="p-4">
-        <div className={`text-sm text-black font-semibold flex items-center justify-center gap-2 bg-gradient-to-br from-[var(--purple-accent)] to-[var(--sidebar-border)] to-[var(--purple-accent)] hover:bg-gradient-to-br hover:from-[var(--sidebar-border)] to-[var(--purple-accent)]  transition-all duration-300 ease-in-out cursor-pointer ${ openPanel ? "w-full py-3 px-6 rounded-full" : "py-2.75 px-1 rounded-lg" }`}>
+        <div className={`text-sm text-black font-semibold flex items-center justify-center gap-2 bg-gradient-to-br from-[var(--purple-accent)] to-[var(--sidebar-border)] hover:from-[var(--purple-accent)] hover:to-[var(--sidebar-border)]/85 hover:shadow-lg transition-all duration-300 ease-in-out cursor-pointer ${ openPanel ? "w-full py-3 px-6 rounded-full" : "py-2.75 px-1 rounded-lg" }`}>
           <input type="file" accept="application/pdf" multiple className="hidden" id="file-upload" onChange={handleFilesChange} />
           <label htmlFor="file-upload" className="cursor-pointer rounded-lg h-full w-full flex items-center justify-center gap-2">
             <FilePlusCorner className="h-4 w-4" strokeWidth={2.5}/>
