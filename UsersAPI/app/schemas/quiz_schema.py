@@ -39,4 +39,4 @@ class QuizOut(QuizBase):
 
 
 class QuizWithQuestions(QuizOut):
-    questions: List[QuestionOut] = Field(default_factory=list)
+    questions_and_answers: List[QuestionOut] = Field(default_factory=list)

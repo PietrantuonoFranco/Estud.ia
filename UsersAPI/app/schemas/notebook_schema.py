@@ -5,6 +5,7 @@ from typing import List
 from .message_schema import MessageOut
 from .source_schema import SourceOut
 from .flashcard_schema import FlashcardOut
+from .quiz_schema import QuizOut
 
 # --- SCHEMAS DE NOTEBOOK ---
 
@@ -23,6 +24,7 @@ class NotebookOut(NotebookBase):
     messages: List[MessageOut] = []
     sources: List[SourceOut] = []
     flashcards: List[FlashcardOut] = []
+    quizzes: List[QuizOut] = []
 
     class Config:
         from_attributes = True
