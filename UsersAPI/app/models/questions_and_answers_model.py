@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship
 from ..database import Base
 
@@ -12,6 +12,8 @@ class QuestionsAndAnswers(Base):
     incorrect_answer_1 = Column(String(255), nullable=False)
     incorrect_answer_2 = Column(String(255), nullable=False)
     incorrect_answer_3 = Column(String(255), nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
     quiz_id = Column(Integer, ForeignKey("quizzes.id"), nullable=False)
 
     quiz = relationship("Quiz", back_populates="questions")

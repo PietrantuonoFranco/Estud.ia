@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, DateTime, func
 from sqlalchemy.orm import relationship
 from ..database import Base
 
@@ -11,6 +11,8 @@ class User(Base):
     lastname = Column(String(45), nullable=False)
     password = Column(String(255), nullable=False)
     profile_image_url = Column(String(255))
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
     # Relación: Un usuario puede tener varios notebooks
     notebooks = relationship("Notebook", back_populates="owner")

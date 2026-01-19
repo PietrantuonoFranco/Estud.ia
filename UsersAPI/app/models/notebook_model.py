@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, Date, ForeignKey, Text, DateTime, func
 from sqlalchemy.orm import relationship
 
 from ..database import Base
@@ -11,6 +11,8 @@ class Notebook(Base):
     icon = Column(String(45), nullable=False)
     description = Column(Text, nullable=False)
     date = Column(Date, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
     
     # Clave foránea
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)

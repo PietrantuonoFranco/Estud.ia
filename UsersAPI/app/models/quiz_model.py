@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship
 from ..database import Base
 
@@ -7,6 +7,8 @@ class Quiz(Base):
     __tablename__ = "quizzes"
 
     id = Column(Integer, primary_key=True, index=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
     notebook_id = Column(Integer, ForeignKey("notebooks.id"), nullable=False)
     notebook_users_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
