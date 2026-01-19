@@ -1,5 +1,5 @@
 from typing import Optional
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from ..models.quiz_model import Quiz
 from ..models.questions_and_answers_model import QuestionsAndAnswers
@@ -39,7 +39,12 @@ def get_all_quizzes(db: Session, skip: int = 0, limit: int = 10):
 
 
 def get_quiz(db: Session, quiz_id: int):
-    return db.query(Quiz).filter(Quiz.id == quiz_id).first()
+    return (
+        db.query(Quiz)
+        .options(joinedload(Quiz.questions))
+        .filter(Quiz.id == quiz_id)
+        .first()
+    )
 
 
 def delete_quiz(db: Session, quiz_id: int):
