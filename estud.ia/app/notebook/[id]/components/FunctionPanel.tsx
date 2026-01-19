@@ -22,13 +22,13 @@ const studioTools = [
 ]
 
 const recentItems = [
-  { type: "quiz", title: "Derecho Cuestionario", sources: 1, time: "Hace 13 d" },
-  { type: "audio", title: "Arquitectura del Derecho Civil...", sources: 1, time: "Hace 14 d" },
-  { type: "flashcards", title: "Derecho Fichas", sources: 1, time: "Hace 14 d" },
+  { id: 1, type: "quiz", title: "Derecho Cuestionario", sources: 1, time: "Hace 13 d" },
+  { id: 1, type: "audio", title: "Arquitectura del Derecho Civil...", sources: 1, time: "Hace 14 d" },
+  { id: 1, type: "flashcards", title: "Derecho Fichas", sources: 1, time: "Hace 14 d" },
 ]
 
 export default function StudioPanel() {
-  const { notebook } = useChatInformationContext();
+  const { notebook, quizzes, flashcards } = useChatInformationContext();
   
   const [openPanel, setOpenPanel] = useState(true);
 
@@ -76,9 +76,9 @@ export default function StudioPanel() {
                 className="cursor-pointer group flex items-center gap-3 rounded-lg bg-card p-3 hover:bg-[var(--hover-bg)]"
               >
                 <div className={`${ openPanel ? "h-10 w-10" : ""} flex items-center justify-center rounded bg-muted`}>
-                  {item.type === "quiz" && <HelpCircle className="h-4 w-4 text-foreground" />}
-                  {item.type === "audio" && <FileText className="h-4 w-4 text-foreground" />}
-                  {item.type === "flashcards" && <BookOpen className="h-4 w-4 text-foreground" />}
+                  {item.type === "quiz" && <HelpCircle className="h-4 w-4 text-[var(--purple-accent)]" />}
+                  {item.type === "audio" && <FileText className="h-4 w-4 text-[var(--orange-accent)]" />}
+                  {item.type === "flashcards" && <BookOpen className="h-4 w-4 text-[var(--green-accent)]" />}
                 </div>
                 <div className={`${ openPanel ? "flex-1 min-w-0" : "hidden"}`}>
                   <p className="text-sm font-medium text-foreground truncate">{item.title}</p>

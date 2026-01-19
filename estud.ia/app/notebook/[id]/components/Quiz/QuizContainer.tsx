@@ -68,7 +68,7 @@ const sampleQuestions: QuestionsAndAnswers[] = [
 ]
 
 export default function QuizContainer({ 
-  questions = sampleQuestions, 
+  questions = sampleQuestions,
   quizTitle = "Quiz", 
   onQuizComplete 
 }: QuizContainerProps) {
@@ -77,7 +77,7 @@ export default function QuizContainer({
   const [answeredCurrent, setAnsweredCurrent] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
 
-  const { notebook } = useChatInformationContext();
+  const { quizzes } = useChatInformationContext();
   const { isLoading } = useOptionContext();
 
   const totalQuestions = questions.length
