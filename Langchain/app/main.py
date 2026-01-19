@@ -18,9 +18,7 @@ from .utils.dtos_schemas.base_request_schema import BaseRequest
 from .utils.reranker import Reranker
 
 from .utils.graphs.graph import create_rag_graph
-from .utils.graphs.notebook_graph import create_notebook_graph
-from .utils.graphs.flashcard_graph import create_flashcard_graph
-from .utils.graphs.question_and_answers_graph import create_question_and_answer_graph
+from .utils.graphs.creation_graph import create_creation_graph
 
 from .db.milvus import Async_Milvus_Client
 from .security import verify_api_key
@@ -34,7 +32,7 @@ os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
 async def lifespan(app: FastAPI):
     
     ## Object instances (helpers)
-    global splitter, embedding_generator, reranker, client_milvus, rag_graph, notebook_graph, flashcard_graph, question_and_answer_graph
+    global splitter, embedding_generator, reranker, client_milvus, rag_graph, creation_graph
 
     splitter = Splitter()
     embedding_generator = EmbeddingGenerator()
@@ -48,23 +46,12 @@ async def lifespan(app: FastAPI):
         client_milvus=client_milvus
     )
     
-    # Create Notebook graph with local dependencies
-    notebook_graph = create_notebook_graph(
+    # Create Creation graph with local dependencies
+    creation_graph = create_creation_graph(
         embedding_generator=embedding_generator,
         client_milvus=client_milvus
     )
 
-    # Create Flashcard graph with local dependencies
-    flashcard_graph = create_flashcard_graph(
-        embedding_generator=embedding_generator,
-        client_milvus=client_milvus
-    )
-
-    # Create Question and Answer graph with local dependencies
-    question_and_answer_graph = create_question_and_answer_graph(
-        embedding_generator=embedding_generator,
-        client_milvus=client_milvus
-    )
     
     yield
 
@@ -211,12 +198,13 @@ async def create_notebook(
         
         # Generate title, icon, and description using the graph
         initial_state = {
+            "option": "notebook",
             "pdfs_ids": source_ids,
             "context": "",
             "generation": ""
         }
 
-        result = await notebook_graph.invoke(initial_state)
+        result = await creation_graph.invoke(initial_state)
 
         # Clean the response from markdown code blocks if they exist
         generation_text = correct_generation_text(result["generation"])
@@ -282,13 +270,14 @@ async def create_flashcards(
     """
     try:
         initial_state = {
+            "option": "flashcards",
             "pdfs_ids": request.pdf_ids,
             "context": "",
             "generation": ""
         }
         
         # Invoke the graph (async wrapper on graph app)
-        result = await flashcard_graph.invoke(initial_state)
+        result = await creation_graph.invoke(initial_state)
         
         # Clean the response from markdown code blocks if they exist
         generation_text = correct_generation_text(result["generation"])
@@ -329,13 +318,14 @@ async def create_questions(
     """
     try:
         initial_state = {
+            "option": "questions_and_answers",
             "pdfs_ids": request.pdf_ids,
             "context": "",
             "generation": ""
         }
         
         # Invoke the graph (async wrapper on graph app)
-        result = await question_and_answer_graph.invoke(initial_state)
+        result = await creation_graph.invoke(initial_state)
         
         # Clean the response from markdown code blocks if they exist
         generation_text = correct_generation_text(result["generation"])
