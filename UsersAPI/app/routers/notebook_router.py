@@ -405,6 +405,8 @@ async def add_quiz_to_notebook(notebook_id: int, db: Session = Depends(get_db), 
         questions_response = response.json()
         print(f"Questions response: {questions_response}")
 
+        # Extract title from response
+        quiz_title = questions_response.get("title", "Untitled Quiz")[:255]
 
         # Build question payloads (do not set quiz_id yet)
         new_questions = []
@@ -420,6 +422,7 @@ async def add_quiz_to_notebook(notebook_id: int, db: Session = Depends(get_db), 
 
         # Create quiz with questions in DB
         quiz_payload = QuizCreate(
+            title=quiz_title,
             notebook_id=int(notebook_id),
             notebook_users_id=current_user.id,
             questions=new_questions,
@@ -444,6 +447,7 @@ async def add_quiz_to_notebook(notebook_id: int, db: Session = Depends(get_db), 
             "id": created_quiz.id,
             "notebook_id": created_quiz.notebook_id,
             "notebook_users_id": created_quiz.notebook_users_id,
+            "title": created_quiz.title,
             "questions_and_answers": questions_out,
         }
 

@@ -332,6 +332,9 @@ async def create_questions(
         
         result_json = json.loads(generation_text)
         
+        # Extract title
+        title = result_json.get("title", "Untitled Quiz")
+        
         # Handle multiple formats: direct array or object with "questions_and_answers" or "question_and_answers" key
         if isinstance(result_json, list):
             raw_items = result_json
@@ -366,7 +369,7 @@ async def create_questions(
                 "incorrect_answer_3": ia3,
             })
 
-        return {"question_and_answers": normalized, "generation": generation_text, "context": ""}
+        return {"title": title, "question_and_answers": normalized, "generation": generation_text, "context": ""}
         
     except Exception as e:
         traceback.print_exc()

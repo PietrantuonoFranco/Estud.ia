@@ -28,11 +28,13 @@ class QuizBase(BaseModel):
 
 
 class QuizCreate(QuizBase):
+    title: Optional[str] = None
     questions: Optional[List[QuestionCreate]] = None
 
 
 class QuizOut(QuizBase):
     id: int
+    title: Optional[str] = None
 
     class Config:
         from_attributes = True

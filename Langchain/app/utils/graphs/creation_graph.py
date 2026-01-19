@@ -114,12 +114,14 @@ class CreationGraph:
 
 Tarea: Analiza los documentos adjuntos y genera exclusivamente un objeto JSON válido.
 
-Estructura del JSON: Debe contener una única clave llamada "question_and_answers" cuyo valor sea un array de 5 objetos. Cada objeto debe tener:
-- "question": Pregunta sobre el contenido (máximo 255 caracteres).
-- "answer": Respuesta correcta detallada (máximo 255 caracteres).
-- "incorrec_answer_1": Respuesta incorrecta plausible (máximo 255 caracteres).
-- "incorrec_answer_2": Respuesta incorrecta plausible (máximo 255 caracteres).
-- "incorrec_answer_3": Respuesta incorrecta plausible (máximo 255 caracteres).
+Estructura del JSON: Debe contener dos claves:
+- "title": Título que resuma el tema del cuestionario (máximo 255 caracteres).
+- "question_and_answers": Un array de 5 objetos, donde cada objeto tiene:
+  - "question": Pregunta sobre el contenido (máximo 255 caracteres).
+  - "answer": Respuesta correcta detallada (máximo 255 caracteres).
+  - "incorrec_answer_1": Respuesta incorrecta plausible (máximo 255 caracteres).
+  - "incorrec_answer_2": Respuesta incorrecta plausible (máximo 255 caracteres).
+  - "incorrec_answer_3": Respuesta incorrecta plausible (máximo 255 caracteres).
 
 Restricciones críticas:
 - No incluyas introducciones, explicaciones ni bloques de código Markdown (como ```json).
