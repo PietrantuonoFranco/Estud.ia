@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr, HttpUrl
 from typing import Optional
+from datetime import datetime
 
 # --- SCHEMAS DE USUARIO ---
 
@@ -14,6 +15,8 @@ class UserCreate(UserBase):
 
 class UserOut(UserBase):
     id: int
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True # Permite a Pydantic leer modelos de SQLAlchemy

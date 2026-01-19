@@ -1,5 +1,6 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field
+from datetime import datetime
 
 
 class QuestionBase(BaseModel):
@@ -17,6 +18,8 @@ class QuestionCreate(QuestionBase):
 
 class QuestionOut(QuestionBase):
     id: int
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -35,6 +38,8 @@ class QuizCreate(QuizBase):
 class QuizOut(QuizBase):
     id: int
     title: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from .message_schema import MessageOut
 from .source_schema import SourceOut
@@ -21,6 +21,8 @@ class NotebookCreate(NotebookBase):
 class NotebookOut(NotebookBase):
     id: int
     user_id: int
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
     messages: List[MessageOut] = []
     sources: List[SourceOut] = []
     flashcards: List[FlashcardOut] = []
