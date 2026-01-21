@@ -1,6 +1,7 @@
 "use client"
 
 import { HelpCircle, FileText, BookOpen, MoreVertical } from "lucide-react"
+
 import { useOptionContext } from "../../contexts/OptionContext";
 
 interface EntitySelectorProps {

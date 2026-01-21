@@ -13,6 +13,8 @@ import {
 
 import { useChatInformationContext } from "../contexts/ChatInformationContext";
 import OptionButton from "./OptionButton";
+import ShowQuizButton from "./ShowEntityButtons/ShowQuizButton";
+import ShowFlashcardsButton from "./ShowEntityButtons/ShowFlashcardsButton";
 
 const studioTools = [
   { optionName: "chat", icon: MessageSquareText, label: "Chat", color: "blue" },
@@ -21,16 +23,31 @@ const studioTools = [
   { optionName: "quiz", icon: HelpCircle, label: "Cuestionario", color: "purple" },
 ]
 
-const recentItems = [
-  { id: 1, type: "quiz", title: "Derecho Cuestionario", sources: 1, time: "Hace 13 d" },
-  { id: 1, type: "audio", title: "Arquitectura del Derecho Civil...", sources: 1, time: "Hace 14 d" },
-  { id: 1, type: "flashcards", title: "Derecho Fichas", sources: 1, time: "Hace 14 d" },
-]
-
 export default function StudioPanel() {
-  const { notebook, quizzes, flashcards } = useChatInformationContext();
+  const { quizzes, flashcards } = useChatInformationContext();
   
   const [openPanel, setOpenPanel] = useState(true);
+
+  const recentItems = [
+    ...(flashcards && flashcards.length > 0 ? [{
+      id: "all-flashcards",
+      type: "flashcards",
+      title: "Tarjetas didácticas",
+      sources: flashcards.length,
+      time: "Reciente",
+    }] : []),
+    ...(quizzes?.map((quiz) => {
+      const questionCount = quiz.questions_and_answers?.length || 0;
+      console.log(`Quiz "${quiz.title}":`, { questionCount, questions_and_answers: quiz.questions_and_answers });
+      return {
+        id: quiz.id,
+        type: "quiz",
+        title: quiz.title,
+        sources: questionCount,
+        time: "Reciente",
+      };
+    }) || []),
+  ];
 
   return (
     <div className={`${ openPanel ? "w-90" : "w-18" } flex flex-col border-l border-border bg-[var(--panel-bg)]`}>
@@ -67,34 +84,22 @@ export default function StudioPanel() {
           })}
         </div>
 
+        {recentItems.length > 0 && (
         <div className="border-t border-border p-4">
           <h3 className={`${ openPanel ? "mb-3 text-sm font-medium text-foreground" : "hidden"}`}>Recientes</h3>
           <div className="space-y-2">
-            {recentItems.map((item, idx) => (
-              <div
-                key={idx}
-                className="cursor-pointer group flex items-center gap-3 rounded-lg bg-card p-3 hover:bg-[var(--hover-bg)]"
-              >
-                <div className={`${ openPanel ? "h-10 w-10" : ""} flex items-center justify-center rounded bg-muted`}>
-                  {item.type === "quiz" && <HelpCircle className="h-4 w-4 text-[var(--purple-accent)]" />}
-                  {item.type === "audio" && <FileText className="h-4 w-4 text-[var(--orange-accent)]" />}
-                  {item.type === "flashcards" && <BookOpen className="h-4 w-4 text-[var(--green-accent)]" />}
-                </div>
-                <div className={`${ openPanel ? "flex-1 min-w-0" : "hidden"}`}>
-                  <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {item.sources} fuente · {item.time}
-                  </p>
-                </div>
-                <div className={ openPanel ? "flex items-center gap-1" : "hidden"}>
-                  <button className="cursor-pointer h-8 w-8 opacity-0 group-hover:opacity-100">
-                    <MoreVertical className="h-4 w-4" />
-                  </button>
-                </div>
+            {recentItems.map((item) => (
+              <div key={item.id}>
+                {item.type === "flashcards" ? (
+                  <ShowFlashcardsButton flashcardsCount={item.sources} openPanel={openPanel} />
+                ) : (
+                  <ShowQuizButton item={item} openPanel={openPanel} />
+                )}
               </div>
             ))}
           </div>
         </div>
+        )}
       </div>
 
       <div className="border-t border-border p-4">

@@ -15,6 +15,8 @@ export default interface OptionContextType {
   option: OptionEnum | string;
   setOption: React.Dispatch<React.SetStateAction<OptionEnum | string>>;
   isLoading: boolean;
+  selectedQuizId: number | null;
+  setSelectedQuizId: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
 const OptionContext = React.createContext<OptionContextType | null>(null);
@@ -33,8 +35,9 @@ export function useOptionContext() {
 export function OptionContextProvider({ children }: { children: React.ReactNode }) {
   const [option, setOption] = useState<OptionEnum | string>(OptionEnum.CHAT);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedQuizId, setSelectedQuizId] = useState<number | null>(null);
 
-  const { notebook, setNotebook, setFlashcards, setQuizzes } = useChatInformationContext();
+  const { notebook, setNotebook, setFlashcards, setQuizzes, quizzes } = useChatInformationContext();
   
   const API_URL = process.env.API_URL || 'http://localhost:5000';
   const fetchedExistingQuizRef = useRef<boolean>(false);
@@ -135,6 +138,7 @@ export function OptionContextProvider({ children }: { children: React.ReactNode 
         }
 
         setQuizzes(prev => [...prev, data]);
+        setSelectedQuizId(data.id); // Auto-select the newly created quiz
         createdQuizRef.current = true;
 
         // Update the notebook with the new quizzes
@@ -156,57 +160,25 @@ export function OptionContextProvider({ children }: { children: React.ReactNode 
     if (option === "quiz" && notebook) {
       if (!notebook.quizzes || notebook.quizzes.length === 0) {
         createQuiz();
-      } else {
-        // If quizzes already exist, fetch from external endpoint and display
-        const fetchExistingQuiz = async () => {
-          if (fetchedExistingQuizRef.current) return;
-          setIsLoading(true);
-          try {
-            const quizId = notebook.quizzes && notebook.quizzes[0] ? notebook.quizzes[0].id : null;
-            if (!quizId) throw new Error('No quiz id available');
-            const resp = await fetch(`${API_URL}/quizzes/${quizId}`, {
-              method: 'GET',
-              credentials: 'include',
-            });
-
-            if (!resp.ok) throw new Error('Failed to fetch existing quiz');
-
-            const raw = await resp.json();
-            const data = normalizeQuiz(raw);
-
-            // If quiz has no questions, try fetching them
-            if (data && data.id && Array.isArray(data.questions_and_answers) && data.questions_and_answers.length === 0) {
-              const fetched = await fetchQuestionsForQuiz(data.id);
-              data.questions_and_answers = fetched;
-            }
-
-            console.log("Fetched existing quiz data:", data);
-            
-            setQuizzes(prev => [...prev, data]);
-
-            setNotebook((prev) => {
-              if (!prev) return prev;
-              return { ...prev, quizzes: [...(prev.quizzes || []), data] };
-            });
-            fetchedExistingQuizRef.current = true;
-          } catch (err) {
-            console.error(err);
-          } finally {
-            setIsLoading(false);
-          }
-        };
-
-        fetchExistingQuiz();
+      } else if (!selectedQuizId && quizzes.length > 0) {
+        // Auto-select the first quiz if none is selected
+        setSelectedQuizId(quizzes[0].id);
       }
-    } 
-  }, [option, notebook, API_URL, setFlashcards, setNotebook, setQuizzes]);
+    }
+
+    if (option === "flashcards" && notebook?.flashcards && notebook.flashcards.length > 0) {
+      // Flashcards are always shown as a single entity
+    }
+  }, [option, notebook, API_URL, setFlashcards, setNotebook, setQuizzes, quizzes, selectedQuizId]);
 
   return (
     <OptionContext.Provider
       value={{
         option,
         setOption,
-        isLoading
+        isLoading,
+        selectedQuizId,
+        setSelectedQuizId,
       }}
     >
       {children}
