@@ -4,20 +4,24 @@ import { useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
 import cn from "@/app/lib/utils/cn"
-
-interface FlashcardData {
-  question: string
-  answer: string
-}
+import type Flashcard from "@/app/lib/interfaces/entities/Flashcard"
 
 interface FlashcardProps {
-  cards: FlashcardData[]
+  cards?: Flashcard[]
   className?: string
 }
 
 export function Flashcard({ cards, className }: FlashcardProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
+
+  if (!cards || cards.length === 0) {
+    return (
+      <div className={cn("flex flex-col items-center justify-center gap-4", className)}>
+        <p className="text-sm text-muted-foreground">No hay tarjetas disponibles</p>
+      </div>
+    )
+  }
 
   const handlePrevious = () => {
     setIsFlipped(false)
