@@ -11,6 +11,8 @@ import Flashcard from "@/app/lib/interfaces/entities/Flashcard";
 import Quiz from "@/app/lib/interfaces/entities/Quiz";
 import Source from "@/app/lib/interfaces/entities/Source";
 
+import { NotebooksApi, QuizzesApi, MessagesApi } from "@/app/lib/api/entities";
+
 const ChatInformationContext = React.createContext<ChatInformationContextType | null>(null);
 
 export function useChatInformationContext() {
@@ -34,36 +36,69 @@ export function ChatInformationProvider({ children }: { children: React.ReactNod
   const params = useParams();
   const id = params.id as string; // Extract the id from the route parameters
   
-
-  const API_URL = process.env.API_URL || 'http://localhost:5000';
   const isSending = useRef(false);
-  
-    useEffect(() => {
-      if (id) {
-        // Fetch notebook data when id is available
-        const fetchNotebook = async () => {
-          try {
-            const response = await fetch(`${API_URL}/notebooks/${id}`); // Adjust the API endpoint as needed
-  
-            if (!response.ok) {
-              throw new Error('Failed to fetch notebook');
-            }
-        
-            const data: Notebook & { messages?: Message[], sources?: Source[] } = await response.json();
 
-            console.log("Fetched notebook data:", data);
-            setNotebook(data);
-            setMessages(data.messages ?? []);
-            setSources(data.sources ?? []);
-            setFlashcards(data.flashcards ?? []);
-          } catch (error) {
-            console.error(error);
-          }
-        };
+  const fetchQuestionsForQuiz = async (quizId: number) => {
+    try {
+      const questions = await QuizzesApi.getQuestionsByQuiz(quizId);
+      return questions;
+    } catch (err) {
+      console.error('Failed to fetch questions for quiz', err);
+      return [];
+    }
+  };
   
-        fetchNotebook();
-      }
-    }, [id]);
+  useEffect(() => {
+    if (id) {
+      // Fetch notebook data when id is available
+      const fetchNotebook = async () => {
+        try {
+          const notebookId = parseInt(id);
+          const data = await NotebooksApi.getNotebook(notebookId);
+
+          console.log("Fetched notebook data:", data);
+          setNotebook(data);
+          setMessages(data.messages ?? []);
+          setSources(data.sources ?? []);
+          setFlashcards(data.flashcards ?? []);
+
+          // Fetch detailed quiz data for each quiz
+          if (data.quizzes && data.quizzes.length > 0) {
+            const quizPromises = data.quizzes.map(async (quiz) => {
+              const quizData = await QuizzesApi.getQuiz(quiz.id);
+              
+              // If quiz has no questions_and_answers, fetch them separately
+              if (!quizData.questions_and_answers || quizData.questions_and_answers.length === 0) {
+                const questions = await fetchQuestionsForQuiz(quiz.id);
+                quizData.questions_and_answers = questions;
+              }
+              
+              return quizData;
+            });
+
+            const quizzesData = await Promise.all(quizPromises);
+
+            console.log("Fetched quizzes data:", quizzesData);
+            quizzesData.forEach(quiz => {
+              console.log(`Quiz ${quiz.id} - ${quiz.title}:`, {
+                has_questions_and_answers: !!quiz.questions_and_answers,
+                count: quiz.questions_and_answers?.length || 0,
+                data: quiz.questions_and_answers
+              });
+            });
+            
+            setQuizzes(quizzesData);
+          } else {
+            setQuizzes([]);
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      };
+
+      fetchNotebook();
+    }
+  }, [id]);
 
     useEffect(() => {
       if (!notebook || messages.length === 0) return;
@@ -75,27 +110,15 @@ export function ChatInformationProvider({ children }: { children: React.ReactNod
       const isOptimistic = typeof last.id === 'number' && last.id > 1000000000000;
       if (!isOptimistic) return;
 
-      const controller = new AbortController();
       isSending.current = true;
     
       const send = async () => {
         try {
           // 1. Create the user message in the DB
-          const userMessageRes = await fetch(`${API_URL}/messages/user`, {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              text: last.text,
-              notebook_id: notebook.id,
-            }),
-            signal: controller.signal,
+          const createdUserMessage = await MessagesApi.createUserMessage({
+            text: last.text,
+            notebook_id: notebook.id,
           });
-    
-          if (!userMessageRes.ok) throw new Error("Could not create user message");
-    
-          const userMessageData = await userMessageRes.json();
-          const createdUserMessage = userMessageData;
 
           // Replace the optimistic message with the one from the server
           setMessages((prev) => 
@@ -113,20 +136,11 @@ export function ChatInformationProvider({ children }: { children: React.ReactNod
           setMessages((prev) => [...prev, loadingMessage]);
 
           // 3. Now send the request to the LLM
-          const llmRes = await fetch(`${API_URL}/messages/llm`, {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              text: last.text,
-              notebook_id: notebook.id,
-            }),
-            signal: controller.signal,
+          const llmData = await MessagesApi.createLLMMessage({
+            text: last.text,
+            notebook_id: notebook.id,
           });
-    
-          if (!llmRes.ok) throw new Error("Could not get LLM response");
-    
-          const llmData = await llmRes.json();
+
           setMessages((prev) => 
             prev.map((msg) => msg.id === loadingMessage.id ? llmData : msg)
           );
@@ -138,12 +152,7 @@ export function ChatInformationProvider({ children }: { children: React.ReactNod
       };
     
       send();
-      return () => {
-        // Evitar abortar la petición del LLM por cambios en el estado.
-        // Mantener la petición en curso hasta completar o desmontar el componente.
-        isSending.current = false;
-      };
-    }, [messages, notebook, API_URL, setMessages]);
+    }, [messages, notebook, setMessages]);
 
   return (
     <ChatInformationContext.Provider
