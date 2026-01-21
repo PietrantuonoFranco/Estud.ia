@@ -119,11 +119,6 @@ export default function QuizContainer({
   if (isComplete) {
     return (
       <main className="flex flex-col items-center justify-center">
-        <div className="sticky top-0 w-full bg-[var(--panel-bg)] flex items-center space-x-2 border-b border-border px-6 py-4.5">
-          <HelpCircle className="h-4 w-4 text-[var(--purple-accent)]" />
-          <h2 className="text-sm font-medium text-foreground">Cuestionario</h2>
-        </div>
-
         <div className="w-full max-w-3xl flex-1 flex items-center justify-center p-4">
           <div className="w-full max-w-2xl mx-auto border border-border rounded-lg bg-card shadow-sm overflow-hidden">
             <div className="px-6 py-4 text-center">
@@ -171,11 +166,6 @@ export default function QuizContainer({
 
   return (
     <main className="flex-1 flex flex-col items-center">
-      <div className="w-full sticky top-0 bg-[var(--panel-bg)] flex items-center space-x-2 border-b border-border px-6 py-4.5 z-10">
-        <HelpCircle className="h-4 w-4 text-[var(--purple-accent)]" />
-        <h2 className="text-sm font-medium text-foreground">Cuestionario</h2>
-      </div>
-
       <div className="w-full max-w-3xl flex-1 flex items-center justify-center p-4">
         <div className="w-full">
           {isLoading ? (

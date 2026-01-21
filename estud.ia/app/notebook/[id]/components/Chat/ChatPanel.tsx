@@ -21,11 +21,6 @@ export default function ChatPanel() {
 
   return (
     <div className="flex flex-1 flex-col bg-background">
-      <div className="sticky top-0 z-10 bg-background flex items-center space-x-2 border-b border-border px-6 py-4.5">
-        <MessageSquareText className="h-4 w-4 text-[var(--blue-accent)]" />
-        <h2 className="text-sm font-medium text-foreground">Chat</h2>
-      </div>
-
       <div className="flex-1 overflow-y-auto flex-col items-center space-y-2 px-6 py-8" ref={scrollContainerRef}>
         <div className="relative mx-auto max-w-3xl space-y-4 pb-6">
           <div className="flex flex-col items-center gap-6 text-center">
