@@ -1,5 +1,6 @@
 export default interface Summary {
   id: number;
-  notebook_id: number;
+  title: string;
   text: string;
+  notebook_id: number;
 }
