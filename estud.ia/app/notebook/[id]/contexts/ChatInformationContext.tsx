@@ -77,15 +77,6 @@ export function ChatInformationProvider({ children }: { children: React.ReactNod
             });
 
             const quizzesData = await Promise.all(quizPromises);
-
-            console.log("Fetched quizzes data:", quizzesData);
-            quizzesData.forEach(quiz => {
-              console.log(`Quiz ${quiz.id} - ${quiz.title}:`, {
-                has_questions_and_answers: !!quiz.questions_and_answers,
-                count: quiz.questions_and_answers?.length || 0,
-                data: quiz.questions_and_answers
-              });
-            });
             
             setQuizzes(quizzesData);
           } else {

@@ -4,7 +4,7 @@ import { HelpCircle, FileText, BookOpen, MoreVertical } from "lucide-react"
 
 import { useOptionContext } from "../../contexts/OptionContext";
 
-interface EntitySelectorProps {
+interface ShowQuizButtonProps {
   item: {
     id: string | number;
     type: string;
@@ -15,7 +15,7 @@ interface EntitySelectorProps {
   openPanel: boolean;
 }
 
-export default function EntitySelector ({ item, openPanel }: EntitySelectorProps) {
+export default function ShowQuizButton ({ item, openPanel }: ShowQuizButtonProps) {
   const { setOption, setSelectedQuizId } = useOptionContext();
 
   const handleClick = () => {

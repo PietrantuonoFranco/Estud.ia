@@ -29,7 +29,7 @@ export default function MessageInbox () {
   }
   
   return (
-    <form onSubmit={handleSubmit} className="mx-6 sticky -bottom-6  flex items-center gap-3 rounded-full border border-border bg-card text-sm leading-relaxed text-foreground pl-6 pr-1 py-1">
+    <form onSubmit={handleSubmit} className="max-w-3xl w-full flex items-center gap-3 rounded-full border border-border bg-card text-sm leading-relaxed text-foreground pl-6 pr-1 py-1">
       <input
         type="text"
         placeholder="Comienza a escribir..."

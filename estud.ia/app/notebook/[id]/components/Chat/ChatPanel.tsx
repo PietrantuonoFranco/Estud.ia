@@ -21,8 +21,8 @@ export default function ChatPanel() {
 
   return (
     <div className="flex flex-1 flex-col bg-background">
-      <div className="flex-1 overflow-y-auto flex-col items-center space-y-2 px-6 py-8" ref={scrollContainerRef}>
-        <div className="relative mx-auto max-w-3xl space-y-4 pb-6">
+      <div className="flex-1 overflow-y-auto flex-col items-center space-y-2 px-6 pt-8" ref={scrollContainerRef}>
+        <div className="mx-auto max-w-3xl space-y-4 pb-6">
           <div className="flex flex-col items-center gap-6 text-center">
             <div className="flex text-4xl h-16 w-16 items-center justify-center rounded-full bg-[var(--hover-bg)]">
               {notebook?.icon}
@@ -39,7 +39,7 @@ export default function ChatPanel() {
             </p>
           </div>
 
-          <div className="p-6 space-y-3 text-sm leading-relaxed text-foreground">
+          <div className="px-6 space-y-3 text-sm leading-relaxed text-foreground">
             <LLMMessage message={notebook?.description}/>
 
             {messages?.map((message, index) => (
@@ -49,14 +49,18 @@ export default function ChatPanel() {
                 <LLMMessage key={index} message={message.text} isLoading={message.isLoading} />
             ))}
           </div>
-          <MessageInbox />
         </div>
       </div>
 
-      <div className="border-t border-border p-2">
-        <div className="mx-auto max-w-3xl">
-          <div className="flex items-center justify-center text-xs text-muted-foreground">
-            <span>Es posible que Estud.IA muestre información imprecisa. Verifica las respuestas.</span>
+      <div className="sticky bottom-0 w-full flex flex-col items-center space-y-4">
+        <div className="flex items-center justify-center w-full px-12">
+          <MessageInbox />
+        </div>
+        <div className="border-t border-border p-2 bg-background w-full">
+          <div className="mx-auto max-w-3xl">
+            <div className="flex items-center justify-center text-xs text-muted-foreground">
+              <span>Es posible que Estud.IA muestre información imprecisa. Verifica las respuestas.</span>
+            </div>
           </div>
         </div>
       </div>
