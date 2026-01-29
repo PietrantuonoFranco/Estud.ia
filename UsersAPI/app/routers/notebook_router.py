@@ -67,7 +67,7 @@ async def create_notebook(files: List[UploadFile], db: Session = Depends(get_db)
                 notebook_id=None
             )
 
-            new_file = create_source(db=db, source=source_data)
+            new_file = await create_source(db=db, source=source_data)
             source_ids.append(new_file.id)
 
         # Preparar TODO en una sola lista para el parámetro files
@@ -93,7 +93,7 @@ async def create_notebook(files: List[UploadFile], db: Session = Depends(get_db)
             # Limpieza: eliminar sources creados si Langchain falla
             try:
                 for source_id in source_ids:
-                    delete_source_crud(db, source_id=source_id)
+                    await delete_source_crud(db, source_id=source_id)
                 db.commit()
             finally:
                 pass
@@ -104,7 +104,7 @@ async def create_notebook(files: List[UploadFile], db: Session = Depends(get_db)
             # Limpieza: eliminar sources creados si hay error de conexión
             try:
                 for source_id in source_ids:
-                    delete_source_crud(db, source_id=source_id)
+                    await delete_source_crud(db, source_id=source_id)
                 db.commit()
             finally:
                 pass
@@ -131,7 +131,7 @@ async def create_notebook(files: List[UploadFile], db: Session = Depends(get_db)
         )
 
         # 5. Crear en base de datos local
-        new_notebook = create_notebook_crud(db=db, notebook=notebook_data)
+        new_notebook = await create_notebook_crud(db=db, notebook=notebook_data)
 
 
         # 6. Asociar las fuentes (sources) al notebook creado
@@ -158,13 +158,13 @@ async def create_notebook(files: List[UploadFile], db: Session = Depends(get_db)
 @router.get("/", response_model=List[NotebookOut], status_code=status.HTTP_200_OK)
 async def read_notebooks(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     """Método para obtener todos los notebooks con paginación."""
-    return get_all_notebooks(db, skip=skip, limit=limit)
+    return await get_all_notebooks(db, skip=skip, limit=limit)
 
 
 @router.get("/{notebook_id}", response_model=NotebookOut, status_code=status.HTTP_200_OK)
 async def read_notebook(notebook_id: int, db: Session = Depends(get_db)):
     """Método para obtener un notebook por su ID."""
-    notebook = get_notebook_crud(db, notebook_id=notebook_id)
+    notebook = await get_notebook_crud(db, notebook_id=notebook_id)
 
     if not notebook:
         raise HTTPException(status_code=404, detail="Notebook no encontrado")
@@ -174,21 +174,21 @@ async def read_notebook(notebook_id: int, db: Session = Depends(get_db)):
 @router.delete("/{notebook_id}", response_model=NotebookOut, status_code=status.HTTP_200_OK)
 async def delete_notebook(notebook_id: int, db: Session = Depends(get_db)):
     """Método para eliminar un notebook por su ID."""
-    notebook = get_notebook_crud(db, notebook_id=notebook_id)
+    notebook = await get_notebook_crud(db, notebook_id=notebook_id)
 
     if not notebook:
         raise HTTPException(status_code=404, detail="Notebook no encontrado")
     
-    return delete_notebook_crud(db, notebook_id=notebook_id)
+    return await delete_notebook_crud(db, notebook_id=notebook_id)
 
 @router.get("/{notebook_id}/sources", response_model=List[SourceOut], status_code=status.HTTP_200_OK)
 async def read_sources_by_notebook_id(notebook_id: int, db: Session = Depends(get_db)):
     """Método para obtener las fuentes (sources) asociadas a un notebook específico."""
-    notebook = get_notebook_crud(db, notebook_id=notebook_id)
+    notebook = await get_notebook_crud(db, notebook_id=notebook_id)
     if not notebook:
         raise HTTPException(status_code=404, detail="Notebook no encontrado")
 
-    sources = get_all_sources_by_notebook_id(db, notebook_id=notebook_id)
+    sources = await get_all_sources_by_notebook_id(db, notebook_id=notebook_id)
 
     if not sources:
         raise HTTPException(status_code=404, detail="Fuentes no encontradas para este notebook")
@@ -198,7 +198,7 @@ async def read_sources_by_notebook_id(notebook_id: int, db: Session = Depends(ge
 @router.get("/user/{user_id}", response_model=List[NotebookOut], status_code=status.HTTP_200_OK)
 async def read_notebooks_by_user_id(user_id: int, db: Session = Depends(get_db)):
     """Método para obtener los notebooks asociados a un usuario específico."""
-    notebooks = get_all_notebooks_by_user_id(db, user_id=user_id)
+    notebooks = await get_all_notebooks_by_user_id(db, user_id=user_id)
 
     if not notebooks:
         raise HTTPException(status_code=404, detail="No se encontraron notebooks para este usuario")
@@ -209,7 +209,7 @@ async def read_notebooks_by_user_id(user_id: int, db: Session = Depends(get_db))
 async def add_sources_to_notebook(notebook_id: int, files: List[UploadFile] = File(...), db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para agregar fuentes a un notebook."""
 
-    notebook = get_notebook_crud(db, notebook_id=notebook_id)
+    notebook = await get_notebook_crud(db, notebook_id=notebook_id)
 
     if not notebook:
         raise HTTPException(status_code=404, detail="Notebook not found")
@@ -232,7 +232,7 @@ async def add_sources_to_notebook(notebook_id: int, files: List[UploadFile] = Fi
                 notebook_id=None
             )
 
-            new_file = create_source(db=db, source=source_data)
+            new_file = await create_source(db=db, source=source_data)
             source_ids.append(new_file.id)
 
         # Preparar TODO en una sola lista para el parámetro files
@@ -258,7 +258,7 @@ async def add_sources_to_notebook(notebook_id: int, files: List[UploadFile] = Fi
             # Limpieza: eliminar sources creados si Langchain falla
             try:
                 for source_id in source_ids:
-                    delete_source_crud(db, source_id=source_id)
+                    await delete_source_crud(db, source_id=source_id)
                 db.commit()
             finally:
                 pass
@@ -269,7 +269,7 @@ async def add_sources_to_notebook(notebook_id: int, files: List[UploadFile] = Fi
             # Limpieza: eliminar sources creados si hay error de conexión
             try:
                 for source_id in source_ids:
-                    delete_source_crud(db, source_id=source_id)
+                    await delete_source_crud(db, source_id=source_id)
                 db.commit()
             finally:
                 pass
@@ -306,7 +306,7 @@ async def add_sources_to_notebook(notebook_id: int, files: List[UploadFile] = Fi
 async def add_flashcards_to_notebook(notebook_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     try:
         print(f"Fetching notebook with ID: {notebook_id}")
-        notebook = get_notebook_crud(db, notebook_id=notebook_id)
+        notebook = await get_notebook_crud(db, notebook_id=notebook_id)
 
         if not notebook:
             raise HTTPException(status_code=404, detail="Notebook not found")
@@ -355,7 +355,7 @@ async def add_flashcards_to_notebook(notebook_id: int, db: Session = Depends(get
                 notebook_users_id=notebook.user_id
             )
 
-            new_flashcards.append(create_flashcard(db=db, flashcard=new_flashcard))
+            new_flashcards.append(await create_flashcard(db=db, flashcard=new_flashcard))
 
         print(f"Created {len(new_flashcards)} flashcards")
         return new_flashcards
@@ -372,7 +372,7 @@ async def add_flashcards_to_notebook(notebook_id: int, db: Session = Depends(get
 async def add_quiz_to_notebook(notebook_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     try:
         print(f"Fetching notebook with ID: {notebook_id}")
-        notebook = get_notebook_crud(db, notebook_id=notebook_id)
+        notebook = await get_notebook_crud(db, notebook_id=notebook_id)
 
         if not notebook:
             raise HTTPException(status_code=404, detail="Notebook not found")
@@ -428,7 +428,7 @@ async def add_quiz_to_notebook(notebook_id: int, db: Session = Depends(get_db), 
             questions=new_questions,
         )
 
-        created_quiz = create_quiz(db, quiz_payload)
+        created_quiz = await create_quiz(db, quiz_payload)
 
         # Prepare response matching QuizWithQuestions
         questions_out = []

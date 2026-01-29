@@ -6,7 +6,7 @@ from ..models.source_model import Source
 from ..models.notebook_model import Notebook
 
 
-def create_source(db: Session, source: SourceCreate):
+async def create_source(db: Session, source: SourceCreate):
     """Crea una nueva fuente (source) en la base de datos."""
     db_source = Source(
         name=source.name,
@@ -19,15 +19,15 @@ def create_source(db: Session, source: SourceCreate):
 
     return db_source
 
-def get_all_sources(db: Session, skip: int = 0, limit: int = 10):
+async def get_all_sources(db: Session, skip: int = 0, limit: int = 10):
     """Obtener todas las fuentes (sources) con paginación."""
     return db.query(Source).offset(skip).limit(limit).all()
 
-def get_source(db: Session, source_id: int):
+async def get_source(db: Session, source_id: int):
     """Obtener una fuente (source) por su ID."""
     return db.query(Source).filter(Source.id == source_id).first()
 
-def delete_source(db: Session, source_id: int):
+async def delete_source(db: Session, source_id: int):
     """Eliminar una fuente (source) por su ID."""
     db_source = db.query(Source).filter(Source.id == source_id).first()
     if db_source:
@@ -38,6 +38,6 @@ def delete_source(db: Session, source_id: int):
 
 # --- OPERACIONES DE NOTEBOOK ---
 
-def get_notebook_by_source(db: Session, source_id: int):
+async def get_notebook_by_source(db: Session, source_id: int):
     """Obtener el notebook asociado a una fuente (source) específica."""
     return db.query(Notebook).join(Source).filter(Source.id == source_id).first()

@@ -20,13 +20,13 @@ router = APIRouter(
     tags=["auth"]
 )
 
-@router.get("/me")
-def get_me(current_user=Depends(get_current_user)):
+@router.get("/me", status_code=status.HTTP_200_OK)
+async def get_me(current_user=Depends(get_current_user)):
     return current_user
 
-@router.post("/login")
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db), status_code=status.HTTP_200_OK):
-    user = authenticate_user(db, form_data.username, form_data.password)
+@router.post("/login", status_code=status.HTTP_200_OK)
+async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = await authenticate_user(db, form_data.username, form_data.password)
     
     if not user:
         raise HTTPException(status_code=400, detail="Correo o contraseña incorrectos")
@@ -51,8 +51,8 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     return response
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-def register(form_data: UserCreate, db: Session = Depends(get_db)):
-    existing_user = get_user_by_email(db, form_data.email)
+async def register(form_data: UserCreate, db: Session = Depends(get_db)):
+    existing_user = await get_user_by_email(db, form_data.email)
 
     if existing_user:
         raise HTTPException(
@@ -60,7 +60,7 @@ def register(form_data: UserCreate, db: Session = Depends(get_db)):
             detail="El correo electrónico ya está registrado"
         )
 
-    new_user = create_user(db, form_data)
+    new_user = await create_user(db, form_data)
     accessToken = create_access_token(data={"sub": new_user.email})
     
     response = JSONResponse(
@@ -80,7 +80,7 @@ def register(form_data: UserCreate, db: Session = Depends(get_db)):
     return response
 
 @router.post("/logout", status_code=status.HTTP_200_OK)
-def logout():
+async def logout():
     response = JSONResponse(content={"message": "Logout exitoso"})
     response.delete_cookie(key="accessToken")
     

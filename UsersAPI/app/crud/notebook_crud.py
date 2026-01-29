@@ -7,7 +7,7 @@ from ..models.notebook_model import Notebook
 from ..models.quiz_model import Quiz
 
 
-def create_notebook(db: Session, notebook: NotebookCreate):
+async def create_notebook(db: Session, notebook: NotebookCreate):
     """Crea un nuevo notebook (cuaderno) en la base de datos."""
     print("Creating notebook with data:", notebook)
     
@@ -25,7 +25,7 @@ def create_notebook(db: Session, notebook: NotebookCreate):
 
     return db_notebook
 
-def get_all_notebooks(db: Session, skip: int = 0, limit: int = 10):
+async def get_all_notebooks(db: Session, skip: int = 0, limit: int = 10):
     """Obtener todas las fuentes (sources) con paginación."""
     return (
         db.query(Notebook)
@@ -35,7 +35,7 @@ def get_all_notebooks(db: Session, skip: int = 0, limit: int = 10):
             .all()
     )
 
-def get_notebook(db: Session, notebook_id: int):
+async def get_notebook(db: Session, notebook_id: int):
     """Obtener un notebook (cuaderno) por su ID."""
     return (
         db.query(Notebook)
@@ -47,7 +47,7 @@ def get_notebook(db: Session, notebook_id: int):
         .first()
     )
 
-def delete_notebook(db: Session, notebook_id: int):
+async def delete_notebook(db: Session, notebook_id: int):
     """Eliminar un notebook (cuaderno) por su ID."""
     db_notebook = db.query(Notebook).filter(Notebook.id == notebook_id).first()
     if db_notebook:
@@ -58,12 +58,12 @@ def delete_notebook(db: Session, notebook_id: int):
 
 # --- OPERACIONES DE SOURCES ---
 
-def get_all_sources_by_notebook_id(db: Session, notebook_id: int):
+async def get_all_sources_by_notebook_id(db: Session, notebook_id: int):
     """Obtener todas las fuentes (sources) asociadas a un notebook específico."""
     return db.query(Source).filter(Source.notebook_id == notebook_id).all()
 
 
 # --- OPERACIONES DE USER ---
-def get_all_notebooks_by_user_id(db: Session, user_id: int):
+async def get_all_notebooks_by_user_id(db: Session, user_id: int):
     """Obtener todos los notebooks (cuadernos) asociados a un usuario específico."""
     return db.query(Notebook).filter(Notebook.user_id == user_id).all()

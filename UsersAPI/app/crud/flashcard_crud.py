@@ -4,7 +4,7 @@ from ..models.flashcard_model import Flashcard
 from ..schemas.flashcard_schema import FlashcardCreate
 
 
-def create_flashcard(db: Session, flashcard: FlashcardCreate):
+async def create_flashcard(db: Session, flashcard: FlashcardCreate):
     db_flashcard = Flashcard(**flashcard.dict())
     db.add(db_flashcard)
     db.commit()
@@ -12,25 +12,25 @@ def create_flashcard(db: Session, flashcard: FlashcardCreate):
     return db_flashcard
 
 
-def get_all_flashcards(db: Session, skip: int = 0, limit: int = 10):
+async def get_all_flashcards(db: Session, skip: int = 0, limit: int = 10):
     return db.query(Flashcard).offset(skip).limit(limit).all()
 
 
-def get_flashcard(db: Session, flashcard_id: int):
+async def get_flashcard(db: Session, flashcard_id: int):
     return db.query(Flashcard).filter(Flashcard.id == flashcard_id).first()
 
 
-def delete_flashcard(db: Session, flashcard_id: int):
-    db_flashcard = get_flashcard(db, flashcard_id)
+async def delete_flashcard(db: Session, flashcard_id: int):
+    db_flashcard = await get_flashcard(db, flashcard_id)
     if db_flashcard:
         db.delete(db_flashcard)
         db.commit()
     return db_flashcard
 
 
-def get_flashcards_by_notebook(db: Session, notebook_id: int):
+async def get_flashcards_by_notebook(db: Session, notebook_id: int):
     return db.query(Flashcard).filter(Flashcard.notebook_id == notebook_id).all()
 
 
-def get_flashcards_by_user(db: Session, user_id: int):
+async def get_flashcards_by_user(db: Session, user_id: int):
     return db.query(Flashcard).filter(Flashcard.notebook_users_id == user_id).all()

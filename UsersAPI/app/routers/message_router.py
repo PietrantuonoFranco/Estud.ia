@@ -37,7 +37,7 @@ async def shutdown_event():
 @router.post("/", response_model=MessageOut, status_code=status.HTTP_201_CREATED)
 async def create_message_endpoint(message: MessageCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para crear un nuevo mensaje."""
-    return create_message(db=db, message=message)
+    return await create_message(db=db, message=message)
 
 @router.post("/user", response_model=MessageOut, status_code=status.HTTP_201_CREATED)
 async def create_user_message(message: MessageRequest, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
@@ -49,7 +49,7 @@ async def create_user_message(message: MessageRequest, db: Session = Depends(get
     message_data['notebook_users_id'] = current_user.id
 
     message = MessageCreate(**message_data)
-    return create_message(db=db, message=message)
+    return await create_message(db=db, message=message)
 
 @router.post("/llm", response_model=MessageOut, status_code=status.HTTP_201_CREATED)
 async def create_llm_message(message: MessageRequest
@@ -59,7 +59,7 @@ async def create_llm_message(message: MessageRequest
     message_data['is_user_message'] = False
     message_data['text'] = message.text
 
-    notebook = get_notebook(db, notebook_id=message.notebook_id)
+    notebook = await get_notebook(db, notebook_id=message.notebook_id)
     if not notebook:
         raise HTTPException(status_code=404, detail="Notebook not found")
     
@@ -90,19 +90,19 @@ async def create_llm_message(message: MessageRequest
 
     message = MessageCreate(**message_data)
     
-    return create_message(db=db, message=message)
+    return await create_message(db=db, message=message)
 
 
 @router.get("/", response_model=List[MessageOut], status_code=status.HTTP_200_OK)
 async def read_messages(skip: int = 0, limit: int = 10, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para obtener todos los mensajes con paginación."""
-    return get_all_messages(db, skip=skip, limit=limit)
+    return await get_all_messages(db, skip=skip, limit=limit)
 
 
 @router.get("/{message_id}", response_model=MessageOut, status_code=status.HTTP_200_OK)
 async def read_message(message_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para obtener un mensaje por su ID."""
-    message = get_message(db, message_id=message_id)
+    message = await get_message(db, message_id=message_id)
     
     if not message:
         raise HTTPException(status_code=404, detail="Message not found")
@@ -113,7 +113,7 @@ async def read_message(message_id: int, db: Session = Depends(get_db), current_u
 @router.delete("/{message_id}", response_model=MessageOut, status_code=status.HTTP_200_OK)
 async def delete_message_endpoint(message_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para eliminar un mensaje por su ID."""
-    message = get_message(db, message_id=message_id)
+    message = await get_message(db, message_id=message_id)
     
     if not message:
         raise HTTPException(status_code=404, detail="Message not found")
@@ -124,7 +124,7 @@ async def delete_message_endpoint(message_id: int, db: Session = Depends(get_db)
 @router.get("/notebook/{notebook_id}", response_model=List[MessageOut], status_code=status.HTTP_200_OK)
 async def read_messages_by_notebook(notebook_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para obtener todos los mensajes de un notebook específico."""
-    messages = get_messages_by_notebook(db, notebook_id=notebook_id)
+    messages = await get_messages_by_notebook(db, notebook_id=notebook_id)
     
     if not messages:
         raise HTTPException(status_code=404, detail="Notebook messages not found")
@@ -135,7 +135,7 @@ async def read_messages_by_notebook(notebook_id: int, db: Session = Depends(get_
 @router.get("/user/", response_model=List[MessageOut], status_code=status.HTTP_200_OK)
 async def read_messages_by_user(user_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para obtener todos los mensajes de un usuario específico."""
-    messages = get_messages_by_user(db, user_id=current_user.id)
+    messages = await get_messages_by_user(db, user_id=current_user.id)
     
     if not messages:
         raise HTTPException(status_code=404, detail="User messages not found")

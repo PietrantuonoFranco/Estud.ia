@@ -12,8 +12,8 @@ from .password import verify_password
 
 
 
-def authenticate_user(db: Session, email: str, password_plana: str):
-    user = get_user_by_email(db, email)
+async def authenticate_user(db: Session, email: str, password_plana: str):
+    user = await get_user_by_email(db, email)
     if not user:
         return False
     if not verify_password(password_plana, user.password):

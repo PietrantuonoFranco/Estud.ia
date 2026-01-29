@@ -33,23 +33,23 @@ async def shutdown_event():
     await http_client.aclose()
 
 @router.post("/", response_model=SourceOut, status_code=status.HTTP_201_CREATED)
-def create_source(source: SourceCreate, db: Session = Depends(get_db)):
+async def create_source(source: SourceCreate, db: Session = Depends(get_db)):
     """Método para crear una nueva fuente (source)."""    
-    return create_source_crud(db=db, source=source)
+    return await create_source_crud(db=db, source=source)
 
 
 @router.get("/", response_model=List[SourceOut], status_code=status.HTTP_200_OK)
-def read_sources(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+async def read_sources(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     """Método para obtener todas las fuentes (sources) con paginación."""
-    sources = get_all_sources(db, skip=skip, limit=limit)
+    sources = await get_all_sources(db, skip=skip, limit=limit)
 
     return sources
 
 
 @router.get("/{source_id}", response_model=SourceOut, status_code=status.HTTP_200_OK)
-def read_source(source_id: int, db: Session = Depends(get_db)):
+async def read_source(source_id: int, db: Session = Depends(get_db)):
     """Método para obtener una fuente (source) por su ID."""
-    source = get_source(db, source_id=source_id)
+    source = await get_source(db, source_id=source_id)
 
     if not source:
         raise HTTPException(status_code=404, detail="Fuente no encontrada")
@@ -90,12 +90,12 @@ async def delete_various_sources(
     deleted_sources = []
 
     for source_id in pdf_ids:
-        source = get_source(db, source_id=source_id)
+        source = await get_source(db, source_id=source_id)
 
         if not source:
             raise HTTPException(status_code=404, detail="Source not found")
 
-        source = delete_source_crud(db, source_id=source_id)
+        source = await delete_source_crud(db, source_id=source_id)
 
         deleted_sources.append(source)
 
@@ -105,7 +105,7 @@ async def delete_various_sources(
 @router.delete("/{source_id}", response_model=SourceOut, status_code=status.HTTP_200_OK)
 async def delete_source(source_id: int, db: Session = Depends(get_db)):
     """Método para eliminar una fuente (source) por su ID."""
-    source = get_source(db, source_id=source_id)
+    source = await get_source(db, source_id=source_id)
 
     if not source:
         raise HTTPException(status_code=404, detail="Fuente no encontrada")
@@ -134,15 +134,15 @@ async def delete_source(source_id: int, db: Session = Depends(get_db)):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Connection Error: {str(e)}")  
 
-    source = delete_source_crud(db, source_id=source_id)
+    source = await delete_source_crud(db, source_id=source_id)
 
     return source
 
 
 @router.get("/{source_id}/notebook", response_model=NotebookOut, status_code=status.HTTP_200_OK)
-def read_notebook_by_source(source_id: int, db: Session = Depends(get_db)):
+async def read_notebook_by_source(source_id: int, db: Session = Depends(get_db)):
     """Método para obtener el notebook asociado a una fuente (source) específica."""
-    notebook = get_notebook_by_source(db, source_id=source_id)
+    notebook = await get_notebook_by_source(db, source_id=source_id)
 
     if not notebook:
         raise HTTPException(status_code=404, detail="Notebook no encontrado para esta fuente")
