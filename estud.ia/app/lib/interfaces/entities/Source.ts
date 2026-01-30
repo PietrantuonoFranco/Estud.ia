@@ -1,5 +1,5 @@
 export default interface Source {
-  id: string;
+  id: number;
   name: string;
-  notebook_id: string;
+  notebook_id: number;
 }

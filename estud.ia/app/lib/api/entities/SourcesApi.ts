@@ -21,8 +21,26 @@ export async function getAllSources(skip: number = 0, limit: number = 10): Promi
   return response.data;
 }
 
-export async function deleteSource(sourceId: number): Promise<void> {
-  await api.delete<void>(`/${entity}/${sourceId}`);
+export async function deleteSource(sourceId: number): Promise<Source> {
+  const response = await api.delete<Source>(`/${entity}/${sourceId}`);
+
+  if (!response.data) {
+    throw new Error("Failed to delete sources");
+  }
+  
+  return response.data;
+}
+
+export async function deleteVariousSources(sourceIds: number[]): Promise<Source[]> {
+  const response = await api.delete<Source[]>(`/${entity}/delete-various`, {
+    data: { pdf_ids: sourceIds }
+  });
+
+  if (!response.data) {
+    throw new Error("Failed to delete sources");
+  }
+
+  return response.data
 }
 
 export async function getNotebookBySource(sourceId: number): Promise<any> {
