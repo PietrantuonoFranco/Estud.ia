@@ -6,21 +6,26 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { useAuth } from "../contexts/AuthContext"
+import { useNotification } from "../contexts/NotificationContext"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
 
   const { login } = useAuth()
-  
-    const handleSubmit = async(event: React.FormEvent) => {
-      event.preventDefault()
-      try {
-        await login(email, password)
-      } catch (error) {
-        console.error("Error al registrar el usuario:", error)
-      }
+  const { addNotification } = useNotification();
+
+  const handleSubmit = async(event: React.FormEvent) => {
+    event.preventDefault()
+    
+    try {
+      await login(email, password);
+      addNotification("Sesión iniciada", "Has iniciado sesión correctamente.", "success");
+    } catch (error) {
+      console.error("Error al iniciar sesión:", error);
+      addNotification("Error", "Ocurrió un error al iniciar sesión.", "error");
     }
+  }
 
   return (
     <div className="h-full grid grid-cols-2">

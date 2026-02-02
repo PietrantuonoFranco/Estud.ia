@@ -6,6 +6,7 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { useAuth } from "../contexts/AuthContext"
+import { useNotification } from "../contexts/NotificationContext"
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("")
@@ -15,19 +16,22 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("")
 
   const { register } = useAuth()
+  const { addNotification } = useNotification();
 
   const handleSubmit = async(event: React.FormEvent) => {
     event.preventDefault()
 
     try {
       if (password !== confirmPassword) {
-        alert("Las contraseñas no coinciden")
+        addNotification("Error", "Las contraseñas no coinciden.", "error");
         return
       }
 
-      await register(email, name, lastname, password)
+      await register(email, name, lastname, password);
+      addNotification("Registro exitoso", "Tu cuenta ha sido creada correctamente.", "success");
     } catch (error) {
-      console.error("Error al registrar el usuario:", error)
+      console.error("Error al registrar el usuario:", error);
+      addNotification("Error", "Ocurrió un error al registrar el usuario.", "error");
     }
   }
 

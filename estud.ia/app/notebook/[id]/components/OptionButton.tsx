@@ -1,6 +1,7 @@
 "use client"
 
 import { useOptionContext } from "../contexts/OptionContext"
+import { useNotification } from "@/app/contexts/NotificationContext";
 
 interface OptionButtonProps {
   optionName: string;
@@ -12,20 +13,32 @@ interface OptionButtonProps {
 
 export default function OptionButton({ optionName, icon: Icon, label, colorClasses, openPanel }: OptionButtonProps) {
   const { setOption, createFlashcard, createQuiz, isLoading, setIsLoading } = useOptionContext();
+  const { addNotification } = useNotification();
 
   const handleClick = async () => {
     // Create new entity based on option
     if (optionName === "flashcards") {
-      setIsLoading(true);
-      await createFlashcard();
-      setIsLoading(false);
+      try {
+        setIsLoading(true);
+        await createFlashcard();
+        addNotification("Tarjetas creadas", "Las tarjetas didácticas se han creado exitosamente.", "success");
+        setIsLoading(false);
+      } catch (error) {
+        addNotification("Error", "Hubo un error al crear las tarjetas didácticas.", "error");
+        setIsLoading(false);
+      }
     } else if (optionName === "quiz") {
-      setIsLoading(true);
-      await createQuiz();
-      setIsLoading(false);
+      try {
+        setIsLoading(true);
+        await createQuiz();
+        addNotification("Cuestionario creado", "El cuestionario se ha creado exitosamente.", "success");
+        setIsLoading(false);
+      } catch (error) {
+        addNotification("Error", "Hubo un error al crear el cuestionario.", "error");
+        setIsLoading(false);
+      }
     }
     
-    // Then change to the option
     setOption(optionName);
   };
 

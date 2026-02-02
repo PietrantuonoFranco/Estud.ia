@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from "next/link";
 
 import Notebook from "@/app/lib/interfaces/entities/Notebook";
+import { useNotification } from "@/app/contexts/NotificationContext";
 
 interface NotebooksContainerProps {
   orderBy: "most-recently" | "title";
@@ -18,6 +19,7 @@ interface NotebooksContainerProps {
 export default function NotebooksContainer ({ orderBy, viewMode, onStartUpload, onProgressUpdate, onUploadComplete }: NotebooksContainerProps) {
   const [notebooks, setNotebooks] = useState<Notebook[]>([]);
   const router = useRouter();
+  const { addNotification } = useNotification();
 
   const API_URL = process.env.API_URL || 'http://localhost:5000';
 
@@ -91,15 +93,15 @@ export default function NotebooksContainer ({ orderBy, viewMode, onStartUpload, 
 
       if (!response.ok) {
         throw new Error("Error al subir el archivo");
-      } else {
-        alert("Archivo subido exitosamente");
       }
-
+      
       const result = await response.json();
       const notebookId = result.id;
 
       onProgressUpdate?.(90);
       
+      addNotification("Éxito", "El cuaderno se creó exitosamente.", "success");
+
       setTimeout(() => {
         onUploadComplete?.();
         router.push(`/notebook/${notebookId}`);
@@ -107,6 +109,7 @@ export default function NotebooksContainer ({ orderBy, viewMode, onStartUpload, 
     } catch (error) {
       console.error("Error al subir el archivo:", error);
       onUploadComplete?.();
+      addNotification("Error", "Ocurrió un error al subir el archivo.", "error");
     }
   };
 
@@ -126,6 +129,7 @@ export default function NotebooksContainer ({ orderBy, viewMode, onStartUpload, 
       setNotebooks(data);
     } catch (error) {
       console.error("Error al obtener los cuadernos del usuario:", error);
+      addNotification("Error", "Ocurrió un error al obtener los cuadernos del usuario.", "error");
     }
   };
 
