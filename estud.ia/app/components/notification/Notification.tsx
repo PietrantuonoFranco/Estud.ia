@@ -42,6 +42,22 @@ export default function Notification({ title, message, type, onClose }: Notifica
         </div>
 
         <p className="text-sm text-muted-foreground">{message}</p>
+        
+        {/* Barra de progreso de tiempo */}
+        <div className="absolute bottom-0 left-0.75 right-0.75 h-1 bg-muted/30 rounded-b-sm overflow-hidden">
+          <div 
+            className={cn(
+              "h-full",
+              type === 'success' && "bg-green-500",
+              type === 'error' && "bg-red-500",
+              type === 'info' && "bg-blue-500",
+              "animate-[shrink_5s_linear_forwards]"
+            )}
+            style={{
+              width: '100%'
+            }}
+          />
+        </div>
       </div>
     </div>
   )
