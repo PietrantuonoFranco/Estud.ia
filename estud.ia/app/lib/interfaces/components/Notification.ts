@@ -5,5 +5,6 @@ export interface Notification {
     title: string;
     message: string;
     type: NotificationType;
+    isExiting?: boolean;
     onClose?: () => void;
 }

@@ -15,12 +15,20 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
   const [notifications, setNotifications] = useState<NotificationInterface[]>([]);
 
   const removeNotification = useCallback((id: number) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    // Marcar la notificación como "exiting"
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, isExiting: true } : n))
+    );
+
+    // Eliminar después de la animación
+    setTimeout(() => {
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+    }, 300);
   }, []);
 
   const addNotification = useCallback((title: string, message: string, type: NotificationType) => {
     const id = Date.now();
-    setNotifications((prev) => [...prev, { id, title, message, type }]);
+    setNotifications((prev) => [...prev, { id, title, message, type, isExiting: false }]);
 
     // Auto-eliminar después de 5 segundos
     setTimeout(() => {

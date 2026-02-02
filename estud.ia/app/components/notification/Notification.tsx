@@ -1,17 +1,21 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { CircleCheckBig, CircleAlert, Info, X } from "lucide-react"
 
 import cn from "@/app/lib/utils/cn"
 import { Notification as NotificationProps } from "@/app/lib/interfaces/components/Notification"
 
-export default function Notification({ title, message, type, onClose }: NotificationProps) {
+export default function Notification({ title, message, type, isExiting = false, onClose }: NotificationProps) {
+  const handleClose = () => {
+    onClose?.()
+  }
+
   return (
     <div
       className={cn(
-        "inset-0",
-        "bg-gradient-to-br from-transparent to-black/60 backdrop-blur-sm",
-        "animate-in fade-in duration-200"
+        "transition-all duration-300 ease-out",
+        isExiting ? "animate-slide-out-right" : "animate-slide-in-bottom"
       )}
     >
       <div className="relative rounded-xl bg-card border border-muted px-6 py-4 flex flex-col space-y-2 shadow-lg w-80">
@@ -33,7 +37,7 @@ export default function Notification({ title, message, type, onClose }: Notifica
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="absolute top-2 right-2 cursor-pointer p-1 rounded-full hover:hover:bg-[var(--hover-bg)]"
             aria-label="Cerrar notificación"
           >
