@@ -4,6 +4,8 @@ import { Check, LayoutGrid, StretchHorizontal, ChevronDown, Plus } from "lucide-
 import { useState } from "react"
 import { useRouter } from 'next/navigation';
 
+import { useNotification } from "@/app/contexts/NotificationContext";
+
 interface OptionsBannerProps {
   orderBy: "most-recently" | "title";
   setOrderBy: (value: "most-recently" | "title") => void;
@@ -17,6 +19,7 @@ interface OptionsBannerProps {
 export default function OptionsBanner ({ orderBy, setOrderBy, viewMode, setViewMode, onStartUpload, onProgressUpdate, onUploadComplete }: OptionsBannerProps) {
   const [openOrderByMenu, setOpenOrderByMenu] = useState(false);
   const router = useRouter();
+  const { addNotification } = useNotification(); 
   
   const API_URL = process.env.API_URL || 'http://localhost:5000';
   
@@ -49,14 +52,14 @@ export default function OptionsBanner ({ orderBy, setOrderBy, viewMode, setViewM
 
       if (!response.ok) {
         throw new Error("Error al subir el archivo");
-      } else {
-        alert("Archivo subido exitosamente");
       }
 
       const result = await response.json();
       const notebookId = result.id;
 
       onProgressUpdate?.(90);
+      
+      addNotification("Éxito", "El cuaderno se creó exitosamente.", "success");
       
       setTimeout(() => {
         onUploadComplete?.();
@@ -65,6 +68,7 @@ export default function OptionsBanner ({ orderBy, setOrderBy, viewMode, setViewM
     } catch (error) {
       console.error("Error al subir el archivo:", error);
       onUploadComplete?.();
+      addNotification("Error", "Ocurrió un error al crear el cuaderno.", "error");
     }
   };
   

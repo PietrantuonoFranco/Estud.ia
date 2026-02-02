@@ -5,15 +5,27 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { useAuth } from "../contexts/AuthContext"
+import { useNotification } from "../contexts/NotificationContext"
 
 export default function Header() {
-  const { user, logout } = useAuth()
+  const { user, logout } = useAuth();
+  const { addNotification } = useNotification();
 
   const handleSettings = async () => {
     try {
-      console.log("Ajustes")
+      console.log("Ajustes");
     } catch (error) {
-      console.error(error)
+      console.error(error);
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      addNotification("Sesión cerrada", "Has cerrado sesión correctamente.", "success");
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+      addNotification("Error", "Ocurrió un error al cerrar sesión.", "error");
     }
   }
 
@@ -46,7 +58,7 @@ export default function Header() {
 
           <button
             type="button"
-            onClick={logout}
+            onClick={handleLogout}
             className="cursor-pointer text-muted-foreground hover:text-foreground"
           >
             <LogOut className="h-4 w-4" strokeWidth={2.5}/>

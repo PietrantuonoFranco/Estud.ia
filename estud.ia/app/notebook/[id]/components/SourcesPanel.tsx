@@ -4,6 +4,7 @@ import { FilePlusCorner, FileText, Check, PanelLeft, Trash2 } from "lucide-react
 import { useState } from "react";
 
 import { useChatInformationContext } from "../contexts/ChatInformationContext";
+import { useNotification } from "@/app/contexts/NotificationContext";
 
 import { DeleteModal } from "@/app/components/modal/DeleteModal";
 
@@ -31,6 +32,7 @@ export default function SourcesPanel() {
   });
 
   const { sources, setSources, notebook } = useChatInformationContext();
+  const { addNotification } = useNotification();
   
   const API_URL = process.env.API_URL || 'http://localhost:5000';
 
@@ -78,15 +80,15 @@ export default function SourcesPanel() {
 
       if (!response.ok) {
         throw new Error("Error al subir el archivo");
-      } else {
-        alert("Archivos subidos exitosamente");
       }
       
       const responseData = await response.json();
 
       setSources(responseData.sources);
+      addNotification("Éxito", "Archivos subidos exitosamente.", "success");
     } catch (error) {
       console.error("Error al subir el archivo:", error);
+      addNotification("Error", "Ocurrió un error al subir los archivos.", "error");
     }
   };
 
@@ -102,8 +104,10 @@ export default function SourcesPanel() {
 
       setSelectedSources([]);
       setSources(sources.filter(source => !selectedSources.includes(source)));
+      addNotification("Éxito", "Fuentes eliminadas exitosamente.", "success");
     } catch (error) {
       console.error("Error deleting sources:", error);
+      addNotification("Error", "Ocurrió un error al eliminar las fuentes.", "error");
     }
   }
 

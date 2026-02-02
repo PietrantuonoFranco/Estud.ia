@@ -103,6 +103,8 @@ export function OptionContextProvider({ children }: { children: React.ReactNode 
       });
     } catch (error) {
       console.error(error);
+      setIsLoading(false);
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -139,6 +141,8 @@ export function OptionContextProvider({ children }: { children: React.ReactNode 
       });
     } catch (error) {
       console.error(error);
+      setIsLoading(false);
+      throw error;
     } finally {
       setIsLoading(false);
     }
