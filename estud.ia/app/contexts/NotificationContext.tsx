@@ -14,15 +14,19 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
   const [notifications, setNotifications] = useState<NotificationInterface[]>([]);
 
+  const removeNotification = useCallback((id: number) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  }, []);
+
   const addNotification = useCallback((title: string, message: string, type: NotificationType) => {
     const id = Date.now();
     setNotifications((prev) => [...prev, { id, title, message, type }]);
 
     // Auto-eliminar después de 5 segundos
     setTimeout(() => {
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
+      removeNotification(id);
     }, 5000);
-  }, []);
+  }, [removeNotification]);
 
   return (
     <NotificationContext.Provider value={{ addNotification }}>
@@ -31,7 +35,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
       {/* Contenedor de Toasts */}
       <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
         {notifications.map((n) => (
-          <Notification key={n.id} {...n} />
+          <Notification key={n.id} {...n} onClose={() => removeNotification(n.id)} />
         ))}
       </div>
     </NotificationContext.Provider>
