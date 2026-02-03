@@ -1,17 +1,13 @@
 from pymilvus import MilvusClient, DataType, AsyncMilvusClient
-from dotenv import load_dotenv
-from pydantic import BaseModel
-import os
 
-load_dotenv()  
-uri = os.getenv("MILVUS_URI")
+from ..config import conf 
   
 class Async_Milvus_Client:
     
     "Clase para el cliente asíncrono de la bsdd estudia_db en Milvus."
     
     def __init__(self):
-        self.client = AsyncMilvusClient(uri=uri, db_name="estudia_db")
+        self.client = AsyncMilvusClient(uri=conf.MILVUS_URI, db_name="estudia_db")
     
     async def delete_documents(self, collection_name: str, ids: list[int]):
         return await self.client.delete(
@@ -62,7 +58,7 @@ class Async_Milvus_Client:
 class Milvus_Sync_Client:   
     
     def __init__(self):
-        self.client = MilvusClient(uri=uri, db_name="estudia_db") 
+        self.client = MilvusClient(uri=conf.MILVUS_URI, db_name="estudia_db") 
               
     def create_milvus_collection(self,name: str):
         
@@ -132,9 +128,7 @@ def check_database_exist():
     
     """Verifica si la base de datos 'estudia_db' existe en Milvus, si no, la crea."""
     
-    client = MilvusClient(
-            uri = uri,
-    )
+    client = MilvusClient(uri=conf.MILVUS_URI)
 
     if "estudia_db" not in client.list_databases():
             
