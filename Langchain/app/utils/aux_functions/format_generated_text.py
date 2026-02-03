@@ -1,4 +1,4 @@
-def correct_generation_text(text: str) -> str:
+def format_generated_text(text: str) -> str:
     """
     Helper function to clean markdown code blocks from LLM generation.
     """

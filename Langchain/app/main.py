@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from typing import List
 import json
 
-from .utils.aux_functions.correct_generation_text import correct_generation_text
+from .utils.aux_functions.format_generated_text import format_generated_text
 from .utils.embbedings import EmbeddingGenerator
 from .utils.splitter import Splitter
 
@@ -207,7 +207,7 @@ async def create_notebook(
         result = await creation_graph.invoke(initial_state)
 
         # Clean the response from markdown code blocks if they exist
-        generation_text = correct_generation_text(result["generation"])
+        generation_text = format_generated_text(result["generation"])
             
         result_json = json.loads(generation_text)
             
@@ -280,7 +280,7 @@ async def create_flashcards(
         result = await creation_graph.invoke(initial_state)
         
         # Clean the response from markdown code blocks if they exist
-        generation_text = correct_generation_text(result["generation"])
+        generation_text = format_generated_text(result["generation"])
         
         result_json = json.loads(generation_text)
         
@@ -328,7 +328,7 @@ async def create_questions(
         result = await creation_graph.invoke(initial_state)
         
         # Clean the response from markdown code blocks if they exist
-        generation_text = correct_generation_text(result["generation"])
+        generation_text = format_generated_text(result["generation"])
         
         result_json = json.loads(generation_text)
         
