@@ -33,8 +33,8 @@ export default function LoginPage() {
         <Image
           src="/logo_dark.png"
           alt="Estud.ia Logo"
-          width={350}
-          height={50}
+          width={300}
+          height={35}
           className="mb-10 mx-auto"
         />
 
