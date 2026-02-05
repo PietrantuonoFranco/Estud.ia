@@ -44,23 +44,25 @@ export default function Header() {
           <button
             type="button"
             onClick={handleSettings}          
-            className="cursor-pointer flex items-center gap-2 text-muted-foreground rounded-full py-2 px-4 bg-card hover:bg-[var(--hover-bg)]"
+            className="cursor-pointer flex items-center gap-2 py-1.5 px-3 rounded-full hover:bg-[var(--hover-bg)] bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]"
           >
             <Settings className="h-4 w-4" />
             <span>Configuración</span>
           </button>
+
+          <div className="h-100 m-3 w-px bg-[var(--hover-bg)]"></div>
         
           <div className="h-8 w-8">
-            <Image src="/user-avatar.png" alt="User Avatar" width={32} height={32} className="rounded-full" />
+            <Image src={user.profile_image_url || "/user-avatar.png"} alt="User Avatar" width={32} height={32} className="rounded-full" />
           </div>
   
-          <div className="rounded bg-primary px-2 py-1 text-xs font-medium text-primary-foreground">{user.name} {user.lastname}</div>
+          <div className="text-muted-foreground rounded-full py-1.5 px-3 bg-card">{user.name} {user.lastname}</div>
 
           <button
             type="button"
             onClick={handleLogout}
-            className="cursor-pointer text-muted-foreground hover:text-foreground"
-          >
+              className="cursor-pointer text-muted-foreground hover:text-[var(--purple-accent)]"
+            >
             <LogOut className="h-4 w-4" strokeWidth={2.5}/>
           </button>
         </div>
