@@ -172,12 +172,15 @@ async def read_notebook(notebook_id: int, db: Session = Depends(get_db)):
     return notebook
 
 @router.delete("/{notebook_id}", response_model=NotebookOut, status_code=status.HTTP_200_OK)
-async def delete_notebook(notebook_id: int, db: Session = Depends(get_db)):
+async def delete_notebook(notebook_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para eliminar un notebook por su ID."""
     notebook = await get_notebook_crud(db, notebook_id=notebook_id)
 
     if not notebook:
         raise HTTPException(status_code=404, detail="Notebook no encontrado")
+    
+    if notebook.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="No tienes permiso para eliminar este notebook")
     
     return await delete_notebook_crud(db, notebook_id=notebook_id)
 
@@ -185,6 +188,7 @@ async def delete_notebook(notebook_id: int, db: Session = Depends(get_db)):
 async def read_sources_by_notebook_id(notebook_id: int, db: Session = Depends(get_db)):
     """Método para obtener las fuentes (sources) asociadas a un notebook específico."""
     notebook = await get_notebook_crud(db, notebook_id=notebook_id)
+    
     if not notebook:
         raise HTTPException(status_code=404, detail="Notebook no encontrado")
 
@@ -196,8 +200,11 @@ async def read_sources_by_notebook_id(notebook_id: int, db: Session = Depends(ge
     return sources
 
 @router.get("/user/{user_id}", response_model=List[NotebookOut], status_code=status.HTTP_200_OK)
-async def read_notebooks_by_user_id(user_id: int, db: Session = Depends(get_db)):
+async def read_notebooks_by_user_id(user_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para obtener los notebooks asociados a un usuario específico."""
+    if user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="No tienes permiso para ver los notebooks de este usuario")
+    
     notebooks = await get_all_notebooks_by_user_id(db, user_id=user_id)
 
     if not notebooks:
@@ -213,6 +220,9 @@ async def add_sources_to_notebook(notebook_id: int, files: List[UploadFile] = Fi
 
     if not notebook:
         raise HTTPException(status_code=404, detail="Notebook not found")
+    
+    if notebook.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="No tienes permiso para agregar fuentes a este notebook")
     
     try:
         # Validar tipos de archivo y crear sources en DB
@@ -305,11 +315,13 @@ async def add_sources_to_notebook(notebook_id: int, files: List[UploadFile] = Fi
 @router.post("/{notebook_id}/flashcards", response_model=List[FlashcardOut], status_code=status.HTTP_200_OK)
 async def add_flashcards_to_notebook(notebook_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     try:
-        print(f"Fetching notebook with ID: {notebook_id}")
         notebook = await get_notebook_crud(db, notebook_id=notebook_id)
 
         if not notebook:
             raise HTTPException(status_code=404, detail="Notebook not found")
+        
+        if notebook.user_id != current_user.id:
+            raise HTTPException(status_code=403, detail="No tienes permiso para agregar flashcards a este notebook")
         
         print(f"Notebook found: {notebook.title}, source_ids: {[source.id for source in notebook.sources]}")
         
@@ -371,15 +383,16 @@ async def add_flashcards_to_notebook(notebook_id: int, db: Session = Depends(get
 @router.post("/{notebook_id}/quiz", response_model=QuizWithQuestions, status_code=status.HTTP_200_OK)
 async def add_quiz_to_notebook(notebook_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     try:
-        print(f"Fetching notebook with ID: {notebook_id}")
         notebook = await get_notebook_crud(db, notebook_id=notebook_id)
 
         if not notebook:
             raise HTTPException(status_code=404, detail="Notebook not found")
         
+        if notebook.user_id != current_user.id:
+            raise HTTPException(status_code=403, detail="No tienes permiso para agregar un quiz a este notebook")
+        
         if not notebook.sources or len(notebook.sources) == 0:
             raise HTTPException(status_code=400, detail="Notebook has no sources to generate flashcards from")
-        
         
         # Convert source_ids to integers
         pdf_ids = [source.id for source in notebook.sources]
