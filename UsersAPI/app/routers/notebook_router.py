@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Body
 from sqlalchemy.orm import Session
 from typing import List
 import httpx
@@ -6,17 +6,13 @@ import datetime as date
 
 from ..config import conf
 from ..database import get_db
-
 from ..schemas.notebook_schema import NotebookOut, NotebookCreate
 from ..schemas.source_schema import SourceOut, SourceCreate
 from ..schemas.flashcard_schema import FlashcardCreate, FlashcardOut
 from ..schemas.quiz_schema import QuizWithQuestions, QuizCreate, QuestionCreate
-
 from ..models.source_model import Source
-
 from ..security.auth import get_current_user
-
-from ..crud.source_crud import create_source, delete_source as delete_source_crud
+from ..crud.source_crud import create_source, get_source, delete_source as delete_source_crud
 from ..crud.flashcard_crud import create_flashcard
 from ..crud.quiz_crud import create_quiz
 from ..crud.notebook_crud import (
@@ -310,7 +306,6 @@ async def add_sources_to_notebook(notebook_id: int, files: List[UploadFile] = Fi
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
-    
 
 @router.post("/{notebook_id}/flashcards", response_model=List[FlashcardOut], status_code=status.HTTP_200_OK)
 async def add_flashcards_to_notebook(notebook_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
@@ -474,3 +469,58 @@ async def add_quiz_to_notebook(notebook_id: int, db: Session = Depends(get_db), 
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
+@router.delete("/{notebook_id}/sources/delete-various", response_model=List[SourceOut], status_code=status.HTTP_200_OK)
+async def delete_various_sources(
+    notebook_id: int,
+    body: dict = Body(...),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    """Método para eliminar varias fuentes (sources) por sus IDs."""
+
+    notebook = await get_notebook_crud(db, notebook_id=notebook_id)
+
+    if not notebook:
+        raise HTTPException(status_code=404, detail="Notebook not found")
+        
+    if notebook.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="No tienes permiso para eliminar fuentes de este notebook")
+
+    pdf_ids = body.get("pdf_ids", [])
+    
+    if not pdf_ids or not isinstance(pdf_ids, list):
+        raise HTTPException(status_code=400, detail="pdf_ids must be a non-empty list")
+    
+    try:
+        response = await http_client.post(
+            f"{conf.LANGCHAIN_URI}/delete-pdfs",
+            json={"pdf_ids": pdf_ids}, # Enviamos todo aquí
+            headers={"X-API-Key": conf.LANGCHAIN_API_KEY},
+            timeout=60.0
+        )
+        response.raise_for_status()
+
+    except httpx.HTTPStatusError as e:
+        print(f"HTTPStatusError: {e.response.status_code} - {e.response.text}")
+        raise HTTPException(status_code=e.response.status_code, detail=f"Has occurred an error with Langchain service: {e.response.text}")
+        
+    except Exception as e:
+        print(f"Connection Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Connection Error: {str(e)}")
+
+    deleted_sources = []
+
+    for source_id in pdf_ids:
+        source = await get_source(db, source_id=source_id)
+
+        if not source:
+            raise HTTPException(status_code=404, detail="Source not found")
+
+        source = await delete_source_crud(db, source_id=source_id)
+
+        deleted_sources.append(source)
+
+    return deleted_sources

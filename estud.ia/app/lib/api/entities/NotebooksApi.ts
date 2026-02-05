@@ -1,6 +1,7 @@
 import api from "../api"
 
 import type Notebook from "../../interfaces/entities/Notebook";
+import type Source from "../../interfaces/entities/Source";
 
 const entity: string = "notebooks";
 
@@ -54,4 +55,16 @@ export async function generateQuiz(notebookId: number): Promise<Notebook> {
 export async function getSourcesByNotebook(notebookId: number): Promise<any[]> {
   const response = await api.get<any[]>(`/${entity}/${notebookId}/sources`);
   return response.data;
+}
+
+export async function deleteVariousSourcesByNotebookIdAndSourceIds(notebookId: number, sourceIds: number[]): Promise<Source[]> {
+  const response = await api.delete<Source[]>(`/${entity}/${notebookId}/sources/delete-various`, {
+    data: { pdf_ids: sourceIds }
+  });
+
+  if (!response.data) {
+    throw new Error("Failed to delete sources");
+  }
+
+  return response.data
 }

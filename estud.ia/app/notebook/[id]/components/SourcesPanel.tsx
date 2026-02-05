@@ -3,21 +3,20 @@
 import { FilePlusCorner, FileText, Check, PanelLeft, Trash2 } from "lucide-react";
 import { useState } from "react";
 
+
 import { useChatInformationContext } from "../contexts/ChatInformationContext";
 import { useNotification } from "@/app/contexts/NotificationContext";
 
 import { DeleteModal } from "@/app/components/modal/DeleteModal";
 
 import Source from "@/app/lib/interfaces/entities/Source";
-import { deleteSource, deleteVariousSources } from "@/app/lib/api/entities/SourcesApi";
+
+import { deleteVariousSourcesByNotebookIdAndSourceIds } from "@/app/lib/api/entities/NotebooksApi";
 
 export default function SourcesPanel() {
   const [openPanel, setOpenPanel] = useState(true);
   const [selectedSources, setSelectedSources] = useState<Source[]>([]);
-
-  const [openDeleteOneModal,setOpenDeleteOneModal] = useState(false);
   const [openDeleteVariousModal,setOpenDeleteVariousModal] = useState(false);
-
   const [tooltip, setTooltip] = useState<{
     visible: boolean;
     text: string;
@@ -96,7 +95,7 @@ export default function SourcesPanel() {
     try {
       const pdf_ids = selectedSources.map(source => source.id);
 
-      const response = await deleteVariousSources(pdf_ids);
+      const response = await deleteVariousSourcesByNotebookIdAndSourceIds(notebook?.id!, pdf_ids);
 
       if (!response) {
         throw new Error(`Failed to delete sources`);
