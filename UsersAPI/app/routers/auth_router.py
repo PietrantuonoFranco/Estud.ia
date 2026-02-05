@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from starlette.requests import Request
 
+from ..utils.validate_email import validate_email
 from ..database import get_db
 
 from ..security.auth import authenticate_user, get_current_user
@@ -28,6 +29,12 @@ async def get_me(current_user=Depends(get_current_user)):
 
 @router.post("/login", status_code=status.HTTP_200_OK)
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    if not validate_email(form_data.email):
+        raise HTTPException(
+            status_code=400, 
+            detail="El formato del correo electrónico no es válido"
+        )
+    
     user = await authenticate_user(db, form_data.username, form_data.password)
     
     if not user:
@@ -54,6 +61,12 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(form_data: UserCreate, db: Session = Depends(get_db)):
+    if not validate_email(form_data.email):
+        raise HTTPException(
+            status_code=400, 
+            detail="El formato del correo electrónico no es válido"
+        )
+    
     existing_user = await get_user_by_email(db, form_data.email)
 
     if existing_user:
