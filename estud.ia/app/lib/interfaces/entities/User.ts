@@ -3,5 +3,6 @@ export default interface User {
     email: string;
     name: string;
     lastname: string;
+    profile_image_url?: string;
     created_at: string;
 }  
