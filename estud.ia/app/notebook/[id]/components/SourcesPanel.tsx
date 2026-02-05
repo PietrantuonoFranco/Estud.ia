@@ -2,16 +2,13 @@
 
 import { FilePlusCorner, FileText, Check, PanelLeft, Trash2 } from "lucide-react";
 import { useState } from "react";
-
-
+import { addSourcesToNotebook } from "@/app/lib/api/entities/NotebooksApi";
+import { deleteVariousSourcesByNotebookIdAndSourceIds } from "@/app/lib/api/entities/NotebooksApi";
 import { useChatInformationContext } from "../contexts/ChatInformationContext";
 import { useNotification } from "@/app/contexts/NotificationContext";
-
 import { DeleteModal } from "@/app/components/modal/DeleteModal";
-
 import Source from "@/app/lib/interfaces/entities/Source";
 
-import { deleteVariousSourcesByNotebookIdAndSourceIds } from "@/app/lib/api/entities/NotebooksApi";
 
 export default function SourcesPanel() {
   const [openPanel, setOpenPanel] = useState(true);
@@ -32,8 +29,7 @@ export default function SourcesPanel() {
 
   const { sources, setSources, notebook } = useChatInformationContext();
   const { addNotification } = useNotification();
-  
-  const API_URL = process.env.API_URL || 'http://localhost:5000';
+
 
   const selectSource = (source: Source) => {
     if (selectedSources.includes(source)) {
@@ -71,19 +67,14 @@ export default function SourcesPanel() {
         formData.append("files", files[i]);
       }
       
-      const response = await fetch(`${API_URL}/notebooks/${notebook?.id}/add-sources`, {
-        method: "POST",
-        body: formData,
-        credentials: 'include', // Enviar cookies
-      });
+      const response = await addSourcesToNotebook(notebook?.id!, Array.from(files));
 
-      if (!response.ok) {
+      if (!response) {
         throw new Error("Error al subir el archivo");
       }
       
-      const responseData = await response.json();
 
-      setSources(responseData.sources);
+      setSources(response.sources);
       addNotification("Éxito", "Archivos subidos exitosamente.", "success");
     } catch (error) {
       console.error("Error al subir el archivo:", error);
@@ -150,7 +141,7 @@ export default function SourcesPanel() {
                     :
                       sources ?? []
                   )}
-                  className={`${ openPanel ? "cursor-pointer h-6 w-6 relative border border-gray-500 rounded-md" : "hidden" }`}
+                  className={`${ openPanel ? "cursor-pointer min-h-6 min-w-6 relative border border-gray-500 rounded-md" : "hidden" }`}
                 >
                   {selectedSources.length === sources?.length && (
                       <Check className="absolute h-4 w-4 left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 text-[var(--green-accent)]" /> 

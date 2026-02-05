@@ -208,7 +208,7 @@ async def read_notebooks_by_user_id(user_id: int, db: Session = Depends(get_db),
     
     return notebooks
 
-@router.post("/{notebook_id}/add-sources", response_model=NotebookOut, status_code=status.HTTP_200_OK)
+@router.post("/{notebook_id}/sources", response_model=NotebookOut, status_code=status.HTTP_200_OK)
 async def add_sources_to_notebook(notebook_id: int, files: List[UploadFile] = File(...), db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para agregar fuentes a un notebook."""
 
@@ -470,7 +470,7 @@ async def add_quiz_to_notebook(notebook_id: int, db: Session = Depends(get_db), 
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
-@router.delete("/{notebook_id}/sources/delete-various", response_model=List[SourceOut], status_code=status.HTTP_200_OK)
+@router.delete("/{notebook_id}/sources", response_model=List[SourceOut], status_code=status.HTTP_200_OK)
 async def delete_various_sources(
     notebook_id: int,
     body: dict = Body(...),

@@ -57,8 +57,19 @@ export async function getSourcesByNotebook(notebookId: number): Promise<any[]> {
   return response.data;
 }
 
+export async function addSourcesToNotebook(notebookId: number, files: File[]): Promise<Notebook> {
+  const formData = new FormData();
+  files.forEach((file) => formData.append("files", file));
+
+  const response = await api.post<Notebook>(`/${entity}/${notebookId}/sources`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+  return response.data;
+}
+
 export async function deleteVariousSourcesByNotebookIdAndSourceIds(notebookId: number, sourceIds: number[]): Promise<Source[]> {
-  const response = await api.delete<Source[]>(`/${entity}/${notebookId}/sources/delete-various`, {
+  const response = await api.delete<Source[]>(`/${entity}/${notebookId}/sources`, {
     data: { pdf_ids: sourceIds }
   });
 
