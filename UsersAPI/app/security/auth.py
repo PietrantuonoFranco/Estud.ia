@@ -1,9 +1,8 @@
 from fastapi import Cookie, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from ..database import get_db
 
-from ..models.user_model import User
+from ..database import get_db
 
 from ..crud.user_crud import get_user_by_email
 

@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
-from ..security.password import hash_password  # Importamos la función de hash_password
+import secrets
+
+from ..security.password import hash_password
 
 from ..schemas.user_schema import UserCreate
 from ..schemas.notebook_schema import NotebookCreate
@@ -24,6 +26,28 @@ async def create_user(db: Session, user: UserCreate):
     db.refresh(db_user)
 
     return db_user
+
+async def create_user_from_google(db: Session, user_info: dict):
+    # Google suele enviar 'given_name' y 'family_name'
+    # Si no vienen, intentamos separar el 'name' completo
+    full_name = user_info.get('name', '')
+    first_name = user_info.get('given_name', full_name.split()[0] if full_name else 'Google')
+    last_name = user_info.get('family_name', full_name.split()[-1] if len(full_name.split()) > 1 else 'User')
+
+    new_user = User(
+        email=user_info['email'],
+        name=first_name,
+        lastname=last_name,
+        # Como tu DB no permite password nulo, generamos una cadena aleatoria
+        # Esto evita que alguien pueda "adivinar" la contraseña de una cuenta de Google
+        password=f"oauth_{secrets.token_hex(16)}", 
+        profile_image_url=user_info.get('picture')
+    )
+    
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
 
 async def get_all_users(db: Session, skip: int = 0, limit: int = 10):
     return db.query(User).offset(skip).limit(limit).all()

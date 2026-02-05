@@ -22,4 +22,7 @@ class Settings(BaseSettings):
     LANGCHAIN_URI: str = Field(..., validation_alias="LANGCHAIN_URI")
     LANGCHAIN_API_KEY: str = Field(..., validation_alias="LANGCHAIN_API_KEY")
 
+    GOOGLE_CLIENT_ID: str = Field(..., validation_alias="GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET: str = Field(..., validation_alias="GOOGLE_CLIENT_SECRET")
+
 conf = Settings()

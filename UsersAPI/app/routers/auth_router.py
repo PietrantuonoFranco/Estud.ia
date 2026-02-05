@@ -1,16 +1,18 @@
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
+from starlette.requests import Request
 
 from ..database import get_db
 
 from ..security.auth import authenticate_user, get_current_user
 from ..security.token import create_access_token
+from ..security.oauth_config import oauth
 
 from ..schemas.user_schema import UserCreate
 
-from ..crud.user_crud import get_user_by_email, create_user
+from ..crud.user_crud import get_user_by_email, create_user, create_user_from_google
 
 from ..config import conf
 
@@ -84,4 +86,44 @@ async def logout():
     response = JSONResponse(content={"message": "Logout exitoso"})
     response.delete_cookie(key="accessToken")
     
+    return response
+
+# --- Rutas de Google ---
+
+@router.get("/login/google")
+async def login_google(request: Request):
+    # Redirige al usuario a Google
+    redirect_uri = request.url_for('auth_google_callback')
+    return await oauth.google.authorize_redirect(request, str(redirect_uri))
+
+@router.get("/callback/google")
+async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
+    token = await oauth.google.authorize_access_token(request)
+    user_info = token.get('userinfo')
+    
+    if not user_info:
+        raise HTTPException(status_code=400, detail="No se pudo obtener info de Google")
+
+    # 1. Buscar si el usuario ya existe en tu DB
+    user = await get_user_by_email(db, user_info['email'])
+    
+    # 2. Si no existe, lo creamos (Registro automático)
+    if not user:
+        # Aquí puedes adaptar tu UserCreate o crear una lógica específica
+        # para usuarios que vienen de Google (sin password convencional)
+        user = await create_user_from_google(db, user_info)
+
+    # 3. Generar tu propio JWT (el que ya usas en /login)
+    accessToken = create_access_token(data={"sub": user.email})
+
+    # 4. Responder con la misma Cookie que ya implementaste
+    response = RedirectResponse(url="http://localhost:3000/")
+    response.set_cookie(
+        key="accessToken",
+        value=accessToken,
+        httponly=True,
+        secure=False, # True en prod
+        samesite="lax",
+        max_age=60 * conf.ACCESS_TOKEN_EXPIRE_MINUTES
+    )
     return response

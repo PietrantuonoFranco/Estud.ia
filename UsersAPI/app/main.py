@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 
 from .database import engine
+
+from .config import conf
 
 # Routers
 from .routers.user_router import router as users_router
@@ -47,6 +50,7 @@ app.add_middleware(
     allow_methods=["*"],              # Permite todos los métodos (GET, POST, etc.)
     allow_headers=["*"],              # Permite todos los encabezados
 )
+app.add_middleware(SessionMiddleware, secret_key=conf.SECRET_KEY)
 
 app.include_router(users_router)
 app.include_router(notebooks_router)
