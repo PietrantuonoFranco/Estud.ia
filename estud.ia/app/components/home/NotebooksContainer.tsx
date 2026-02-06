@@ -155,20 +155,20 @@ export default function NotebooksContainer ({ orderBy, viewMode, onStartUpload, 
 
   return (
     <>
-      <h1 className="text-4xl font-semibold">Todos los cuadernos</h1>
+      <h1 className="text-2xl md:text-4xl font-semibold">Todos los cuadernos</h1>
       <div className={`w-full ${
-          viewMode === "grid" 
-            ? "grid grid-cols-4 gap-4" 
+          viewMode === "grid"
+          ? "grid grid-cols-2 md:grid-cols-4 gap-4" 
             : "flex flex-col gap-4"
         }`}
       >
         <NotebooksGrid notebooks={sortedAllNotebooks} viewMode={viewMode} />
       </div>
 
-      <h2 className="text-4xl font-semibold">Tus cuadernos</h2>
+      <h2 className={`${viewMode === "list" && userNotebooks.length === 0 ? "hidden" : ""} text-2xl md:text-4xl font-semibold`}>Tus cuadernos</h2>
       <div className={`w-full ${
-          viewMode === "grid" 
-            ? "grid grid-cols-4 gap-4" 
+          viewMode === "grid"
+            ? "grid grid-cols-2 md:grid-cols-4 gap-4" 
             : "flex flex-col gap-4"
         }`}
       >
@@ -179,7 +179,7 @@ export default function NotebooksContainer ({ orderBy, viewMode, onStartUpload, 
               : "border-border hover:bg-card"
           } ${
             viewMode === "grid" 
-              ? "h-48 "
+              ? "p-8 md:p-0 md:h-48 "
               : "hidden"
           }`}
           onDragOver={handleDragOver}
@@ -192,7 +192,7 @@ export default function NotebooksContainer ({ orderBy, viewMode, onStartUpload, 
             <div className="flex justify-center items-center p-2 rounded-full bg-card group-hover:bg-card/80">
               <Plus className="w-8 h-8" />
             </div>
-            <h3 className="mb-2 text-lg font-medium text-foreground">Crear cuaderno</h3>
+            <h3 className="mb-2 text-lg text-center font-medium text-foreground">Crear cuaderno</h3>
           </label>
         </div>
 

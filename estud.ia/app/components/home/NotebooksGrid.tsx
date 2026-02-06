@@ -19,8 +19,8 @@ export default function NotebooksGrid({ notebooks, viewMode }: NotebooksGridProp
           className={`
             group relative flex cursor-pointer flex-col rounded-xl p-4 ${
               viewMode === "grid" 
-                ? "justify-between h-48 bg-gradient-to-bl" 
-                : "flex-row items-center gap-4 bg-gradient-to-l"
+                ? "justify-between md:h-48 bg-gradient-to-bl" 
+                : "flex-row md:items-center gap-4 bg-gradient-to-l"
             }
             from-transparent to-purple-700/15 transition-colors hover:bg-card/80 duration-300
           `}
@@ -30,10 +30,10 @@ export default function NotebooksGrid({ notebooks, viewMode }: NotebooksGridProp
               ? "justify-between"
               : "gap-4"
           }`}>
-            <div className={`flex items-center justify-center rounded-lg bg-muted text-2xl ${
+            <div className={`flex items-center justify-center rounded-lg bg-muted text-lg md:text-2xl ${
               viewMode === "grid" 
-                ? "h-10 w-10"
-                : "h-14 w-14"
+                ? "h-6 w-6 md:h-10 md:w-10"
+                : "h-10 w-10 md:h-14 md:w-14"
             }`}>
               {notebook.icon}
             </div>
@@ -49,8 +49,8 @@ export default function NotebooksGrid({ notebooks, viewMode }: NotebooksGridProp
             </button>
           </div>
           <div>
-            <h3 className={`text-lg font-medium text-foreground ${viewMode === "grid" ? "mb-2" : "mb-1"}`}>{notebook.title}</h3>
-            <p className="text-sm text-foreground">
+            <h3 className={`text-sm xl:text-lg font-medium text-foreground ${viewMode === "grid" ? "mb-2" : "mb-1"}`}>{notebook.title}</h3>
+            <p className="text-xs xl:text-sm text-foreground">
               {notebook.sources.length === 1 ? "1 fuente" : `${notebook.sources.length} fuentes`} · {formatRelativeDate(notebook.date)}
             </p>
           </div>
