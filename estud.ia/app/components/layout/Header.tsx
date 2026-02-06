@@ -1,6 +1,7 @@
 "use client"
 
-import { Settings, LogOut, LogIn, UserRoundPlus } from "lucide-react"
+import { useState } from "react"
+import { Menu, Settings, LogOut, LogIn, UserRoundPlus } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -8,6 +9,8 @@ import { useAuth } from "../../contexts/AuthContext"
 import { useNotification } from "../../contexts/NotificationContext"
 
 export default function Header() {
+  const [open, setOpen] = useState(false);
+
   const { user, logout } = useAuth();
   const { addNotification } = useNotification();
 
@@ -30,62 +33,121 @@ export default function Header() {
   }
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-border bg-[var(--panel-bg)] py-3 px-6">
+    <header className="relative flex h-16 items-center justify-between border-b border-border bg-[var(--panel-bg)] py-3 px-6">
       <Link href="/" className="flex items-center gap-3">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg">
           <Image  src="/favicon.png" alt="Estud.IA Logo" width={32} height={32} className="rounded-full" />
         </div>
-        <h1 className="text-lg font-medium text-foreground">Estud.IA</h1>
+        <h1 className="hidden md:inline text-lg font-medium text-foreground">Estud.IA</h1>
       </Link>
 
-      
-      {user && (
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleSettings}          
-            className="cursor-pointer flex items-center gap-2 py-1.5 px-3 rounded-full hover:bg-[var(--hover-bg)] bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]"
-          >
-            <Settings className="h-4 w-4" />
-            <span>Configuración</span>
-          </button>
+      <div className="w-full flex sm:hidden items-center justify-end">
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          className="cursor-pointer"
+        >
+          <Menu />
+        </button>
+      </div>
 
-          <div className="h-100 m-3 w-px bg-[var(--hover-bg)]"></div>
-        
-          <div className="h-8 w-8">
-            <Image src={user.profile_image_url || "/user-avatar.png"} alt="User Avatar" width={32} height={32} className="rounded-full" />
-          </div>
-  
-          <div className="text-muted-foreground rounded-full py-1.5 px-3 bg-card">{user.name} {user.lastname}</div>
-
-          <button
-            type="button"
-            onClick={handleLogout}
-              className="cursor-pointer text-muted-foreground hover:text-[var(--purple-accent)]"
+      <div className="w-full hidden sm:flex items-center justify-end">
+        {user && (
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleSettings}          
+              className="cursor-pointer flex items-center gap-2 py-1.5 px-3 rounded-full hover:bg-[var(--hover-bg)] bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]"
             >
-            <LogOut className="h-4 w-4" strokeWidth={2.5}/>
-          </button>
-        </div>
-        )}
+              <Settings className="h-4 w-4" />
+              <span>Configuración</span>
+            </button>
 
-      {!user && (
-        <div className="flex items-center gap-3">
-          <Link
-            href="/login"
-            className="cursor-pointer flex items-center gap-2 text-muted-foreground rounded-full py-2 px-4 bg-card hover:bg-[var(--hover-bg)]"
-          >
-            <LogIn  className="h-4 w-4" />
-            <span>Iniciar sesión</span>
-          </Link>
-          <Link
-            href="/register"
-            className="cursor-pointer flex items-center gap-2 text-muted-foreground rounded-full py-2 px-4 bg-card hover:bg-[var(--hover-bg)]"
-          >
-            <UserRoundPlus className="h-4 w-4" />
-            <span>Registrarse</span>
-          </Link>
-        </div>
-        )}
+            <div className="h-100 m-3 w-px bg-[var(--hover-bg)]"></div>
+          
+            <div className="h-8 w-8">
+              <Image src={user.profile_image_url || "/user-avatar.png"} alt="User Avatar" width={32} height={32} className="rounded-full" />
+            </div>
+    
+            <div className="text-muted-foreground rounded-full py-1.5 px-3 bg-card">{user.name} {user.lastname}</div>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+                className="cursor-pointer text-muted-foreground hover:text-[var(--purple-accent)]"
+              >
+              <LogOut className="h-4 w-4" strokeWidth={2.5}/>
+            </button>
+          </div>
+          )}
+
+        {!user && (
+          <div className="flex items-center gap-3">
+            <Link
+              href="/login"
+              className="cursor-pointer flex items-center gap-2 text-muted-foreground rounded-full py-2 px-4 bg-card hover:bg-[var(--hover-bg)]"
+            >
+              <LogIn  className="h-4 w-4" />
+              <span>Iniciar sesión</span>
+            </Link>
+            <Link
+              href="/register"
+              className="cursor-pointer flex items-center gap-2 text-muted-foreground rounded-full py-2 px-4 bg-card hover:bg-[var(--hover-bg)]"
+            >
+              <UserRoundPlus className="h-4 w-4" />
+              <span>Registrarse</span>
+            </Link>
+          </div>
+          )}
+      </div>
+
+      <div className={`absolute top-full right-2 mt-2 w-42 rounded-lg bg-card shadow-lg z-10 ${open ? "block" : "hidden"}`}>
+          {user ? (
+            <div className="">
+              <div className="px-4 py-2 mb-2 w-full flex items-center gap-2 bg-[var(--hover-bg)] rounded-t-lg">
+                <div className="">
+                  <Image src={user.profile_image_url || "/user-avatar.png"} alt="User Avatar" width={40} height={40} className="rounded-full" />
+                </div>
+        
+                <div className="text-muted-foreground text-sm rounded-full">{user.name} {user.lastname}</div>
+              </div>
+
+              <div className="pb-4 flex flex-col items-center gap-2">
+                <button
+                  onClick={handleSettings}
+                  className="cursor-pointer text-left px-4 py-2 text-sm text-muted-foreground hover:bg-[var(--hover-bg)] hover:rounded-md flex items-center gap-2"
+                >
+                  <Settings className="h-4 w-4" />
+                  Configuración
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="cursor-pointer text-left px-4 py-2 text-sm text-muted-foreground hover:bg-[var(--hover-bg)] hover:rounded-md flex items-center gap-2"
+                >
+                  <LogOut className="h-4 w-4" strokeWidth={2.5}/>
+                  Cerrar sesión
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="py-1">
+              <Link
+                href="/login"
+                className="block px-4 py-2 text-sm text-muted-foreground hover:bg-[var(--hover-bg)] flex items-center gap-2"
+              >
+                <LogIn className="h-4 w-4" />
+                Iniciar sesión
+              </Link>
+              <Link
+                href="/register"
+                className="block px-4 py-2 text-sm text-muted-foreground hover:bg-[var(--hover-bg)] flex items-center gap-2"
+              >
+                <UserRoundPlus className="h-4 w-4" />
+                Registrarse
+              </Link>
+            </div>
+          )}
+      </div>
     </header>
   )
 }
