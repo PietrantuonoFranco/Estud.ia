@@ -4,8 +4,8 @@ import { Settings, LogOut, LogIn, UserRoundPlus } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 
-import { useAuth } from "../contexts/AuthContext"
-import { useNotification } from "../contexts/NotificationContext"
+import { useAuth } from "../../contexts/AuthContext"
+import { useNotification } from "../../contexts/NotificationContext"
 
 export default function Header() {
   const { user, logout } = useAuth();
