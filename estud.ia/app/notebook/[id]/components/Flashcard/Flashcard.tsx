@@ -75,7 +75,7 @@ export function Flashcard({ cards, className }: FlashcardProps) {
           >
             <div className="text-center">
               <p className="mb-2 text-sm font-medium text-primary-foreground/80">Respuesta</p>
-              <p className="text-xl text-primary-foreground">{currentCard?.answer}</p>
+              <p className="md:text-xl text-primary-foreground">{currentCard?.answer}</p>
             </div>
           </div>
         </div>
