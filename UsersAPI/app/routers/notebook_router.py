@@ -488,6 +488,9 @@ async def delete_various_sources(
         raise HTTPException(status_code=403, detail="No tienes permiso para eliminar fuentes de este notebook")
 
     pdf_ids = body.get("pdf_ids", [])
+
+    if len(notebook.sources) <= len(pdf_ids):
+        raise HTTPException(status_code=400, detail="Cannot delete all sources from the notebook")
     
     if not pdf_ids or not isinstance(pdf_ids, list):
         raise HTTPException(status_code=400, detail="pdf_ids must be a non-empty list")
