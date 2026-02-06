@@ -1,0 +1,61 @@
+import { MoreVertical } from "lucide-react";
+import Link from "next/link";
+
+import Notebook from "@/app/lib/interfaces/entities/Notebook";
+import formatRelativeDate from "@/app/lib/utils/formatRelativeDate";
+
+interface NotebooksGridProps {
+  notebooks: Notebook[];
+  viewMode: "grid" | "list";
+}
+
+export default function NotebooksGrid({ notebooks, viewMode }: NotebooksGridProps) {
+  return (
+    <>
+      {notebooks.map((notebook) => (
+        <Link
+          href={`/notebook/${notebook.id}`}
+          key={notebook.id}
+          className={`
+            group relative flex cursor-pointer flex-col rounded-xl p-4 ${
+              viewMode === "grid" 
+                ? "justify-between h-48 bg-gradient-to-bl" 
+                : "flex-row items-center gap-4 bg-gradient-to-l"
+            }
+            from-transparent to-purple-700/15 transition-colors hover:bg-card/80 duration-300
+          `}
+        >
+          <div className={`flex items-start ${
+            viewMode === "grid" 
+              ? "justify-between"
+              : "gap-4"
+          }`}>
+            <div className={`flex items-center justify-center rounded-lg bg-muted text-2xl ${
+              viewMode === "grid" 
+                ? "h-10 w-10"
+                : "h-14 w-14"
+            }`}>
+              {notebook.icon}
+            </div>
+            <button
+              type="button"
+              className={`cursor-pointer absolute p-2 rounded-full bg-card hover:bg-card/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 right-4 ${
+                viewMode === "grid" 
+                  ? "top-4"
+                  : "top-1/2 -translate-y-1/2"
+              }`}
+            >
+              <MoreVertical className="h-4 w-4" />
+            </button>
+          </div>
+          <div>
+            <h3 className={`text-lg font-medium text-foreground ${viewMode === "grid" ? "mb-2" : "mb-1"}`}>{notebook.title}</h3>
+            <p className="text-sm text-foreground">
+              {notebook.sources.length === 1 ? "1 fuente" : `${notebook.sources.length} fuentes`} · {formatRelativeDate(notebook.date)}
+            </p>
+          </div>
+        </Link>
+      ))}
+    </>
+  )
+}

@@ -5,6 +5,7 @@ import { useState } from "react"
 import { useRouter } from 'next/navigation';
 
 import { useNotification } from "@/app/contexts/NotificationContext";
+import { createNotebook } from "../../lib/api/entities/NotebooksApi";
 
 interface OptionsBannerProps {
   orderBy: "most-recently" | "title";
@@ -21,8 +22,6 @@ export default function OptionsBanner ({ orderBy, setOrderBy, viewMode, setViewM
   const router = useRouter();
   const { addNotification } = useNotification(); 
   
-  const API_URL = process.env.API_URL || 'http://localhost:5000';
-  
   const handleFilesChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       onStartUpload?.();
@@ -32,30 +31,18 @@ export default function OptionsBanner ({ orderBy, setOrderBy, viewMode, setViewM
         console.error("No se seleccionó ningún archivo");
         return;
       }
-
-      const formData = new FormData();
-
-      for (let i = 0; i < files.length; i++) {
-        console.log("Subiendo archivo:", files[i].name);
-        formData.append("files", files[i]);
-      }
       
       onProgressUpdate?.(30);
       
-      const response = await fetch(`${API_URL}/notebooks/`, {
-        method: "POST",
-        body: formData,
-        credentials: 'include', // Enviar cookies
-      });
+      const notebook = await createNotebook(files as unknown as File[]);
 
       onProgressUpdate?.(70);
 
-      if (!response.ok) {
+      if (!notebook) {
         throw new Error("Error al subir el archivo");
       }
 
-      const result = await response.json();
-      const notebookId = result.id;
+      const notebookId = notebook.id;
 
       onProgressUpdate?.(90);
       

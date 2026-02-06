@@ -1,0 +1,170 @@
+"use client"
+
+import { Plus } from "lucide-react";
+import { useState, useMemo, useEffect } from "react"
+import { useRouter } from 'next/navigation';
+
+import Notebook from "@/app/lib/interfaces/entities/Notebook";
+import { useNotification } from "@/app/contexts/NotificationContext";
+import { createNotebook, getAllNotebooks, getNotebooksByUser } from "../../lib/api/entities/NotebooksApi";
+
+import { useAuth } from "../../contexts/AuthContext";
+import NotebooksGrid from "./NotebooksGrid";
+
+interface NotebooksContainerProps {
+  orderBy: "most-recently" | "title";
+  viewMode: "grid" | "list";
+  onStartUpload?: () => void;
+  onProgressUpdate?: (progress: number) => void;
+  onUploadComplete?: () => void;
+}
+
+export default function NotebooksContainer ({ orderBy, viewMode, onStartUpload, onProgressUpdate, onUploadComplete }: NotebooksContainerProps) {
+  const [notebooks, setNotebooks] = useState<Notebook[]>([]);
+  const [userNotebooks, setUserNotebooks] = useState<Notebook[]>([]);
+
+  const { addNotification } = useNotification();
+  const { user } = useAuth();
+  
+  const router = useRouter();
+
+  // Función para convertir fecha ISO a formato relativo
+  
+
+  const sortNotebooks = (data: Notebook[]): Notebook[] => {
+    const copy = [...data];
+
+    if (orderBy === "title") {
+      return copy.sort((a, b) => a.title.localeCompare(b.title));
+    }
+
+    return copy.sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      return dateB.getTime() - dateA.getTime();
+    });
+  };
+
+  const sortedUserNotebooks = useMemo(() => {
+    return sortNotebooks(userNotebooks);
+  }, [orderBy, userNotebooks]);
+
+  const sortedAllNotebooks = useMemo(() => {
+    return sortNotebooks(notebooks);
+  }, [orderBy, notebooks]);
+
+  const handleFilesChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      onStartUpload?.();
+      const files = event.target.files;
+      
+      if (!files || files.length === 0) {
+        console.error("No se seleccionó ningún archivo");
+        return;
+      }
+      
+      onProgressUpdate?.(30);
+      
+      const notebook = await createNotebook(files as unknown as File[]);
+
+      onProgressUpdate?.(70);
+
+      if (!notebook) {
+        throw new Error("Error al subir el archivo");
+      }
+      
+      const notebookId = notebook.id;
+
+      onProgressUpdate?.(90);
+      
+      addNotification("Éxito", "El cuaderno se creó exitosamente.", "success");
+
+      setTimeout(() => {
+        onUploadComplete?.();
+        router.push(`/notebook/${notebookId}`);
+      }, 100);
+    } catch (error) {
+      console.error("Error al subir el archivo:", error);
+      onUploadComplete?.();
+      addNotification("Error", "Ocurrió un error al subir el archivo.", "error");
+    }
+  };
+
+  const fetchUserNotebooks = async () => {
+    try {
+      if (!user) return;
+
+      const notebooks = await getNotebooksByUser(user?.id);
+      
+      if (!notebooks) {
+        throw new Error("Error al obtener los cuadernos del usuario.");
+      }
+
+      setUserNotebooks(notebooks);
+    } catch (error) {
+      console.error("Error al obtener los cuadernos del usuario:", error);
+      addNotification("Error", "Ocurrió un error al obtener los cuadernos del usuario.", "error");
+    }
+  };
+
+  const fetchNotebooks = async () => {
+    try {
+      const notebooks = await getAllNotebooks();
+      
+      if (!notebooks) {
+        throw new Error("Error al obtener los cuadernos.");
+      }
+
+      setNotebooks(notebooks);
+    } catch (error) {
+      console.error("Error al obtener los cuadernos del usuario:", error);
+      addNotification("Error", "Ocurrió un error al obtener los cuadernos del usuario.", "error");
+    }
+  };
+
+  useEffect(() => {
+    fetchUserNotebooks();
+    fetchNotebooks();
+  }, []);
+
+  return (
+    <>
+      <h1 className="text-4xl font-semibold">Todos los cuadernos</h1>
+      <div className={`w-full ${
+          viewMode === "grid" 
+            ? "grid grid-cols-4 gap-4" 
+            : "flex flex-col gap-4"
+        }`}
+      >
+        <NotebooksGrid notebooks={sortedAllNotebooks} viewMode={viewMode} />
+      </div>
+
+      <h2 className="text-4xl font-semibold">Tus cuadernos</h2>
+      <div className={`w-full ${
+          viewMode === "grid" 
+            ? "grid grid-cols-4 gap-4" 
+            : "flex flex-col gap-4"
+        }`}
+      >
+        <div className={`group cursor-pointer w-full space-y-2 flex justify-center items-center border-2 border-dashed border-border rounded-xl hover:bg-card transition-colors duration-300 p-6 ${
+          viewMode === "grid" 
+            ? "h-48 "
+            : "hidden"
+            }
+          `}>
+          <input type="file" accept="application/pdf" className="hidden" id="file-upload" multiple onChange={handleFilesChange} />
+
+          <label htmlFor="file-upload" className="cursor-pointer h-full w-full flex flex-col items-center justify-center">
+            <div className="flex justify-center items-center p-2 rounded-full bg-card group-hover:bg-card/80">
+              <Plus className="w-8 h-8" />
+            </div>
+            <h3 className="mb-2 text-lg font-medium text-foreground">Crear cuaderno</h3>
+          </label>
+        </div>
+
+        
+        <NotebooksGrid notebooks={sortedUserNotebooks} viewMode={viewMode} />
+      </div>
+    </>
+  );
+}

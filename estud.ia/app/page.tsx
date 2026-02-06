@@ -1,7 +1,7 @@
 "use client"
 
-import OptionsBanner from "./components/OptionsBanner";
-import NotebooksContainer from "./components/NotebooksContainer";
+import OptionsBanner from "./components/home/OptionsBanner";
+import NotebooksContainer from "./components/home/NotebooksContainer";
 import { useState } from "react";
 
 
