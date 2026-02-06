@@ -142,7 +142,7 @@ export default function SourcesPanel({ openPanel }: SourcesPanelProps) {
 
   return (
     <>
-      <div className={`${ openPanel ? "w-90 flex" : "hidden md:w-18 md:flex" } flex-col border-r border-border bg-[var(--panel-bg)]`}>
+      <div className={`${ openPanel ? "w-90 opacity-100" : "w-0 md:w-18 opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" } flex h-full flex-col overflow-hidden border-r border-border bg-[var(--panel-bg)] transition-[width,opacity] duration-400 ease-in-out`}>
         <div
           className="flex-1 flex flex-col"
           onDragEnter={handleDragEnter}
