@@ -33,7 +33,7 @@ export default function Header() {
   }
 
   return (
-    <header className="relative flex h-16 items-center justify-between border-b border-border bg-[var(--panel-bg)] py-3 px-6">
+    <header className="relative flex h-16 items-center justify-between border-b border-border bg-[var(--panel-bg)] py-3 px-6 z-2000">
       <Link href="/" className="flex items-center gap-3">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg">
           <Image  src="/favicon.png" alt="Estud.IA Logo" width={32} height={32} className="rounded-full" />
@@ -99,7 +99,7 @@ export default function Header() {
           )}
       </div>
 
-      <div className={`absolute top-full right-2 mt-2 w-42 rounded-lg bg-card shadow-lg z-10 ${open ? "block" : "hidden"}`}>
+      <div className={`absolute top-full right-2 mt-2 w-42 rounded-lg bg-card shadow-lg border border-border bg-[var(--panel-bg)] z-2000 ${open ? "block" : "hidden"}`}>
           {user ? (
             <div className="">
               <div className="px-4 py-2 mb-2 w-full flex items-center gap-2 bg-[var(--hover-bg)] rounded-t-lg">
