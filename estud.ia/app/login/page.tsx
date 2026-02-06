@@ -36,21 +36,23 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="h-full grid grid-cols-2">
-      <div className="h-full w-full flex flex-col justify-center items-center p-8 space-y-4">
+    <div className="h-full grid grid-cols-1 lg:grid-cols-2">
+      <div className="p-2 sm:p-8 space-y-4 h-full w-full flex flex-col justify-center items-center">
         <Image
           src="/logo_dark.png"
           alt="Estud.ia Logo"
           width={300}
           height={35}
-          className="mb-10 mx-auto"
+          sizes="(max-width: 640px) 254px, (max-width: 1024px) 284px, 300px"
+          className="w-40 sm:w-56 lg:w-72 h-auto"
+          priority
         />
 
         <h2 className="mb-4 text-2xl text-center font-semibold">Iniciar Sesión</h2>
 
         <form
           onSubmit={handleSubmit}
-          className="w-xl rounded-lg px-12 shadow-md text-foregroundspace-y-6"
+          className="w-sm sm:w-xl px-6 sm:px-12 shadow-md text-foregroundspace-y-6"
         >
           <div className="mb-4">
             <label
@@ -118,7 +120,7 @@ export default function LoginPage() {
         </Link>
       </div>
 
-      <div style={{backgroundImage: "url(/login.png)"}} className="h-full w-full bg-cover bg-center"/>
+      <div style={{backgroundImage: "url(/login.png)"}} className="hidden lg:block h-full w-full bg-cover bg-center"/>
     </div>
   )
 }
