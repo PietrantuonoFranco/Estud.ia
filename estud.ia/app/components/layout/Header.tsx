@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Menu, Settings, LogOut, LogIn, UserRoundPlus } from "lucide-react"
+import { Menu, X, Settings, LogOut, LogIn, UserRoundPlus } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -47,34 +47,32 @@ export default function Header() {
           onClick={() => setOpen(!open)}
           className="cursor-pointer"
         >
-          <Menu />
+          {!open ? <Menu className="h-6 w-6" /> : <X className="h-6 w-6" />}
         </button>
       </div>
 
       <div className="w-full hidden sm:flex items-center justify-end">
         {user && (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={handleSettings}          
-              className="cursor-pointer flex items-center gap-2 py-1.5 px-3 rounded-full hover:bg-[var(--hover-bg)] bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]"
+              className="cursor-pointer flex items-center gap-2 py-1.5 px-4 rounded-full hover:bg-[var(--hover-bg)] bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]"
             >
               <Settings className="h-4 w-4" />
               <span>Configuración</span>
             </button>
-
-            <div className="h-100 m-3 w-px bg-[var(--hover-bg)]"></div>
           
-            <div className="h-8 w-8">
+            <div className="ml-6 h-8 w-8">
               <Image src={user.profile_image_url || "/user-avatar.png"} alt="User Avatar" width={32} height={32} className="rounded-full" />
             </div>
     
-            <div className="text-muted-foreground rounded-full py-1.5 px-3 bg-card">{user.name} {user.lastname}</div>
+            <div className="text-muted-foreground rounded-full py-1.5 px-4 bg-card">{user.name} {user.lastname}</div>
 
             <button
               type="button"
               onClick={handleLogout}
-                className="cursor-pointer text-muted-foreground hover:text-[var(--purple-accent)]"
+                className="cursor-pointer py-2.5 px-2.75 rounded-full hover:bg-[var(--hover-bg)] bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]"
               >
               <LogOut className="h-4 w-4" strokeWidth={2.5}/>
             </button>
