@@ -22,6 +22,7 @@ interface NotebooksContainerProps {
 export default function NotebooksContainer ({ orderBy, viewMode, onStartUpload, onProgressUpdate, onUploadComplete }: NotebooksContainerProps) {
   const [notebooks, setNotebooks] = useState<Notebook[]>([]);
   const [userNotebooks, setUserNotebooks] = useState<Notebook[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
 
   const { addNotification } = useNotification();
   const { user } = useAuth();
@@ -53,11 +54,10 @@ export default function NotebooksContainer ({ orderBy, viewMode, onStartUpload, 
     return sortNotebooks(notebooks);
   }, [orderBy, notebooks]);
 
-  const handleFilesChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const uploadFiles = async (files: FileList) => {
     try {
       onStartUpload?.();
-      const files = event.target.files;
-      
+
       if (!files || files.length === 0) {
         console.error("No se seleccionó ningún archivo");
         return;
@@ -88,6 +88,32 @@ export default function NotebooksContainer ({ orderBy, viewMode, onStartUpload, 
       onUploadComplete?.();
       addNotification("Error", "Ocurrió un error al subir el archivo.", "error");
     }
+  };
+
+  const handleFilesChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+    await uploadFiles(files);
+    event.target.value = "";
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    if (!isDragging) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragging(false);
+
+    if (!event.dataTransfer?.files?.length) return;
+    await uploadFiles(event.dataTransfer.files);
   };
 
   const fetchUserNotebooks = async () => {
@@ -146,12 +172,20 @@ export default function NotebooksContainer ({ orderBy, viewMode, onStartUpload, 
             : "flex flex-col gap-4"
         }`}
       >
-        <div className={`group cursor-pointer w-full space-y-2 flex justify-center items-center border-2 border-dashed border-border rounded-xl hover:bg-card transition-colors duration-300 p-6 ${
-          viewMode === "grid" 
-            ? "h-48 "
-            : "hidden"
-            }
-          `}>
+        <div
+          className={`group cursor-pointer w-full space-y-2 flex justify-center items-center border-2 border-dashed rounded-xl transition-colors duration-300 p-6 ${
+            isDragging
+              ? "border-[var(--purple-accent)] bg-card/60"
+              : "border-border hover:bg-card"
+          } ${
+            viewMode === "grid" 
+              ? "h-48 "
+              : "hidden"
+          }`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
           <input type="file" accept="application/pdf" className="hidden" id="file-upload" multiple onChange={handleFilesChange} />
 
           <label htmlFor="file-upload" className="cursor-pointer h-full w-full flex flex-col items-center justify-center">

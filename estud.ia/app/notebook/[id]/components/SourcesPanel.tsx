@@ -14,6 +14,8 @@ export default function SourcesPanel() {
   const [openPanel, setOpenPanel] = useState(true);
   const [selectedSources, setSelectedSources] = useState<Source[]>([]);
   const [openDeleteVariousModal,setOpenDeleteVariousModal] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragDepth, setDragDepth] = useState(0);
   const [tooltip, setTooltip] = useState<{
     visible: boolean;
     text: string;
@@ -51,20 +53,11 @@ export default function SourcesPanel() {
 
   const hideTooltip = () => setTooltip(prev => ({ ...prev, visible: false }));
   
-  const handleFilesChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const uploadFiles = async (files: FileList) => {
     try {
-      const files = event.target.files;
-      
       if (!files || files.length === 0) {
         console.error("No se seleccionó ningún archivo");
         return;
-      }
-
-      const formData = new FormData();
-
-      for (let i = 0; i < files.length; i++) {
-        console.log("Subiendo archivos:", files[i].name);
-        formData.append("files", files[i]);
       }
       
       const response = await addSourcesToNotebook(notebook?.id!, Array.from(files));
@@ -80,6 +73,49 @@ export default function SourcesPanel() {
       console.error("Error al subir el archivo:", error);
       addNotification("Error", "Ocurrió un error al subir los archivos.", "error");
     }
+  };
+
+  const handleFilesChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+    await uploadFiles(files);
+    event.target.value = "";
+  };
+
+  const handleDragEnter = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragDepth(prev => {
+      const next = prev + 1;
+      if (next === 1) {
+        setIsDragging(true);
+      }
+      return next;
+    });
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+  };
+
+  const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragDepth(prev => {
+      const next = prev - 1;
+      if (next <= 0) {
+        setIsDragging(false);
+        return 0;
+      }
+      return next;
+    });
+  };
+
+  const handleDrop = async (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragging(false);
+    setDragDepth(0);
+
+    if (!event.dataTransfer?.files?.length) return;
+    await uploadFiles(event.dataTransfer.files);
   };
 
   const handleDeleteSources = async () => {
@@ -116,79 +152,99 @@ export default function SourcesPanel() {
           </button>
         </div>
 
-        <div className="p-4">
-          <div className={`text-sm text-black font-semibold flex items-center justify-center gap-2 bg-gradient-to-br from-[var(--purple-accent)] to-[var(--sidebar-border)] hover:from-[var(--purple-accent)] hover:to-[var(--sidebar-border)]/85 hover:shadow-lg transition-all duration-300 ease-in-out cursor-pointer ${ openPanel ? "w-full py-3 px-6 rounded-full" : "py-2.75 px-1 rounded-lg" }`}>
-            <input type="file" accept="application/pdf" multiple className="hidden" id="file-upload" onChange={handleFilesChange} />
-            <label htmlFor="file-upload" className="cursor-pointer rounded-lg h-full w-full flex items-center justify-center gap-2">
-              <FilePlusCorner className="h-4 w-4" strokeWidth={2.5}/>
-              <span className={`${ openPanel ? "font-semibold" : "hidden" }`}>Agregar fuentes</span>
-            </label>
-          </div>
-        </div>
-
-
-        <div className="flex-1 py-2 border-t border-border bg-[var(--panel-bg)] flex flex-col">
-          <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 ">
-            <div className="space-y-2">
-              <div className={`${ openPanel ? "flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-[var(--hover-bg)] group" : "hidden"}`}>
-                <span className="text-muted-foreground font-semibold py-1 px-2">Seleccionar todas las fuentes</span>
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedSources(
-                    selectedSources.length >= 1 ?
-                      []
-                    :
-                      sources ?? []
-                  )}
-                  className={`${ openPanel ? "cursor-pointer min-h-6 min-w-6 relative border border-gray-500 rounded-md" : "hidden" }`}
+        <div
+          className="flex-1 flex flex-col"
+          onDragEnter={handleDragEnter}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          {isDragging ? (
+            <div className="flex-1 p-4">
+              <div className={`flex h-full min-h-[180px] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[var(--purple-accent)] text-[var(--purple-accent)] ${ openPanel ? "w-full" : "px-2" }`}>
+                <FilePlusCorner className="h-5 w-5" strokeWidth={2.5} />
+                <span className="text-xs font-semibold">Solta para agregar</span>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="p-4">
+                <div
+                  className={`text-sm text-black font-semibold flex items-center justify-center gap-2 bg-gradient-to-br transition-all duration-300 ease-in-out cursor-pointer from-[var(--purple-accent)] to-[var(--sidebar-border)] hover:from-[var(--purple-accent)] hover:to-[var(--sidebar-border)]/85 hover:shadow-lg ${ openPanel ? "w-full py-3 px-6 rounded-full" : "py-2.75 px-1 rounded-lg" }`}
                 >
-                  {selectedSources.length === sources?.length && (
-                      <Check className="absolute h-4 w-4 left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 text-[var(--green-accent)]" /> 
-                    )}
-                </button>
+                  <input type="file" accept="application/pdf" multiple className="hidden" id="file-upload" onChange={handleFilesChange} />
+                  <label htmlFor="file-upload" className="cursor-pointer rounded-lg h-full w-full flex items-center justify-center gap-2">
+                    <FilePlusCorner className="h-4 w-4" strokeWidth={2.5}/>
+                    <span className={`${ openPanel ? "font-semibold" : "hidden" }`}>Agregar fuentes</span>
+                  </label>
+                </div>
               </div>
 
-              {sources?.map((source, index) => (
-                <div
-                  key={index}
-                  onMouseEnter={(e) => { if (!openPanel) showTooltip(e, source.name); }}
-                  onMouseLeave={() => { if (!openPanel) hideTooltip(); }}
-                  className={`group relative flex items-center rounded-lg bg-card hover:bg-[var(--hover-bg)] text-sm ${ openPanel ? "justify-between px-3 py-2.5" : "justify-center p-3"}`}
-                >
-                  <div
-                    className="py-1 px-2 flex items-center"
-                  >
-                    <FileText className="h-4 w-4 text-red-500" />
-                    <span className={`${ openPanel ? "font-medium text-foreground ml-3" : "hidden" }`}>{source.name}</span>
+              <div className="flex-1 py-2 border-t border-border bg-[var(--panel-bg)] flex flex-col">
+                <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 ">
+                  <div className="space-y-2">
+                    <div className={`${ openPanel ? "flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-[var(--hover-bg)] group" : "hidden"}`}>
+                      <span className="text-muted-foreground font-semibold py-1 px-2">Seleccionar todas las fuentes</span>
+
+                      <button
+                        type="button"
+                        onClick={() => setSelectedSources(
+                          selectedSources.length >= 1 ?
+                            []
+                          :
+                            sources ?? []
+                        )}
+                        className={`${ openPanel ? "cursor-pointer min-h-6 min-w-6 relative border border-gray-500 rounded-md" : "hidden" }`}
+                      >
+                        {selectedSources.length === sources?.length && (
+                            <Check className="absolute h-4 w-4 left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 text-[var(--green-accent)]" /> 
+                          )}
+                      </button>
+                    </div>
+
+                    {sources?.map((source, index) => (
+                      <div
+                        key={index}
+                        onMouseEnter={(e) => { if (!openPanel) showTooltip(e, source.name); }}
+                        onMouseLeave={() => { if (!openPanel) hideTooltip(); }}
+                        className={`group relative flex items-center rounded-lg bg-card hover:bg-[var(--hover-bg)] text-sm ${ openPanel ? "justify-between px-3 py-2.5" : "justify-center p-3"}`}
+                      >
+                        <div
+                          className="py-1 px-2 flex items-center"
+                        >
+                          <FileText className="h-4 w-4 text-red-500" />
+                          <span className={`${ openPanel ? "font-medium text-foreground ml-3" : "hidden" }`}>{source.name}</span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => selectSource(source)}
+                          className={`${ openPanel ? "cursor-pointer h-6 w-6 relative border border-gray-500 rounded-md" : "hidden" }`}
+                        >
+                          {selectedSources.includes(source) && (
+                            <Check className="absolute h-4 w-4 left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 text-[var(--green-accent)]" /> 
+                          )}
+                        </button>
+                      </div>
+                    ))}
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => selectSource(source)}
-                    className={`${ openPanel ? "cursor-pointer h-6 w-6 relative border border-gray-500 rounded-md" : "hidden" }`}
-                  >
-                    {selectedSources.includes(source) && (
-                      <Check className="absolute h-4 w-4 left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 text-[var(--green-accent)]" /> 
-                    )}
-                  </button>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          {selectedSources.length > 0 && (
-            <div className="w-full px-4 pb-2 pt-4 mt-2 border-t border-border">
-              <button
-                type="button"
-                onClick={() => setOpenDeleteVariousModal(true)}
-                name="delete-selected-sources"
-                className={`${ openPanel ? "cursor-pointer w-full flex items-center justify-center text-sm font-semibold text-red-500 py-3 px-6 rounded-3xl bg-red-800/15 hover:hover:bg-red-800/20 hover:shadow-md transition-all duration-300 ease-in-out" : "hidden" }`}
-              >
-                <Trash2 className="h-4 w-4 mr-3"/>
-                Eliminar seleccionadas
-              </button>
-            </div>
+                {selectedSources.length > 0 && (
+                  <div className="w-full px-4 pb-2 pt-4 mt-2 border-t border-border">
+                    <button
+                      type="button"
+                      onClick={() => setOpenDeleteVariousModal(true)}
+                      name="delete-selected-sources"
+                      className={`${ openPanel ? "cursor-pointer w-full flex items-center justify-center text-sm font-semibold text-red-500 py-3 px-6 rounded-3xl bg-red-800/15 hover:hover:bg-red-800/20 hover:shadow-md transition-all duration-300 ease-in-out" : "hidden" }`}
+                    >
+                      <Trash2 className="h-4 w-4 mr-3"/>
+                      Eliminar seleccionadas
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
         {/* Global tooltip overlay using fixed positioning to avoid scrollbars */}
