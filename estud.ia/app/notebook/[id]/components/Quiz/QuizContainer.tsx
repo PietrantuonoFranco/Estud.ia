@@ -18,55 +18,6 @@ interface QuizContainerProps {
   onQuizComplete?: (score: number, total: number) => void
 }
 
-
-const sampleQuestions: QuestionsAndAnswers[] = [
-  {
-    id: 1,
-    question: "Cual es la capital de Francia?",
-    answer: "Paris",
-    incorrect_answer_1: "Londres",
-    incorrect_answer_2: "Madrid",
-    incorrect_answer_3: "Berlin",
-    quiz_id: 1,
-  },
-  {
-    id: 2,
-    question: "Cual es el planeta mas grande del sistema solar?",
-    answer: "Jupiter",
-    incorrect_answer_1: "Saturno",
-    incorrect_answer_2: "Neptuno",
-    incorrect_answer_3: "Urano",
-    quiz_id: 1,
-  },
-  {
-    id: 3,
-    question: "En que anio llego el hombre a la Luna?",
-    answer: "1969",
-    incorrect_answer_1: "1965",
-    incorrect_answer_2: "1972",
-    incorrect_answer_3: "1959",
-    quiz_id: 1,
-  },
-  {
-    id: 4,
-    question: "Cual es el elemento quimico mas abundante en el universo?",
-    answer: "Hidrogeno",
-    incorrect_answer_1: "Helio",
-    incorrect_answer_2: "Oxigeno",
-    incorrect_answer_3: "Carbono",
-    quiz_id: 1,
-  },
-  {
-    id: 5,
-    question: "Quien escribio 'Don Quijote de la Mancha'?",
-    answer: "Miguel de Cervantes",
-    incorrect_answer_1: "Federico Garcia Lorca",
-    incorrect_answer_2: "Gabriel Garcia Marquez",
-    incorrect_answer_3: "Pablo Neruda",
-    quiz_id: 1,
-  },
-]
-
 export default function QuizContainer({ 
   questions = sampleQuestions,
   quizTitle = "Quiz", 

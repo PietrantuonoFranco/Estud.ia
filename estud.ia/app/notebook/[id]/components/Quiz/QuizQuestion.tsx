@@ -64,7 +64,7 @@ export function QuizQuestion({ questionData, onAnswerSelected }: QuizQuestionPro
   return (
     <div className="w-full max-w-2xl mx-auto border border-border rounded-lg bg-card shadow-sm overflow-hidden">
       <div className="px-6 py-3 border-b border-border">
-        <h2 className="text-xl font-semibold text-foreground">
+        <h2 className="md:text-xl font-semibold text-foreground">
           {questionData.question}
         </h2>
       </div>
@@ -80,10 +80,10 @@ export function QuizQuestion({ questionData, onAnswerSelected }: QuizQuestionPro
             )}
           >
             <span className="flex items-center gap-3">
-              <span className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-sm font-medium">
+              <span className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs md:text-sm font-medium">
                 {String.fromCharCode(65 + index)}
               </span>
-              <span className="font-medium">{answer.text}</span>
+              <span className="text-sm md:text-md font-medium">{answer.text}</span>
             </span>
             {hasAnswered && answer.isCorrect && (
               <CheckCircle2 className="w-6 h-6 text-emerald-600 flex-shrink-0" />
@@ -97,7 +97,7 @@ export function QuizQuestion({ questionData, onAnswerSelected }: QuizQuestionPro
         {hasAnswered && (
           <div
             className={cn(
-              "mt-4 p-4 rounded-lg text-center font-medium",
+              "mt-4 p-4 rounded-lg text-sm md:text-md text-center font-medium",
               selectedAnswer === questionData.answer
                 ? "bg-emerald-100 text-emerald-800"
                 : "bg-red-100 text-red-800"
