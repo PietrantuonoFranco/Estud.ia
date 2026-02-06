@@ -1,12 +1,9 @@
 "use client"
 
-import { useState } from "react"
 import {
-  PanelRight,
   FileText,
   BookOpen,
   HelpCircle,
-  MoreVertical,
   StickyNote,
   MessageSquareText
 } from "lucide-react"
@@ -23,10 +20,12 @@ const studioTools = [
   { optionName: "quiz", icon: HelpCircle, label: "Cuestionario", color: "purple" },
 ]
 
-export default function StudioPanel() {
+interface StudioPanelProps {
+  openPanel: boolean;
+}
+
+export default function StudioPanel({ openPanel }: StudioPanelProps) {
   const { quizzes, flashcards } = useChatInformationContext();
-  
-  const [openPanel, setOpenPanel] = useState(true);
 
   const recentItems = [
     ...(flashcards && flashcards.length > 0 ? [{
@@ -50,17 +49,7 @@ export default function StudioPanel() {
   ];
 
   return (
-    <div className={`${ openPanel ? "w-90" : "w-18" } flex flex-col border-l border-border bg-[var(--panel-bg)]`}>
-      <div className={`flex items-center border-b border-border px-4 py-3 ${ openPanel ? "justify-between" : "justify-center"}`}>
-        <h2 className={`${ openPanel ? "" : "hidden" } text-sm font-medium text-foreground`}>Funciones</h2>
-        <button
-          onClick={() => setOpenPanel(!openPanel)}
-          className="cursor-pointer h-8 w-8 p-2 hover:bg-[var(--hover-bg)] hover:rounded-full"
-        >
-          <PanelRight className="h-4 w-4" />
-        </button>
-      </div>
-
+    <div className={`${ openPanel ? "w-90 flex" : "hidden md:w-18 md:flex" } flex-col border-l border-border bg-[var(--panel-bg)]`}>
       <div className="flex-1">
         <div className={`grid grid-cols-1 ${ openPanel ? "md:grid-cols-2" : ""} p-4 gap-3`}>
           {studioTools.map((tool, idx, index) => {
@@ -85,24 +74,24 @@ export default function StudioPanel() {
         </div>
 
         {recentItems.length > 0 && (
-        <div className="border-t border-border p-4">
-          <h3 className={`${ openPanel ? "mb-3 text-sm font-medium text-foreground" : "hidden"}`}>Recientes</h3>
-          <div className="space-y-2">
-            {recentItems.map((item) => (
-              <div key={item.id}>
-                {item.type === "flashcards" ? (
-                  <ShowFlashcardsButton flashcardsCount={item.sources} openPanel={openPanel} />
-                ) : (
-                  <ShowQuizButton item={item} openPanel={openPanel} />
-                )}
-              </div>
-            ))}
+          <div className="border-t border-border p-4">
+            <h3 className={`${ openPanel ? "mb-3 text-sm font-medium text-foreground" : "hidden"}`}>Recientes</h3>
+            <div className="space-y-2">
+              {recentItems.map((item) => (
+                <div key={item.id}>
+                  {item.type === "flashcards" ? (
+                    <ShowFlashcardsButton flashcardsCount={item.sources} openPanel={openPanel} />
+                  ) : (
+                    <ShowQuizButton item={item} openPanel={openPanel} />
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
         )}
       </div>
 
-      <div className="border-t border-border p-4">
+      <div className="w-full border-t border-border p-4">
         <button className={`text-sm text-black font-semibold w-full flex items-center justify-center gap-2 bg-gradient-to-br from-[var(--purple-accent)] to-[var(--sidebar-border)] hover:from-[var(--purple-accent)] hover:to-[var(--sidebar-border)]/85 hover:shadow-lg transition-all duration-300 ease-in-out cursor-pointer ${ openPanel ? "py-3 px-6  rounded-full" : "p-3  rounded-lg"}`}>
           <StickyNote  className="h-4 w-4" strokeWidth={2.5}/>
           <span className={`${ openPanel ? "" : "hidden" }`}>Agregar nota</span>

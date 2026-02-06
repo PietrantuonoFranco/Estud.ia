@@ -1,6 +1,6 @@
 "use client"
 
-import { FilePlusCorner, FileText, Check, PanelLeft, Trash2 } from "lucide-react";
+import { FilePlusCorner, FileText, Check, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { addSourcesToNotebook } from "@/app/lib/api/entities/NotebooksApi";
 import { deleteVariousSourcesByNotebookIdAndSourceIds } from "@/app/lib/api/entities/NotebooksApi";
@@ -10,8 +10,11 @@ import { DeleteModal } from "@/app/components/modal/DeleteModal";
 import Source from "@/app/lib/interfaces/entities/Source";
 
 
-export default function SourcesPanel() {
-  const [openPanel, setOpenPanel] = useState(true);
+interface SourcesPanelProps {
+  openPanel: boolean;
+}
+
+export default function SourcesPanel({ openPanel }: SourcesPanelProps) {
   const [selectedSources, setSelectedSources] = useState<Source[]>([]);
   const [openDeleteVariousModal,setOpenDeleteVariousModal] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -139,19 +142,7 @@ export default function SourcesPanel() {
 
   return (
     <>
-      <div className={`${ openPanel ? "w-90" : "w-18" } flex flex-col border-r border-border bg-[var(--panel-bg)]`}>
-        <div className={`flex items-center border-b border-border px-4 py-3 ${ openPanel ? "justify-between" : "justify-center"}`}>
-          <h2 className={`${ openPanel ? "" : "hidden" } text-sm font-medium text-foreground`}>Fuentes</h2>
-
-          <button
-            type="button"
-            onClick={() => setOpenPanel(!openPanel)}
-            className="cursor-pointer h-8 w-8 p-2 hover:bg-[var(--hover-bg)] hover:rounded-full"
-          >
-            <PanelLeft className="h-4 w-4" />
-          </button>
-        </div>
-
+      <div className={`${ openPanel ? "w-90 flex" : "hidden md:w-18 md:flex" } flex-col border-r border-border bg-[var(--panel-bg)]`}>
         <div
           className="flex-1 flex flex-col"
           onDragEnter={handleDragEnter}

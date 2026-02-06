@@ -6,8 +6,6 @@ import { useChatInformationContext } from "../contexts/ChatInformationContext";
 import ChatPanel from "./Chat/ChatPanel";
 import FlashcardContainer from "./Flashcard/FlashcardContainer";
 import QuizContainer from "./Quiz/QuizContainer";
-import OptionHeader from "./OptionHeader";
-
 export default function OptionContainer() {
   const { option, selectedQuizId, isLoading } = useOptionContext();
   const { quizzes } = useChatInformationContext();
@@ -27,8 +25,6 @@ export default function OptionContainer() {
   }
   return (
     <div className="flex-1 overflow-y-auto flex flex-col">
-      <OptionHeader />
-      
       {option === "chat" && <ChatPanel/>}
       {option === "flashcards" && <FlashcardContainer/>}
       {option === "quiz" && <QuizContainer questions={selectedQuiz?.questions_and_answers || []} />}
