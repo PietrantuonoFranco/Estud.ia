@@ -60,13 +60,13 @@ export default function OptionsBanner ({ orderBy, setOrderBy, viewMode, setViewM
   };
   
   return (
-    <div className="w-full flex items-center justify-between">
-      <div className="flex items-center gap-2">
+    <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex items-center justify-between md:justify-start gap-2">
         <div className="flex items-center rounded-full">
           <button
             type="button"
             onClick={() => setViewMode("grid")}
-            className="cursor-pointer flex items-center gap-2 py-4 px-8 rounded-l-full hover:bg-[var(--hover-bg)] bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]"
+            className="cursor-pointer flex items-center gap-2 py-3 px-6 md:py-4 md:px-8 rounded-l-full hover:bg-[var(--hover-bg)] bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]"
           >
             <Check className={`${ viewMode === "grid" ? "h-4 w-4" : "hidden" }`} strokeWidth={2.5}/>
             <LayoutGrid className="h-4 w-4" strokeWidth={2.5}/>
@@ -75,18 +75,18 @@ export default function OptionsBanner ({ orderBy, setOrderBy, viewMode, setViewM
           <button
             type="button"
             onClick={() => setViewMode("list")}
-            className="cursor-pointer flex items-center gap-2 py-4 px-8 rounded-r-full hover:bg-[var(--hover-bg)] bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]"
+            className="cursor-pointer flex items-center gap-2 py-3 px-6 md:py-4 md:px-8 rounded-r-full hover:bg-[var(--hover-bg)] bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]"
           >
             <Check className={`${ viewMode === "list" ? "h-4 w-4" : "hidden" }`} strokeWidth={3}/>
             <StretchHorizontal className="h-4 w-4" strokeWidth={2.5}/>
           </button>
         </div>
 
-        <div className="relative">
+        <div className="relative w-1/2">
           <button
             type="button"
             onClick={() => setOpenOrderByMenu(!openOrderByMenu)}
-            className="cursor-pointer py-3 px-6 flex items-center gap-2 rounded-full bg-[var(--hover-bg)] hover:bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]"
+            className="w-full flex justify-center items-center cursor-pointer py-2 px-4 md:py-3 md:px-6 flex items-center gap-2 rounded-full bg-[var(--hover-bg)] hover:bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]"
           >
             <span>Ordenar por</span>
             <ChevronDown className={`h-4 w-4 ${ openOrderByMenu ? "rotate-180" : "rotate-0"} transition-all duration-300`} strokeWidth={3}/>
@@ -116,7 +116,7 @@ export default function OptionsBanner ({ orderBy, setOrderBy, viewMode, setViewM
 
       <div className="text-sm text-black font-semibold flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-[var(--purple-accent)] to-[var(--sidebar-border)] to-[var(--purple-accent)] hover:bg-gradient-to-br hover:from-[var(--sidebar-border)] to-[var(--purple-accent)]  transition-all duration-300 ease-in-out cursor-pointer">
         <input type="file" multiple accept="application/pdf" className="hidden" id="file-upload-banner" onChange={handleFilesChange} />
-        <label htmlFor="file-upload-banner" className="cursor-pointer rounded-full h-full w-full py-3 px-6 flex items-center justify-center gap-2">
+        <label htmlFor="file-upload-banner" className="cursor-pointer rounded-full h-full w-full py-2.5 px-4 md:py-3 md:px-6 text-sm flex items-center justify-center gap-2">
           <Plus className="h-4 w-4" strokeWidth={3}/>
           <span className="font-semibold">Crear cuaderno</span>
         </label>

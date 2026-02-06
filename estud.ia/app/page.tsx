@@ -40,7 +40,7 @@ export default function Home() {
           </div>
         )}
         
-        <div className="flex flex-col flex-1 py-6 px-42 space-y-6 overflow-y-auto">
+        <div className="flex flex-col flex-1 py-2 md:py-6 px-6 lg:px-42 space-y-6 overflow-y-auto">
           <OptionsBanner 
             orderBy={orderBy}
             setOrderBy={setOrderBy}
