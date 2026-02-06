@@ -2,6 +2,7 @@ import api from "../api"
 
 import type Notebook from "../../interfaces/entities/Notebook";
 import type Source from "../../interfaces/entities/Source";
+import Flashcard from "../../interfaces/entities/Flashcard";
 
 const entity: string = "notebooks";
 
@@ -37,8 +38,8 @@ export async function deleteNotebook(notebookId: number): Promise<Notebook> {
   return response.data;
 }
 
-export async function generateFlashcards(notebookId: number): Promise<Notebook> {
-  const response = await api.post<Notebook>(`/${entity}/${notebookId}/flashcards`);
+export async function generateFlashcards(notebookId: number): Promise<Flashcard[]> {
+  const response = await api.post<Flashcard[]>(`/${entity}/${notebookId}/flashcards`);
   return response.data;
 }
 

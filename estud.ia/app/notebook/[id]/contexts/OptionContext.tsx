@@ -1,8 +1,10 @@
 "use client"
 
-import React, { useState, useContext, useEffect, useRef } from "react"
+import React, { useState, useContext } from "react"
 
 import { useChatInformationContext } from "./ChatInformationContext";
+import { generateFlashcards, generateQuiz } from "@/app/lib/api/entities/NotebooksApi";
+import { getQuestionsByQuiz } from "@/app/lib/api/entities/QuizzesApi";
 
 enum OptionEnum {
   CHAT = "chat",
@@ -40,9 +42,9 @@ export function OptionContextProvider({ children }: { children: React.ReactNode 
   const [isLoading, setIsLoading] = useState(false);
   const [selectedQuizId, setSelectedQuizId] = useState<number | null>(null);
 
-  const { notebook, setNotebook, setFlashcards, setQuizzes, quizzes } = useChatInformationContext();
+  const { notebook, setNotebook, setFlashcards, setQuizzes } = useChatInformationContext();
   
-  const API_URL = process.env.API_URL || 'http://localhost:5000';
+
 
   const normalizeQuiz = (raw: any) => {
     if (!raw) return raw;
@@ -64,13 +66,11 @@ export function OptionContextProvider({ children }: { children: React.ReactNode 
 
   const fetchQuestionsForQuiz = async (quizId: number) => {
     try {
-      const resp = await fetch(`${API_URL}/quizzes/${quizId}/questions`, {
-        method: 'GET',
-        credentials: 'include',
-      });
-      if (!resp.ok) return [];
-      const questions = await resp.json();
-      return questions;
+      const quizQuestions = await getQuestionsByQuiz(quizId);
+
+      if (!quizQuestions) return [];
+      
+      return quizQuestions;
     } catch (err) {
       console.error('Failed to fetch questions for quiz', err);
       return [];
@@ -82,24 +82,19 @@ export function OptionContextProvider({ children }: { children: React.ReactNode 
     
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_URL}/notebooks/${notebook.id}/flashcards`, {
-        method: 'POST',
-        credentials: 'include',
-      });
+      const newFlashcards = await generateFlashcards(notebook.id);
       
-      if (!response.ok) {
+      if (!newFlashcards || newFlashcards.length === 0) {
         throw new Error('Failed to create flashcards');
       }
 
-      const data = await response.json();
-      
       // Add new flashcards to existing ones
-      setFlashcards(prev => [...prev, ...data]);
+      setFlashcards(prev => [...prev, ...newFlashcards]);
       
       // Update the notebook with the new flashcards
       setNotebook((prev) => {
         if (!prev) return prev;
-        return { ...prev, flashcards: [...(prev.flashcards || []), ...data] };
+        return { ...prev, flashcards: [...(prev.flashcards || []), ...newFlashcards] };
       });
     } catch (error) {
       console.error(error);
@@ -114,17 +109,13 @@ export function OptionContextProvider({ children }: { children: React.ReactNode 
     if (!notebook?.id) return;
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_URL}/notebooks/${notebook.id}/quiz`, {
-        method: 'POST',
-        credentials: 'include',
-      });
+      const newQuiz = await generateQuiz(notebook.id);
       
-      if (!response.ok) {
+      if (!newQuiz) {
         throw new Error('Failed to create quiz');
       }
 
-      const raw = await response.json();
-      const data = normalizeQuiz(raw);
+      const data = normalizeQuiz(newQuiz);
       // If backend returned no questions, try fetching them separately
       if (data && data.id && Array.isArray(data.questions_and_answers) && data.questions_and_answers.length === 0) {
         const fetched = await fetchQuestionsForQuiz(data.id);
