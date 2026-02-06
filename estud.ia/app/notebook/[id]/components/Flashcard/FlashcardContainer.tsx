@@ -40,11 +40,11 @@ export default function FlashcardContainer() {
           ) : (
             <>
               <div className="mb-4 flex flex-col items-center gap-6 text-center">
-                <div className="flex text-4xl h-16 w-16 items-center justify-center rounded-full bg-[var(--hover-bg)]">
+                <div className="flex text-3xl md:text-4xl h-12 w-12 md:h-16 md:w-16 items-center justify-center rounded-full bg-[var(--hover-bg)]">
                   {notebook?.icon}
                 </div>
 
-                <h1 className="text-4xl font-semibold text-foreground">{notebook?.title}</h1>
+                <h1 className="text-3xl md:text-4xl font-semibold text-foreground">{notebook?.title}</h1>
                 <p className="text-sm text-muted-foreground">
                   Tarjetas didácticas de estudio
                 </p>
