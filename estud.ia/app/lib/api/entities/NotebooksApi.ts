@@ -8,7 +8,8 @@ const entity: string = "notebooks";
 
 export async function createNotebook(files: File[]): Promise<Notebook> {
   const formData = new FormData();
-  files.forEach((file) => formData.append("files", file));
+
+  for (const file of files) formData.append("files", file);
   
   const response = await api.post<Notebook>(`/${entity}`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
