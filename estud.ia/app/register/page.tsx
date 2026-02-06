@@ -49,8 +49,8 @@ export default function RegisterPage() {
         <Image
           src="/logo_dark.png"
           alt="Estud.ia Logo"
-          width={300}
-          height={35}
+          width={254}
+          height={32}
           className="mb-10 mx-auto"
         />
 
@@ -58,7 +58,7 @@ export default function RegisterPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="w-xl rounded-lg px-12 shadow-md text-foregroundspace-y-6"
+          className="w-sm sm:w-xl px-6 sm:px-12 shadow-md text-foregroundspace-y-6"
         >
           <div className="mb-4">
             <label
