@@ -1,31 +1,18 @@
-from typing import TypedDict, Annotated, Literal
+from typing import Literal
 from langgraph.graph import StateGraph, END
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain.chat_models import init_chat_model
-import operator
 import json
 
 from ..embbedings import EmbeddingGenerator
 from ..reranker import Reranker
 from ...db.milvus import Async_Milvus_Client
 
-##Clase estado del grafo
-class RAGState(TypedDict):
-    """Estado del grafo RAG con validación"""
-    question: str  # Pregunta original
-    query: str  # Query refinada (puede cambiar)
-    context: str  # Contexto recuperado
-    pdf_ids: list[int]  # IDs de los PDFs utilizados como contexto
-    generation: str  # Respuesta generada
-    is_valid: bool  # Si la respuesta es válida según el judge
-    refinement_attempts: Annotated[int, operator.add]  # Contador de intentos
-    retrieval_attempts: Annotated[int, operator.add]  # Contador de retrieves
+from ...schemas.graphs.conversation_graph_state_schema import ConversationGraphState
 
 
 class RAGGraph:
-   
-    
     def __init__(self, embedding_generator: EmbeddingGenerator, reranker: Reranker, client_milvus:Async_Milvus_Client):
         """
         Inicializar el grafo RAG
@@ -41,7 +28,7 @@ class RAGGraph:
         self.workflow = None
         self.app = None
     
-    async def retrieve_context(self, state: RAGState) -> RAGState:
+    async def retrieve_context(self, state: ConversationGraphState) -> ConversationGraphState:
         """
         Nodo 1: Recupera contexto de Milvus directamente
         """
@@ -74,7 +61,7 @@ class RAGGraph:
             "retrieval_attempts": 1
         }
 
-    async def generate_answer(self, state: RAGState) -> RAGState:
+    async def generate_answer(self, state: ConversationGraphState) -> ConversationGraphState:
         """
         Nodo 2: Genera respuesta usando el contexto
         """
@@ -105,7 +92,7 @@ class RAGGraph:
             "generation": generation
         }
 
-    async def judge_answer(self, state: RAGState) -> RAGState:
+    async def judge_answer(self, state: ConversationGraphState) -> ConversationGraphState:
         """
         Nodo 3: LLM as Judge - Evalúa si la respuesta es buena usando un modelo más grande
         """
@@ -161,7 +148,7 @@ Respuesta: {generation}
             "is_valid": is_valid
         }
 
-    async def refine_query(self, state: RAGState) -> RAGState:
+    async def refine_query(self, state: ConversationGraphState) -> ConversationGraphState:
         """
         Nodo 4: Refina la query cuando la respuesta es inválida
         """
@@ -197,7 +184,7 @@ Responde SOLO con la pregunta reformulada, sin explicaciones adicionales."""),
             "refinement_attempts": 1
         }
 
-    async def should_refine(self, state: RAGState) -> Literal["refine", "end"]:
+    async def should_refine(self, state: ConversationGraphState) -> Literal["refine", "end"]:
         """
         Nodo de decisión: ¿Refinar y reintentar o terminar?
         """
@@ -217,7 +204,7 @@ Responde SOLO con la pregunta reformulada, sin explicaciones adicionales."""),
         """
         Construye y compila el grafo
         """
-        self.workflow = StateGraph(RAGState)
+        self.workflow = StateGraph(ConversationGraphState)
         
         # Agregar nodos (ahora son métodos de la clase)
         self.workflow.add_node("retrieve", self.retrieve_context)
@@ -244,7 +231,7 @@ Responde SOLO con la pregunta reformulada, sin explicaciones adicionales."""),
         
         return self.app
     
-    async def invoke(self, initial_state: RAGState):
+    async def invoke(self, initial_state: ConversationGraphState):
         """
         Invoca el grafo con un estado inicial
         """

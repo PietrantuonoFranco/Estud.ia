@@ -199,7 +199,7 @@ async def create_notebook(
         # Generate title, icon, and description using the graph
         initial_state = {
             "option": "notebook",
-            "pdfs_ids": source_ids,
+            "pdf_ids": source_ids,
             "context": "",
             "generation": ""
         }
@@ -271,7 +271,7 @@ async def create_flashcards(
     try:
         initial_state = {
             "option": "flashcards",
-            "pdfs_ids": request.pdf_ids,
+            "pdf_ids": request.pdf_ids,
             "context": "",
             "generation": ""
         }
@@ -319,7 +319,7 @@ async def create_questions(
     try:
         initial_state = {
             "option": "questions_and_answers",
-            "pdfs_ids": request.pdf_ids,
+            "pdf_ids": request.pdf_ids,
             "context": "",
             "generation": ""
         }

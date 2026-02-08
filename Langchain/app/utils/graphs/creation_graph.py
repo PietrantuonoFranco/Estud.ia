@@ -6,16 +6,7 @@ from langchain.chat_models import init_chat_model
 
 from ..embbedings import EmbeddingGenerator
 from ...db.milvus import Async_Milvus_Client
-
-
-class CreationGraphState(TypedDict):
-    """
-    CreationGraph state for entities generation
-    """
-    option: str  # Entity type: "notebook", "source", "flashcard", "quiz"
-    pdfs_ids: list[int]  # IDs of PDFs to analyze
-    context: str  # Context recovered from all PDFs
-    generation: str  # JSON generated with title, icon and description
+from ...schemas.graphs.creation_graph_state_schema import CreationGraphState
 
 class CreationGraph:
     """
@@ -40,7 +31,7 @@ class CreationGraph:
         The most representative fragments of each document are obtained for analysis.
         """
 
-        pdf_ids = state.get('pdfs_ids', [])
+        pdf_ids = state.get("pdf_ids", [])
         print(f"\n [RETRIEVE] Retrieving context from {len(pdf_ids)} PDF(s): {pdf_ids}")
         
         all_contexts = []
