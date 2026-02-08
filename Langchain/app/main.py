@@ -10,10 +10,10 @@ from .utils.aux_functions.format_generated_text import format_generated_text
 from .utils.embbedings import EmbeddingGenerator
 from .utils.splitter import Splitter
 
-from .utils.dtos_schemas.rag_dtos_schemas import RAGRequest, RAGResponse, ContextRequest
-from .utils.dtos_schemas.notebook_dtos_schemas import NotebookResponse
-from .utils.dtos_schemas.flashcards_dtos_schemas import FlashcardResponse, Flashcard
-from .utils.dtos_schemas.base_request_schema import BaseRequest
+from .schemas.dtos.rag_dtos_schemas import RAGRequest, RAGResponse, ContextRequest
+from .schemas.dtos.notebook_dtos_schemas import NotebookResponse
+from .schemas.dtos.flashcards_dtos_schemas import FlashcardResponse, Flashcard
+from .schemas.dtos.base_request_schema import BaseRequest
 
 from .utils.reranker import Reranker
 
