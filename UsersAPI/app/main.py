@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
+from contextlib import asynccontextmanager
 
-from .database import engine
+from .database import engine, Base
 
 from .config import conf
 
@@ -26,16 +27,17 @@ from .models.flashcard_model import Flashcard
 from .models.quiz_model import Quiz
 from .models.questions_and_answers_model import QuestionsAndAnswers
 
-User.metadata.create_all(bind=engine)
-Notebook.metadata.create_all(bind=engine)
-Source.metadata.create_all(bind=engine)
-Message.metadata.create_all(bind=engine)
-Summary.metadata.create_all(bind=engine)
-Flashcard.metadata.create_all(bind=engine)
-Quiz.metadata.create_all(bind=engine)
-QuestionsAndAnswers.metadata.create_all(bind=engine)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Lógica de inicio (Startup)
+    async with engine.begin() as conn:
+        # Esto crea todas las tablas de todos los modelos importados arriba
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+    # Lógica de cierre (Shutdown) si fuera necesaria
+    await engine.dispose()
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 # 1. Define la lista de orígenes permitidos
 origins = [

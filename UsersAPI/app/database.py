@@ -1,20 +1,30 @@
-from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 
 from .config import conf
 
+# 1. Usamos create_async_engine en lugar de create_engine
+engine = create_async_engine(
+    conf.DB_URL, 
+    echo=True, # Útil para debug, puedes quitarlo en producción
+    future=True
+)
 
-SQLALCHEMY_DATABASE_URL = f"postgresql://{conf.DB_USER}:{conf.DB_PASSWORD}@{conf.DB_HOST}:{conf.DB_PORT}/{conf.DB_NAME}"
+# 2. Usamos async_sessionmaker para manejar sesiones asíncronas
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    autocommit=False,
+    autoflush=False,
+    expire_on_commit=False, # Importante en async para evitar errores al acceder a atributos después de un commit
+)
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# Dependencia para obtener la sesión de la base de datos
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# 3. La dependencia get_db ahora debe ser una función asíncrona
+async def get_db():
+    async with AsyncSessionLocal() as db:
+        try:
+            yield db
+        finally:
+            await db.close()

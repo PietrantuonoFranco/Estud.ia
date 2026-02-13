@@ -9,11 +9,11 @@ class Settings(BaseSettings):
         extra="ignore"
     )
 
-    DB_USER: str = Field(..., validation_alias="POSTGRES_USER")
-    DB_PASSWORD: str = Field(..., validation_alias="POSTGRES_PASSWORD")
-    DB_NAME: str = Field(..., validation_alias="POSTGRES_DB")
-    DB_PORT: int = Field(..., validation_alias="POSTGRES_PORT")
-    DB_HOST: str = Field(..., validation_alias="POSTGRES_HOST")
+    DB_URL: str = Field(..., validation_alias="DB_URL")
+    # DB_PASSWORD: str = Field(..., validation_alias="POSTGRES_PASSWORD")
+    # DB_NAME: str = Field(..., validation_alias="POSTGRES_DB")
+    # DB_PORT: int = Field(..., validation_alias="POSTGRES_PORT")
+    # DB_HOST: str = Field(..., validation_alias="POSTGRES_HOST")
     
     SECRET_KEY: str = Field(..., validation_alias="SECRET_KEY")
     ALGORITHM: str = Field(..., validation_alias="ALGORITHM")

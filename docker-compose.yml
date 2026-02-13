@@ -6,11 +6,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - ENVIRONMENT=production
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_HOST=${POSTGRES_HOST}
-      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - DB_URL=${DB_URL}
       - SECRET_KEY=${SECRET_KEY}
       - ALGORITHM=${ALGORITHM}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
@@ -20,8 +16,8 @@ services:
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
     ports:
       - 5000:3000
-    depends_on:
-      - "postgres"
+    # depends_on:
+    #   - "postgres"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/healthcheck"]
       interval: 30s
