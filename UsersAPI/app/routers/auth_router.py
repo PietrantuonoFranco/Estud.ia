@@ -35,6 +35,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
             detail="El formato del correo electrónico no es válido"
         )
     
+    formatted_email = form_data.username.strip().lower()
+    form_data.username = formatted_email
+    
     user = await authenticate_user(db, form_data.username, form_data.password)
     
     if not user:
@@ -67,13 +70,19 @@ async def register(form_data: UserCreate, db: Session = Depends(get_db)):
             detail="El formato del correo electrónico no es válido"
         )
     
-    existing_user = await get_user_by_email(db, form_data.username)
+    formatted_email = form_data.username.strip().lower()
+
+    existing_user = await get_user_by_email(db, formatted_email)
 
     if existing_user:
         raise HTTPException(
             status_code=400, 
             detail="El correo electrónico ya está registrado"
         )
+    
+    form_data.username = formatted_email
+    form_data.name = form_data.name.title()
+    form_data.lastname = form_data.lastname.title()
 
     new_user = await create_user(db, form_data)
     accessToken = create_access_token(data={"sub": new_user.email})
