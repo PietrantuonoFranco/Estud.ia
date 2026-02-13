@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 import httpx
 from pydantic import BaseModel
@@ -35,12 +35,12 @@ async def shutdown_event():
 
 
 @router.post("/", response_model=MessageOut, status_code=status.HTTP_201_CREATED)
-async def create_message_endpoint(message: MessageCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+async def create_message_endpoint(message: MessageCreate, db: AsyncSession = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para crear un nuevo mensaje."""
     return await create_message(db=db, message=message)
 
 @router.post("/user", response_model=MessageOut, status_code=status.HTTP_201_CREATED)
-async def create_user_message(message: MessageRequest, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+async def create_user_message(message: MessageRequest, db: AsyncSession = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para crear un mensaje enviado por el usuario."""
     message_data = message.dict()
     message_data['is_user_message'] = True
@@ -53,7 +53,7 @@ async def create_user_message(message: MessageRequest, db: Session = Depends(get
 
 @router.post("/llm", response_model=MessageOut, status_code=status.HTTP_201_CREATED)
 async def create_llm_message(message: MessageRequest
-, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+, db: AsyncSession = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para crear un mensaje generado por el LLM basado en la entrada del usuario."""
     message_data = message.dict()
     message_data['is_user_message'] = False
@@ -94,13 +94,13 @@ async def create_llm_message(message: MessageRequest
 
 
 @router.get("/", response_model=List[MessageOut], status_code=status.HTTP_200_OK)
-async def read_messages(skip: int = 0, limit: int = 10, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+async def read_messages(skip: int = 0, limit: int = 10, db: AsyncSession = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para obtener todos los mensajes con paginación."""
     return await get_all_messages(db, skip=skip, limit=limit)
 
 
 @router.get("/{message_id}", response_model=MessageOut, status_code=status.HTTP_200_OK)
-async def read_message(message_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+async def read_message(message_id: int, db: AsyncSession = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para obtener un mensaje por su ID."""
     message = await get_message(db, message_id=message_id)
     
@@ -111,7 +111,7 @@ async def read_message(message_id: int, db: Session = Depends(get_db), current_u
 
 
 @router.delete("/{message_id}", response_model=MessageOut, status_code=status.HTTP_200_OK)
-async def delete_message_endpoint(message_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+async def delete_message_endpoint(message_id: int, db: AsyncSession = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para eliminar un mensaje por su ID."""
     message = await get_message(db, message_id=message_id)
     
@@ -122,7 +122,7 @@ async def delete_message_endpoint(message_id: int, db: Session = Depends(get_db)
 
 
 @router.get("/notebook/{notebook_id}", response_model=List[MessageOut], status_code=status.HTTP_200_OK)
-async def read_messages_by_notebook(notebook_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+async def read_messages_by_notebook(notebook_id: int, db: AsyncSession = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para obtener todos los mensajes de un notebook específico."""
     messages = await get_messages_by_notebook(db, notebook_id=notebook_id)
     
@@ -133,7 +133,7 @@ async def read_messages_by_notebook(notebook_id: int, db: Session = Depends(get_
 
 
 @router.get("/user/", response_model=List[MessageOut], status_code=status.HTTP_200_OK)
-async def read_messages_by_user(user_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+async def read_messages_by_user(user_id: int, db: AsyncSession = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para obtener todos los mensajes de un usuario específico."""
     messages = await get_messages_by_user(db, user_id=current_user.id)
     

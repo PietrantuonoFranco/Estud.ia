@@ -1,16 +1,16 @@
-from sqlalchemy.orm import Session, selectinload, joinedload
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy.orm import joinedload
 
 from ..schemas.notebook_schema import NotebookCreate
-
 from ..models.source_model import Source
 from ..models.notebook_model import Notebook
 from ..models.quiz_model import Quiz
 
+# --- OPERACIONES DE NOTEBOOKS ---
 
-async def create_notebook(db: Session, notebook: NotebookCreate):
-    """Crea un nuevo notebook (cuaderno) en la base de datos."""
-    print("Creating notebook with data:", notebook)
-    
+async def create_notebook(db: AsyncSession, notebook: NotebookCreate):
+    """Crea un nuevo notebook en la base de datos de forma asíncrona."""
     db_notebook = Notebook(
         title=notebook.title,
         icon=notebook.icon,
@@ -20,50 +20,74 @@ async def create_notebook(db: Session, notebook: NotebookCreate):
     )
 
     db.add(db_notebook)
-    db.commit()
-    db.refresh(db_notebook)
-
+    await db.commit() # ¡Obligatorio el await!
+    await db.refresh(db_notebook)
     return db_notebook
 
-async def get_all_notebooks(db: Session, skip: int = 0, limit: int = 10):
-    """Obtener todas las fuentes (sources) con paginación."""
-    return (
-        db.query(Notebook)
-            .options(joinedload(Notebook.sources))
-            .offset(skip)
-            .limit(limit)
-            .all()
+async def get_all_notebooks(db: AsyncSession, skip: int = 0, limit: int = 10):
+    """Obtener notebooks con todas sus relaciones cargadas."""
+    query = (
+        select(Notebook)
+        .options(
+            joinedload(Notebook.sources),
+            joinedload(Notebook.messages),
+            joinedload(Notebook.flashcards),
+            joinedload(Notebook.quizzes).joinedload(Quiz.questions)
+        )
+        .offset(skip)
+        .limit(limit)
     )
+    result = await db.execute(query)
+    return result.scalars().unique().all()
 
-async def get_notebook(db: Session, notebook_id: int):
-    """Obtener un notebook (cuaderno) por su ID."""
-    return (
-        db.query(Notebook)
-        .options(joinedload(Notebook.messages))
-        .options(joinedload(Notebook.sources))
-        .options(joinedload(Notebook.flashcards))
-        .options(joinedload(Notebook.quizzes).joinedload(Quiz.questions))
+async def get_notebook(db: AsyncSession, notebook_id: int):
+    """Obtener un notebook por su ID con todas sus relaciones."""
+    query = (
+        select(Notebook)
+        .options(
+            joinedload(Notebook.messages),
+            joinedload(Notebook.sources),
+            joinedload(Notebook.flashcards),
+            joinedload(Notebook.quizzes).joinedload(Quiz.questions)
+        )
         .filter(Notebook.id == notebook_id)
-        .first()
     )
+    result = await db.execute(query)
+    return result.scalars().unique().first()
 
-async def delete_notebook(db: Session, notebook_id: int):
-    """Eliminar un notebook (cuaderno) por su ID."""
-    db_notebook = db.query(Notebook).filter(Notebook.id == notebook_id).first()
+async def delete_notebook(db: AsyncSession, notebook_id: int):
+    """Eliminar un notebook de forma asíncrona."""
+    # Primero buscamos el objeto
+    query = select(Notebook).filter(Notebook.id == notebook_id)
+    result = await db.execute(query)
+    db_notebook = result.scalars().first()
+    
     if db_notebook:
-        db.delete(db_notebook)
-        db.commit()
+        await db.delete(db_notebook)
+        await db.commit()
     return db_notebook
 
 
 # --- OPERACIONES DE SOURCES ---
 
-async def get_all_sources_by_notebook_id(db: Session, notebook_id: int):
-    """Obtener todas las fuentes (sources) asociadas a un notebook específico."""
-    return db.query(Source).filter(Source.notebook_id == notebook_id).all()
+async def get_all_sources_by_notebook_id(db: AsyncSession, notebook_id: int):
+    query = select(Source).filter(Source.notebook_id == notebook_id)
+    result = await db.execute(query)
+    return result.scalars().all()
 
 
 # --- OPERACIONES DE USER ---
-async def get_all_notebooks_by_user_id(db: Session, user_id: int):
-    """Obtener todos los notebooks (cuadernos) asociados a un usuario específico."""
-    return db.query(Notebook).filter(Notebook.user_id == user_id).all()
+async def get_all_notebooks_by_user_id(db: AsyncSession, user_id: int):
+    """Obtener todos los notebooks de un usuario con todas sus relaciones cargadas."""
+    query = (
+        select(Notebook)
+        .filter(Notebook.user_id == user_id)
+        .options(
+            joinedload(Notebook.sources),
+            joinedload(Notebook.messages),
+            joinedload(Notebook.flashcards),
+            joinedload(Notebook.quizzes).joinedload(Quiz.questions)
+        )
+    )
+    result = await db.execute(query)
+    return result.scalars().unique().all()

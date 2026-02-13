@@ -1,38 +1,45 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from ..models.message_model import Message
 from ..schemas.message_schema import MessageCreate
 
 
-async def create_message(db: Session, message: MessageCreate):
+async def create_message(db: AsyncSession, message: MessageCreate):
     db_message = Message(**message.dict())
     db.add(db_message)
-    db.commit()
-    db.refresh(db_message)
-    # Asegurar que el objeto tenga todos los atributos antes de retornar
-    db.expunge(db_message)
+    await db.commit()
+    await db.refresh(db_message)
     return db_message
 
 
-async def get_all_messages(db: Session, skip: int = 0, limit: int = 10):
-    return db.query(Message).offset(skip).limit(limit).all()
+async def get_all_messages(db: AsyncSession, skip: int = 0, limit: int = 10):
+    query = select(Message).offset(skip).limit(limit)
+    result = await db.execute(query)
+    return result.scalars().all()
 
 
-async def get_message(db: Session, message_id: int):
-    return db.query(Message).filter(Message.id == message_id).first()
+async def get_message(db: AsyncSession, message_id: int):
+    query = select(Message).filter(Message.id == message_id)
+    result = await db.execute(query)
+    return result.scalars().first()
 
 
-async def delete_message(db: Session, message_id: int):
+async def delete_message(db: AsyncSession, message_id: int):
     db_message = await get_message(db, message_id)
     if db_message:
-        db.delete(db_message)
-        db.commit()
+        await db.delete(db_message)
+        await db.commit()
     return db_message
 
 
-async def get_messages_by_notebook(db: Session, notebook_id: int):
-    return db.query(Message).filter(Message.notebook_id == notebook_id).all()
+async def get_messages_by_notebook(db: AsyncSession, notebook_id: int):
+    query = select(Message).filter(Message.notebook_id == notebook_id)
+    result = await db.execute(query)
+    return result.scalars().all()
 
 
-async def get_messages_by_user(db: Session, user_id: int):
-    return db.query(Message).filter(Message.notebook_users_id == user_id).all()
+async def get_messages_by_user(db: AsyncSession, user_id: int):
+    query = select(Message).filter(Message.notebook_users_id == user_id)
+    result = await db.execute(query)
+    return result.scalars().all()

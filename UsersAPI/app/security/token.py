@@ -2,7 +2,8 @@ from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 from fastapi import HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from ..config import conf
 from ..models.user_model import User
@@ -18,7 +19,7 @@ def create_access_token(data: dict):
     encoded_jwt = jwt.encode(to_encode, conf.SECRET_KEY, algorithm=conf.ALGORITHM)
     return encoded_jwt
 
-def verify_token(token: str, db: Session):
+async def verify_token(token: str, db: AsyncSession):
     """
     Decodifica el token, valida su integridad y verifica 
     que el usuario exista en la base de datos.
@@ -40,7 +41,10 @@ def verify_token(token: str, db: Session):
         raise credentials_exception
 
     # 2. Buscar al usuario en la DB para asegurar que sigue activo/existe
-    user = db.query(User).filter(User.email == email).first()
+    query = select(User).filter(User.email == email)
+    result = await db.execute(query)
+    user = result.scalars().first()
+    
     if user is None:
         raise credentials_exception
         

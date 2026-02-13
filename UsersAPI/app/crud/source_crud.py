@@ -1,12 +1,12 @@
-from sqlalchemy.orm import Session  # Importamos la función de hash_password
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from ..schemas.source_schema import SourceCreate
-
 from ..models.source_model import Source
 from ..models.notebook_model import Notebook
 
 
-async def create_source(db: Session, source: SourceCreate):
+async def create_source(db: AsyncSession, source: SourceCreate):
     """Crea una nueva fuente (source) en la base de datos."""
     db_source = Source(
         name=source.name,
@@ -14,30 +14,36 @@ async def create_source(db: Session, source: SourceCreate):
     )
 
     db.add(db_source)
-    db.commit()
-    db.refresh(db_source)
+    await db.commit()
+    await db.refresh(db_source)
 
     return db_source
 
-async def get_all_sources(db: Session, skip: int = 0, limit: int = 10):
+async def get_all_sources(db: AsyncSession, skip: int = 0, limit: int = 10):
     """Obtener todas las fuentes (sources) con paginación."""
-    return db.query(Source).offset(skip).limit(limit).all()
+    query = select(Source).offset(skip).limit(limit)
+    result = await db.execute(query)
+    return result.scalars().all()
 
-async def get_source(db: Session, source_id: int):
+async def get_source(db: AsyncSession, source_id: int):
     """Obtener una fuente (source) por su ID."""
-    return db.query(Source).filter(Source.id == source_id).first()
+    query = select(Source).filter(Source.id == source_id)
+    result = await db.execute(query)
+    return result.scalars().first()
 
-async def delete_source(db: Session, source_id: int):
+async def delete_source(db: AsyncSession, source_id: int):
     """Eliminar una fuente (source) por su ID."""
-    db_source = db.query(Source).filter(Source.id == source_id).first()
+    db_source = await get_source(db, source_id)
     if db_source:
-        db.delete(db_source)
-        db.commit()
+        await db.delete(db_source)
+        await db.commit()
     return db_source
 
 
 # --- OPERACIONES DE NOTEBOOK ---
 
-async def get_notebook_by_source(db: Session, source_id: int):
+async def get_notebook_by_source(db: AsyncSession, source_id: int):
     """Obtener el notebook asociado a una fuente (source) específica."""
-    return db.query(Notebook).join(Source).filter(Source.id == source_id).first()
+    query = select(Notebook).join(Source).filter(Source.id == source_id)
+    result = await db.execute(query)
+    return result.scalars().first()

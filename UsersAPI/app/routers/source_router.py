@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Body
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 import httpx
 
@@ -33,13 +33,13 @@ async def shutdown_event():
     await http_client.aclose()
 
 @router.post("/", response_model=SourceOut, status_code=status.HTTP_201_CREATED)
-async def create_source(source: SourceCreate, db: Session = Depends(get_db)):
+async def create_source(source: SourceCreate, db: AsyncSession = Depends(get_db)):
     """Método para crear una nueva fuente (source)."""    
     return await create_source_crud(db=db, source=source)
 
 
 @router.get("/", response_model=List[SourceOut], status_code=status.HTTP_200_OK)
-async def read_sources(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+async def read_sources(skip: int = 0, limit: int = 10, db: AsyncSession = Depends(get_db)):
     """Método para obtener todas las fuentes (sources) con paginación."""
     sources = await get_all_sources(db, skip=skip, limit=limit)
 
@@ -47,7 +47,7 @@ async def read_sources(skip: int = 0, limit: int = 10, db: Session = Depends(get
 
 
 @router.get("/{source_id}", response_model=SourceOut, status_code=status.HTTP_200_OK)
-async def read_source(source_id: int, db: Session = Depends(get_db)):
+async def read_source(source_id: int, db: AsyncSession = Depends(get_db)):
     """Método para obtener una fuente (source) por su ID."""
     source = await get_source(db, source_id=source_id)
 
@@ -60,7 +60,7 @@ async def read_source(source_id: int, db: Session = Depends(get_db)):
 @router.delete("/delete-various", response_model=List[SourceOut], status_code=status.HTTP_200_OK)
 async def delete_various_sources(
     body: dict = Body(...),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Método para eliminar varias fuentes (sources) por sus IDs."""
     pdf_ids = body.get("pdf_ids", [])
@@ -103,7 +103,7 @@ async def delete_various_sources(
 
 
 @router.delete("/{source_id}", response_model=SourceOut, status_code=status.HTTP_200_OK)
-async def delete_source(source_id: int, db: Session = Depends(get_db)):
+async def delete_source(source_id: int, db: AsyncSession = Depends(get_db)):
     """Método para eliminar una fuente (source) por su ID."""
     source = await get_source(db, source_id=source_id)
 
@@ -140,7 +140,7 @@ async def delete_source(source_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/{source_id}/notebook", response_model=NotebookOut, status_code=status.HTTP_200_OK)
-async def read_notebook_by_source(source_id: int, db: Session = Depends(get_db)):
+async def read_notebook_by_source(source_id: int, db: AsyncSession = Depends(get_db)):
     """Método para obtener el notebook asociado a una fuente (source) específica."""
     notebook = await get_notebook_by_source(db, source_id=source_id)
 

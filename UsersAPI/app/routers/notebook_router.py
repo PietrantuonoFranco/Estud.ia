@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Body
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 from typing import List
 import httpx
 import datetime as date
@@ -42,7 +43,7 @@ async def shutdown_event():
 
 
 @router.post("/", response_model=NotebookOut, status_code=status.HTTP_201_CREATED)
-async def create_notebook(files: List[UploadFile], db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+async def create_notebook(files: List[UploadFile], db: AsyncSession = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para crear un nuevo notebook."""
     
     try:
@@ -132,14 +133,16 @@ async def create_notebook(files: List[UploadFile], db: Session = Depends(get_db)
 
         # 6. Asociar las fuentes (sources) al notebook creado
         for source_id in source_ids:
-            source = db.query(Source).filter(Source.id == source_id).first()
+            query = select(Source).filter(Source.id == source_id)
+            result = await db.execute(query)
+            source = result.scalars().first()
             if source:
                 source.notebook_id = new_notebook.id
                 db.add(source)
-        db.commit()
+        await db.commit()
         
         # Recargar el notebook con todas sus relaciones
-        db.refresh(new_notebook)
+        await db.refresh(new_notebook)
         
         return new_notebook
         
@@ -152,13 +155,13 @@ async def create_notebook(files: List[UploadFile], db: Session = Depends(get_db)
         raise HTTPException(status_code=500, detail=f"Error inesperado: {str(e)}")
 
 @router.get("/", response_model=List[NotebookOut], status_code=status.HTTP_200_OK)
-async def read_notebooks(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+async def read_notebooks(skip: int = 0, limit: int = 10, db: AsyncSession = Depends(get_db)):
     """Método para obtener todos los notebooks con paginación."""
     return await get_all_notebooks(db, skip=skip, limit=limit)
 
 
 @router.get("/{notebook_id}", response_model=NotebookOut, status_code=status.HTTP_200_OK)
-async def read_notebook(notebook_id: int, db: Session = Depends(get_db)):
+async def read_notebook(notebook_id: int, db: AsyncSession = Depends(get_db)):
     """Método para obtener un notebook por su ID."""
     notebook = await get_notebook_crud(db, notebook_id=notebook_id)
 
@@ -168,7 +171,7 @@ async def read_notebook(notebook_id: int, db: Session = Depends(get_db)):
     return notebook
 
 @router.delete("/{notebook_id}", response_model=NotebookOut, status_code=status.HTTP_200_OK)
-async def delete_notebook(notebook_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+async def delete_notebook(notebook_id: int, db: AsyncSession = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para eliminar un notebook por su ID."""
     notebook = await get_notebook_crud(db, notebook_id=notebook_id)
 
@@ -181,7 +184,7 @@ async def delete_notebook(notebook_id: int, db: Session = Depends(get_db), curre
     return await delete_notebook_crud(db, notebook_id=notebook_id)
 
 @router.get("/{notebook_id}/sources", response_model=List[SourceOut], status_code=status.HTTP_200_OK)
-async def read_sources_by_notebook_id(notebook_id: int, db: Session = Depends(get_db)):
+async def read_sources_by_notebook_id(notebook_id: int, db: AsyncSession = Depends(get_db)):
     """Método para obtener las fuentes (sources) asociadas a un notebook específico."""
     notebook = await get_notebook_crud(db, notebook_id=notebook_id)
     
@@ -196,7 +199,7 @@ async def read_sources_by_notebook_id(notebook_id: int, db: Session = Depends(ge
     return sources
 
 @router.get("/user/{user_id}", response_model=List[NotebookOut], status_code=status.HTTP_200_OK)
-async def read_notebooks_by_user_id(user_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+async def read_notebooks_by_user_id(user_id: int, db: AsyncSession = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para obtener los notebooks asociados a un usuario específico."""
     if user_id != current_user.id:
         raise HTTPException(status_code=403, detail="No tienes permiso para ver los notebooks de este usuario")
@@ -209,7 +212,7 @@ async def read_notebooks_by_user_id(user_id: int, db: Session = Depends(get_db),
     return notebooks
 
 @router.post("/{notebook_id}/sources", response_model=NotebookOut, status_code=status.HTTP_200_OK)
-async def add_sources_to_notebook(notebook_id: int, files: List[UploadFile] = File(...), db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+async def add_sources_to_notebook(notebook_id: int, files: List[UploadFile] = File(...), db: AsyncSession = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para agregar fuentes a un notebook."""
 
     notebook = await get_notebook_crud(db, notebook_id=notebook_id)
@@ -286,16 +289,18 @@ async def add_sources_to_notebook(notebook_id: int, files: List[UploadFile] = Fi
 
         # 6. Asociar las fuentes (sources) al notebook creado
         for source_id in source_ids:
-            source = db.query(Source).filter(Source.id == source_id).first()
+            query = select(Source).filter(Source.id == source_id)
+            result = await db.execute(query)
+            source = result.scalars().first()
 
             if source:
                 source.notebook_id = notebook.id
                 db.add(source)
 
-        db.commit()
+        await db.commit()
         
         # Recargar el notebook con todas sus relaciones
-        db.refresh(notebook)
+        await db.refresh(notebook)
         
         return notebook
         
@@ -308,7 +313,7 @@ async def add_sources_to_notebook(notebook_id: int, files: List[UploadFile] = Fi
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
 @router.post("/{notebook_id}/flashcards", response_model=List[FlashcardOut], status_code=status.HTTP_200_OK)
-async def add_flashcards_to_notebook(notebook_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+async def add_flashcards_to_notebook(notebook_id: int, db: AsyncSession = Depends(get_db), current_user=Depends(get_current_user)):
     try:
         notebook = await get_notebook_crud(db, notebook_id=notebook_id)
 
@@ -376,7 +381,7 @@ async def add_flashcards_to_notebook(notebook_id: int, db: Session = Depends(get
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
     
 @router.post("/{notebook_id}/quiz", response_model=QuizWithQuestions, status_code=status.HTTP_200_OK)
-async def add_quiz_to_notebook(notebook_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+async def add_quiz_to_notebook(notebook_id: int, db: AsyncSession = Depends(get_db), current_user=Depends(get_current_user)):
     try:
         notebook = await get_notebook_crud(db, notebook_id=notebook_id)
 
@@ -474,7 +479,7 @@ async def add_quiz_to_notebook(notebook_id: int, db: Session = Depends(get_db), 
 async def delete_various_sources(
     notebook_id: int,
     body: dict = Body(...),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
     """Método para eliminar varias fuentes (sources) por sus IDs."""

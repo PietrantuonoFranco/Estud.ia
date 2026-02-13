@@ -1,7 +1,7 @@
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse, RedirectResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 
 from ..utils.validate_email import validate_email
@@ -28,7 +28,7 @@ async def get_me(current_user=Depends(get_current_user)):
     return current_user
 
 @router.post("/login", status_code=status.HTTP_200_OK)
-async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
     if not validate_email(form_data.username):
         raise HTTPException(
             status_code=400, 
@@ -63,7 +63,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
     return response
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-async def register(form_data: UserCreate, db: Session = Depends(get_db)):
+async def register(form_data: UserCreate, db: AsyncSession = Depends(get_db)):
     if not validate_email(form_data.username):
         raise HTTPException(
             status_code=400, 
@@ -119,7 +119,7 @@ async def login_google(request: Request):
     return await oauth.google.authorize_redirect(request, str(redirect_uri))
 
 @router.get("/callback/google")
-async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
+async def auth_google_callback(request: Request, db: AsyncSession = Depends(get_db)):
     token = await oauth.google.authorize_access_token(request)
     user_info = token.get('userinfo')
     
