@@ -16,6 +16,7 @@ services:
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
     ports:
       - 5000:3000
+    # Uncomment the following lines if you want to ensure that the users-api service waits for the postgres service to be healthy before starting. Note that this is not a perfect solution, as it only checks if the postgres container is running, not if the database is actually ready to accept connections. This is specifically useful if you are using a local postgres container. If you are using a managed database service like Supabase, you can omit this dependency.
     # depends_on:
     #   - "postgres"
     healthcheck:
@@ -25,23 +26,24 @@ services:
       retries: 3
     restart: ${RESTART_POLICY:-no}
 
-  postgres:
-    container_name: postgres-users-db
-    image: postgres:16-alpine
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB -h localhost -p 5432"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    restart: ${RESTART_POLICY:-no}
+  # If you want to run a local postgres container for development, you can uncomment the following service definition. Make sure to update the environment variables in the .env file accordingly. If you are using a managed database service like Supabase, you can omit this service definition.
+  # postgres:
+  #   container_name: postgres-users-db
+  #   image: postgres:16-alpine
+  #   ports:
+  #     - "${POSTGRES_PORT:-5432}:5432"
+  #   environment:
+  #     POSTGRES_USER: ${POSTGRES_USER}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #     POSTGRES_DB: ${POSTGRES_DB}
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB -h localhost -p 5432"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 3
+  #   restart: ${RESTART_POLICY:-no}
 
   langchain:
     container_name: langchain
@@ -139,8 +141,9 @@ services:
     depends_on:
       - standalone
 
-volumes:
-  postgres_data:
+# If you want to run a local postgres container for development, you can uncomment the following volume definition. This is specifically useful if you are using a local postgres container. If you are using a managed database service like Supabase, you can omit this volume definition. 
+# volumes:
+#   postgres_data:
 
 networks:
   default:
