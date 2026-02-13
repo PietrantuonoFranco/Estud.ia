@@ -207,7 +207,7 @@ async def read_notebooks_by_user_id(user_id: int, db: AsyncSession = Depends(get
     notebooks = await get_all_notebooks_by_user_id(db, user_id=user_id)
 
     if not notebooks:
-        raise HTTPException(status_code=404, detail="No se encontraron notebooks para este usuario")
+        return []
     
     return notebooks
 
