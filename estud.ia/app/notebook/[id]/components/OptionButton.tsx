@@ -2,6 +2,7 @@
 
 import { useOptionContext } from "../contexts/OptionContext"
 import { useNotification } from "@/app/contexts/NotificationContext";
+import { getPermissionErrorMessage } from "@/app/lib/utils/apiErrorMessage";
 
 interface OptionButtonProps {
   optionName: string;
@@ -24,7 +25,8 @@ export default function OptionButton({ optionName, icon: Icon, label, colorClass
         addNotification("Tarjetas creadas", "Las tarjetas didácticas se han creado exitosamente.", "success");
         setIsLoading(false);
       } catch (error) {
-        addNotification("Error", "Hubo un error al crear las tarjetas didácticas.", "error");
+        const permissionMessage = getPermissionErrorMessage(error);
+        addNotification("Error", permissionMessage ?? "Hubo un error al crear las tarjetas didácticas.", "error");
         setIsLoading(false);
       }
     } else if (optionName === "quiz") {
@@ -34,7 +36,8 @@ export default function OptionButton({ optionName, icon: Icon, label, colorClass
         addNotification("Cuestionario creado", "El cuestionario se ha creado exitosamente.", "success");
         setIsLoading(false);
       } catch (error) {
-        addNotification("Error", "Hubo un error al crear el cuestionario.", "error");
+        const permissionMessage = getPermissionErrorMessage(error);
+        addNotification("Error", permissionMessage ?? "Hubo un error al crear el cuestionario.", "error");
         setIsLoading(false);
       }
     }

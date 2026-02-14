@@ -8,6 +8,7 @@ import { useChatInformationContext } from "../contexts/ChatInformationContext";
 import { useNotification } from "@/app/contexts/NotificationContext";
 import { DeleteModal } from "@/app/components/modal/DeleteModal";
 import Source from "@/app/lib/interfaces/entities/Source";
+import { getPermissionErrorMessage } from "@/app/lib/utils/apiErrorMessage";
 
 
 interface SourcesPanelProps {
@@ -74,7 +75,8 @@ export default function SourcesPanel({ openPanel }: SourcesPanelProps) {
       addNotification("Éxito", "Archivos subidos exitosamente.", "success");
     } catch (error) {
       console.error("Error al subir el archivo:", error);
-      addNotification("Error", "Ocurrió un error al subir los archivos.", "error");
+      const permissionMessage = getPermissionErrorMessage(error);
+      addNotification("Error", permissionMessage ?? "Ocurrió un error al subir los archivos.", "error");
     }
   };
 
@@ -136,7 +138,8 @@ export default function SourcesPanel({ openPanel }: SourcesPanelProps) {
       addNotification("Éxito", "Fuentes eliminadas exitosamente.", "success");
     } catch (error) {
       console.error("Error deleting sources:", error);
-      addNotification("Error", "Ocurrió un error al eliminar las fuentes.", "error");
+      const permissionMessage = getPermissionErrorMessage(error);
+      addNotification("Error", permissionMessage ?? "Ocurrió un error al eliminar las fuentes.", "error");
     }
   }
 

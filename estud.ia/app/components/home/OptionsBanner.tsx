@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 
 import { useNotification } from "@/app/contexts/NotificationContext";
 import { createNotebook } from "../../lib/api/entities/NotebooksApi";
+import { getPermissionErrorMessage } from "@/app/lib/utils/apiErrorMessage";
 
 interface OptionsBannerProps {
   orderBy: "most-recently" | "title";
@@ -55,7 +56,8 @@ export default function OptionsBanner ({ orderBy, setOrderBy, viewMode, setViewM
     } catch (error) {
       console.error("Error al subir el archivo:", error);
       onUploadComplete?.();
-      addNotification("Error", "Ocurrió un error al crear el cuaderno.", "error");
+      const permissionMessage = getPermissionErrorMessage(error);
+      addNotification("Error", permissionMessage ?? "Ocurrió un error al crear el cuaderno.", "error");
     }
   };
   

@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import Notebook from "@/app/lib/interfaces/entities/Notebook";
 import { useNotification } from "@/app/contexts/NotificationContext";
 import { createNotebook, getAllNotebooks, getNotebooksByUser } from "../../lib/api/entities/NotebooksApi";
+import { getPermissionErrorMessage } from "@/app/lib/utils/apiErrorMessage";
 
 import { useAuth } from "../../contexts/AuthContext";
 import NotebooksGrid from "./NotebooksGrid";
@@ -86,7 +87,8 @@ export default function NotebooksContainer ({ orderBy, viewMode, onStartUpload, 
     } catch (error) {
       console.error("Error al subir el archivo:", error);
       onUploadComplete?.();
-      addNotification("Error", "Ocurrió un error al subir el archivo.", "error");
+      const permissionMessage = getPermissionErrorMessage(error);
+      addNotification("Error", permissionMessage ?? "Ocurrió un error al subir el archivo.", "error");
     }
   };
 
