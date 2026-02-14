@@ -7,6 +7,8 @@ from ..config import conf
 from ..database import get_db
 from ..schemas.source_schema import SourceCreate, SourceOut
 from ..schemas.notebook_schema import NotebookOut
+from ..security.auth import get_current_user
+from ..utils.validate_admin import validate_admin
 from ..crud.source_crud import (
     create_source as create_source_crud,
     get_source,
@@ -14,6 +16,7 @@ from ..crud.source_crud import (
     delete_source as delete_source_crud,
     get_notebook_by_source,
 )
+from ..crud.notebook_crud import get_notebook
 
 
 # Creamos el router para agrupar estas rutas
@@ -33,8 +36,19 @@ async def shutdown_event():
     await http_client.aclose()
 
 @router.post("/", response_model=SourceOut, status_code=status.HTTP_201_CREATED)
-async def create_source(source: SourceCreate, db: AsyncSession = Depends(get_db)):
+async def create_source(
+    source: SourceCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
     """Método para crear una nueva fuente (source)."""    
+    notebook = await get_notebook(db, notebook_id=source.notebook_id)
+    if not notebook:
+        raise HTTPException(status_code=404, detail="Notebook no encontrado")
+
+    if not validate_admin(current_user) and notebook.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="No tienes permiso para crear esta fuente")
+
     return await create_source_crud(db=db, source=source)
 
 
@@ -60,7 +74,8 @@ async def read_source(source_id: int, db: AsyncSession = Depends(get_db)):
 @router.delete("/delete-various", response_model=List[SourceOut], status_code=status.HTTP_200_OK)
 async def delete_various_sources(
     body: dict = Body(...),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
     """Método para eliminar varias fuentes (sources) por sus IDs."""
     pdf_ids = body.get("pdf_ids", [])
@@ -68,6 +83,14 @@ async def delete_various_sources(
     if not pdf_ids or not isinstance(pdf_ids, list):
         raise HTTPException(status_code=400, detail="pdf_ids must be a non-empty list")
     
+    for source_id in pdf_ids:
+        notebook = await get_notebook_by_source(db, source_id=source_id)
+        if not notebook:
+            raise HTTPException(status_code=404, detail="Notebook not found for this source")
+
+        if not validate_admin(current_user) and notebook.user_id != current_user.id:
+            raise HTTPException(status_code=403, detail="No tienes permiso para eliminar esta fuente")
+
     try:
         response = await http_client.post(
             f"{conf.LANGCHAIN_URI}/delete-pdfs",
@@ -103,12 +126,23 @@ async def delete_various_sources(
 
 
 @router.delete("/{source_id}", response_model=SourceOut, status_code=status.HTTP_200_OK)
-async def delete_source(source_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_source(
+    source_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
     """Método para eliminar una fuente (source) por su ID."""
     source = await get_source(db, source_id=source_id)
 
     if not source:
         raise HTTPException(status_code=404, detail="Fuente no encontrada")
+
+    notebook = await get_notebook_by_source(db, source_id=source_id)
+    if not notebook:
+        raise HTTPException(status_code=404, detail="Notebook not found for this source")
+
+    if not validate_admin(current_user) and notebook.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="No tienes permiso para eliminar esta fuente")
 
     pdf_ids = []
     pdf_ids.append(source_id)

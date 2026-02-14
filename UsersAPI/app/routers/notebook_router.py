@@ -13,6 +13,7 @@ from ..schemas.flashcard_schema import FlashcardCreate, FlashcardOut
 from ..schemas.quiz_schema import QuizWithQuestions, QuizCreate, QuestionCreate
 from ..models.source_model import Source
 from ..security.auth import get_current_user
+from ..utils.validate_admin import validate_admin
 from ..crud.source_crud import create_source, get_source, delete_source as delete_source_crud
 from ..crud.flashcard_crud import create_flashcard
 from ..crud.quiz_crud import create_quiz
@@ -177,7 +178,7 @@ async def delete_notebook(notebook_id: int, db: AsyncSession = Depends(get_db), 
     if not notebook:
         raise HTTPException(status_code=404, detail="Notebook no encontrado")
     
-    if notebook.user_id != current_user.id:
+    if notebook.user_id != current_user.id and not validate_admin(current_user):
         raise HTTPException(status_code=403, detail="No tienes permiso para eliminar este notebook")
     
     return await delete_notebook_crud(db, notebook_id=notebook_id)
@@ -200,7 +201,7 @@ async def read_sources_by_notebook_id(notebook_id: int, db: AsyncSession = Depen
 @router.get("/user/{user_id}", response_model=List[NotebookOut], status_code=status.HTTP_200_OK)
 async def read_notebooks_by_user_id(user_id: int, db: AsyncSession = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para obtener los notebooks asociados a un usuario específico."""
-    if user_id != current_user.id:
+    if user_id != current_user.id and not validate_admin(current_user):
         raise HTTPException(status_code=403, detail="No tienes permiso para ver los notebooks de este usuario")
     
     notebooks = await get_all_notebooks_by_user_id(db, user_id=user_id)
@@ -219,7 +220,7 @@ async def add_sources_to_notebook(notebook_id: int, files: List[UploadFile] = Fi
     if not notebook:
         raise HTTPException(status_code=404, detail="Notebook not found")
     
-    if notebook.user_id != current_user.id:
+    if notebook.user_id != current_user.id and not validate_admin(current_user):
         raise HTTPException(status_code=403, detail="No tienes permiso para agregar fuentes a este notebook")
     
     try:
@@ -319,7 +320,7 @@ async def add_flashcards_to_notebook(notebook_id: int, db: AsyncSession = Depend
         if not notebook:
             raise HTTPException(status_code=404, detail="Notebook not found")
         
-        if notebook.user_id != current_user.id:
+        if notebook.user_id != current_user.id and not validate_admin(current_user):
             raise HTTPException(status_code=403, detail="No tienes permiso para agregar flashcards a este notebook")
         
         print(f"Notebook found: {notebook.title}, source_ids: {[source.id for source in notebook.sources]}")
@@ -387,7 +388,7 @@ async def add_quiz_to_notebook(notebook_id: int, db: AsyncSession = Depends(get_
         if not notebook:
             raise HTTPException(status_code=404, detail="Notebook not found")
         
-        if notebook.user_id != current_user.id:
+        if notebook.user_id != current_user.id and not validate_admin(current_user):
             raise HTTPException(status_code=403, detail="No tienes permiso para agregar un quiz a este notebook")
         
         if not notebook.sources or len(notebook.sources) == 0:
@@ -488,7 +489,7 @@ async def delete_various_sources(
     if not notebook:
         raise HTTPException(status_code=404, detail="Notebook not found")
         
-    if notebook.user_id != current_user.id:
+    if notebook.user_id != current_user.id and not validate_admin(current_user):
         raise HTTPException(status_code=403, detail="No tienes permiso para eliminar fuentes de este notebook")
 
     pdf_ids = body.get("pdf_ids", [])

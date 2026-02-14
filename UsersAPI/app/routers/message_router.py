@@ -8,6 +8,7 @@ from ..config import conf
 from ..database import get_db
 from ..schemas.message_schema import MessageCreate, MessageOut
 from ..security.auth import get_current_user
+from ..utils.validate_admin import validate_admin
 from ..crud.notebook_crud import get_notebook
 from ..crud.message_crud import (
     create_message,
@@ -37,11 +38,28 @@ async def shutdown_event():
 @router.post("/", response_model=MessageOut, status_code=status.HTTP_201_CREATED)
 async def create_message_endpoint(message: MessageCreate, db: AsyncSession = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para crear un nuevo mensaje."""
+    notebook = await get_notebook(db, notebook_id=message.notebook_id)
+    if not notebook:
+        raise HTTPException(status_code=404, detail="Notebook not found")
+
+    if not validate_admin(current_user) and notebook.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="No tienes permiso para crear este mensaje")
+
+    if not validate_admin(current_user) and message.notebook_users_id != current_user.id:
+        raise HTTPException(status_code=403, detail="No tienes permiso para crear este mensaje")
+
     return await create_message(db=db, message=message)
 
 @router.post("/user", response_model=MessageOut, status_code=status.HTTP_201_CREATED)
 async def create_user_message(message: MessageRequest, db: AsyncSession = Depends(get_db), current_user=Depends(get_current_user)):
     """Método para crear un mensaje enviado por el usuario."""
+    notebook = await get_notebook(db, notebook_id=message.notebook_id)
+    if not notebook:
+        raise HTTPException(status_code=404, detail="Notebook not found")
+
+    if not validate_admin(current_user) and notebook.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="No tienes permiso para crear este mensaje")
+
     message_data = message.dict()
     message_data['is_user_message'] = True
     message_data['text'] = message.text
@@ -62,6 +80,9 @@ async def create_llm_message(message: MessageRequest
     notebook = await get_notebook(db, notebook_id=message.notebook_id)
     if not notebook:
         raise HTTPException(status_code=404, detail="Notebook not found")
+
+    if not validate_admin(current_user) and notebook.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="No tienes permiso para crear este mensaje")
     
     message_data['notebook_id'] = message.notebook_id
     message_data['notebook_users_id'] = current_user.id
@@ -117,6 +138,9 @@ async def delete_message_endpoint(message_id: int, db: AsyncSession = Depends(ge
     
     if not message:
         raise HTTPException(status_code=404, detail="Message not found")
+
+    if not validate_admin(current_user) and message.notebook_users_id != current_user.id:
+        raise HTTPException(status_code=403, detail="No tienes permiso para eliminar este mensaje")
     
     return await delete_message(db, message_id=message_id)
 

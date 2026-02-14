@@ -4,6 +4,8 @@ from typing import List
 
 from ..database import get_db
 from ..schemas.user_schema import UserCreate, UserOut
+from ..security.auth import get_current_user
+from ..utils.validate_admin import validate_admin
 from ..crud.user_crud import (
     create_user as create_user_crud,
     get_user,
@@ -52,10 +54,18 @@ async def read_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
 
 # RUTA 5: Eliminar un usuario por ID (DELETE)
 @router.delete("/{user_id}", response_model=UserOut, status_code=status.HTTP_200_OK)
-async def delete_user(user_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_user(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
     user = await get_user(db, user_id=user_id)
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    if not validate_admin(current_user) and current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="No tienes permiso para eliminar este usuario")
+
     db.delete(user)
     db.commit()
     return user

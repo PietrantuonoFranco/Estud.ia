@@ -4,6 +4,7 @@ from fastapi import HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import joinedload
 
 from ..config import conf
 from ..models.user_model import User
@@ -41,7 +42,7 @@ async def verify_token(token: str, db: AsyncSession):
         raise credentials_exception
 
     # 2. Buscar al usuario en la DB para asegurar que sigue activo/existe
-    query = select(User).filter(User.email == email)
+    query = select(User).options(joinedload(User.role)).filter(User.email == email)
     result = await db.execute(query)
     user = result.scalars().first()
     
