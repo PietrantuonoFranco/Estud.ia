@@ -2,6 +2,8 @@ from pydantic import BaseModel, EmailStr, HttpUrl
 from typing import Optional
 from datetime import datetime
 
+from .role_schema import RoleOut
+
 # --- SCHEMAS DE USUARIO ---
 
 class UserBase(BaseModel):
@@ -15,6 +17,8 @@ class UserCreate(UserBase):
 
 class UserOut(UserBase):
     id: int
+    role_id: int
+    role: Optional[RoleOut] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

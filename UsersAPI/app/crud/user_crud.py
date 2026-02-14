@@ -9,18 +9,22 @@ from ..schemas.notebook_schema import NotebookCreate
 
 from ..models.user_model import User
 from ..models.notebook_model import Notebook
+from ..crud.role_crud import get_or_create_role
 
 
 async def create_user(db: AsyncSession, user: UserCreate):
     # Encriptamos la contraseña antes de crear el objeto del modelo
     hashed_pwd = hash_password(user.password)
+
+    default_role = await get_or_create_role(db, "user")
     
     db_user = User(
         email=user.email,
         name=user.name,
         lastname=user.lastname,
         password=hashed_pwd, # Guardamos el hash, no la clave real
-        profile_image_url=str(user.profile_image_url) if user.profile_image_url else None
+        profile_image_url=str(user.profile_image_url) if user.profile_image_url else None,
+        role_id=default_role.id
     )
     db.add(db_user)
     await db.commit()
@@ -35,6 +39,8 @@ async def create_user_from_google(db: AsyncSession, user_info: dict):
     first_name = user_info.get('given_name', full_name.split()[0] if full_name else 'Google')
     last_name = user_info.get('family_name', full_name.split()[-1] if len(full_name.split()) > 1 else 'User')
 
+    default_role = await get_or_create_role(db, "user")
+
     new_user = User(
         email=user_info['email'],
         name=first_name,
@@ -42,7 +48,8 @@ async def create_user_from_google(db: AsyncSession, user_info: dict):
         # Como tu DB no permite password nulo, generamos una cadena aleatoria
         # Esto evita que alguien pueda "adivinar" la contraseña de una cuenta de Google
         password=f"oauth_{secrets.token_hex(16)}", 
-        profile_image_url=user_info.get('picture')
+        profile_image_url=user_info.get('picture'),
+        role_id=default_role.id
     )
     
     db.add(new_user)

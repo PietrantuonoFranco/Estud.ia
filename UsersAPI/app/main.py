@@ -19,6 +19,7 @@ from .routers.quiz_router import router as quizzes_router
 
 # Models
 from .models.user_model import User
+from .models.role_model import Role
 from .models.notebook_model import Notebook
 from .models.source_model import Source
 from .models.message_model import Message

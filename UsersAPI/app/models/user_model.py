@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, func
+from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey
 from sqlalchemy.orm import relationship
 from ..database import Base
 
@@ -13,6 +13,8 @@ class User(Base):
     profile_image_url = Column(String(255))
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    role_id = Column(Integer, ForeignKey("roles.id"), nullable=False)
 
     # Relación: Un usuario puede tener varios notebooks
     notebooks = relationship("Notebook", back_populates="owner")
+    role = relationship("Role", back_populates="users")
