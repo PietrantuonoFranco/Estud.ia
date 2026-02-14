@@ -1,12 +1,13 @@
 "use client"
 
-import { Check, LayoutGrid, StretchHorizontal, ChevronDown, Plus } from "lucide-react";
+import { Check, LayoutGrid, StretchHorizontal, ArrowUpDown, ChevronDown, Plus } from "lucide-react";
 import { useState } from "react"
 import { useRouter } from 'next/navigation';
 
 import { useNotification } from "@/app/contexts/NotificationContext";
 import { createNotebook } from "../../lib/api/entities/NotebooksApi";
 import { getPermissionErrorMessage } from "@/app/lib/utils/apiErrorMessage";
+import { getOrderByLabel } from "@/app/lib/utils/orderByLabel";
 
 interface OptionsBannerProps {
   orderBy: "most-recently" | "title";
@@ -62,25 +63,33 @@ export default function OptionsBanner ({ orderBy, setOrderBy, viewMode, setViewM
   };
   
   return (
-    <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-      <div className="flex items-center justify-between md:justify-start gap-2">
-        <div className="flex items-center rounded-full">
+    <div className="mt-2 w-full flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex items-center gap-2">
+        <div className="flex items-center rounded-lg bg-card p-1 gap-2 border border-muted">
           <button
             type="button"
             onClick={() => setViewMode("grid")}
-            className="cursor-pointer flex items-center gap-2 py-3 px-6 md:py-4 md:px-8 rounded-l-full hover:bg-[var(--hover-bg)] bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]"
+            className={`${
+              viewMode === "grid" ?
+                "bg-[var(--primary-accent)]/10 text-[var(--primary)]"
+              :
+                "text-secondary-foreground"
+              } cursor-pointer flex items-center p-2.5 rounded-md hover:bg-[var(--hover-bg)]`}
           >
-            <Check className={`${ viewMode === "grid" ? "h-4 w-4" : "hidden" }`} strokeWidth={2.5}/>
-            <LayoutGrid className="h-4 w-4" strokeWidth={2.5}/>
+            <LayoutGrid className="h-4 w-4" strokeWidth={2}/>
           </button>
           
           <button
             type="button"
             onClick={() => setViewMode("list")}
-            className="cursor-pointer flex items-center gap-2 py-3 px-6 md:py-4 md:px-8 rounded-r-full hover:bg-[var(--hover-bg)] bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]"
+            className={`${
+              viewMode === "list" ?
+                "bg-[var(--primary-accent)]/10 text-[var(--primary)]"
+              :
+                "text-secondary-foreground" 
+            } cursor-pointer flex items-center p-2.5 rounded-md hover:bg-[var(--hover-bg)]`}
           >
-            <Check className={`${ viewMode === "list" ? "h-4 w-4" : "hidden" }`} strokeWidth={3}/>
-            <StretchHorizontal className="h-4 w-4" strokeWidth={2.5}/>
+            <StretchHorizontal className="h-4 w-4" strokeWidth={2}/>
           </button>
         </div>
 
@@ -88,18 +97,21 @@ export default function OptionsBanner ({ orderBy, setOrderBy, viewMode, setViewM
           <button
             type="button"
             onClick={() => setOpenOrderByMenu(!openOrderByMenu)}
-            className="w-full flex justify-center items-center cursor-pointer py-2 px-4 md:py-3 md:px-6 flex items-center gap-2 rounded-full bg-[var(--hover-bg)] hover:bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]"
+            className="flex justify-between items-center cursor-pointer border border-muted py-2.5 px-4 gap-2 rounded-lg bg-card hover:bg-hover-bg text-[var(--primary)]"
           >
-            <span>Ordenar por</span>
-            <ChevronDown className={`h-4 w-4 ${ openOrderByMenu ? "rotate-180" : "rotate-0"} transition-all duration-300`} strokeWidth={3}/>
+            <div className="flex items-center gap-2">
+              <ArrowUpDown className="h-4 w-4"/>
+              <span className="whitespace-nowrap min-w-0">{getOrderByLabel(orderBy)}</span>
+            </div>
+            <ChevronDown className={`h-3 w-3 ${ openOrderByMenu ? "rotate-180" : "rotate-0"} transition-all duration-300`} strokeWidth={3}/>
           </button>
 
           {openOrderByMenu && (
-            <div className="absolute w-full rounded-3xl py-2 flex flex-col items-center gap-2 bg-[var(--hover-bg)] text-[var(--purple-accent)] top-14 left-1/2 -translate-x-1/2 z-10">
+            <div className="absolute w-full md:w-auto rounded-lg p-2 flex flex-col items-center gap-2 border border-muted bg-card text-secondary-foreground top-14 left-0 z-10">
               <button
                 type="button"
                 onClick={() => setOrderBy("most-recently")}
-                className="cursor-pointer px-4 py-2 rounded-full hover:bg-[var(--purple-accent)]/10"
+                className="cursor-pointer whitespace-nowrap w-full p-2 rounded-md hover:bg-hover-bg"
               >
                 Más reciente
               </button>
@@ -107,7 +119,7 @@ export default function OptionsBanner ({ orderBy, setOrderBy, viewMode, setViewM
               <button
                 type="button"
                 onClick={() => setOrderBy("title")}
-                className="cursor-pointer px-4 py-2 rounded-full hover:bg-[var(--purple-accent)]/10"
+                className="cursor-pointer w-full py-2 rounded-md hover:bg-hover-bg"
               >
                 Título
               </button>
@@ -116,9 +128,9 @@ export default function OptionsBanner ({ orderBy, setOrderBy, viewMode, setViewM
         </div>
       </div>
 
-      <div className="text-sm text-black font-semibold flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-[var(--purple-accent)] to-[var(--sidebar-border)] to-[var(--purple-accent)] hover:bg-gradient-to-br hover:from-[var(--sidebar-border)] to-[var(--purple-accent)]  transition-all duration-300 ease-in-out cursor-pointer">
+      <div className="text-sm text-black font-semibold flex items-center justify-center rounded-md bg-gradient-to-br from-primary-accent to-primary/90 shadow-primary/20 hover:bg-gradient-to-br hover:from-primary-accent hover:to-primary hover:shadow-lg transition-all duration-200 ease-in-out cursor-pointer">
         <input type="file" multiple accept="application/pdf" className="hidden" id="file-upload-banner" onChange={handleFilesChange} />
-        <label htmlFor="file-upload-banner" className="cursor-pointer rounded-full h-full w-full py-2.5 px-4 md:py-3 md:px-6 text-sm flex items-center justify-center gap-2">
+        <label htmlFor="file-upload-banner" className="cursor-pointer rounded-full h-full w-full py-3 px-4 text-sm flex items-center justify-center gap-2">
           <Plus className="h-4 w-4" strokeWidth={3}/>
           <span className="font-semibold">Crear cuaderno</span>
         </label>

@@ -22,7 +22,7 @@ export default function NotebooksGrid({ notebooks, viewMode }: NotebooksGridProp
                 ? "justify-between md:h-48 bg-gradient-to-bl" 
                 : "flex-row md:items-center gap-4 bg-gradient-to-l"
             }
-            from-transparent to-purple-700/15 transition-colors hover:bg-card/80 duration-300
+            from-primary/1 to-primary/4 border border-0.5 border-primary/10 transition-colors hover:bg-card/80 duration-300
           `}
         >
           <div className={`flex items-start ${
