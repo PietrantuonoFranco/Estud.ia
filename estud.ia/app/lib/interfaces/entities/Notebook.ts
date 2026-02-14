@@ -9,7 +9,8 @@ export default interface Notebook {
   title: string
   description: string
   icon: string
-  date: string
+  created_at?: string | null
+  updated_at?: string | null
 
   messages: Message[]
   summaries: Summary[]

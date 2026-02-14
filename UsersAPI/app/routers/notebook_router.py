@@ -123,7 +123,6 @@ async def create_notebook(files: List[UploadFile], db: AsyncSession = Depends(ge
             title=title,
             icon=icon,
             description=description,
-            date=date.datetime.now().date(),
             user_id=current_user.id
         )
 

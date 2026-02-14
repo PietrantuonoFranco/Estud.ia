@@ -6,4 +6,6 @@ export default interface QuestionsAndAnswers {
     incorrect_answer_2: string;
     incorrect_answer_3: string;
     quiz_id: number;
+    created_at?: string | null;
+    updated_at?: string | null;
 }

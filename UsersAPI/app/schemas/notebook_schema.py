@@ -13,7 +13,6 @@ class NotebookBase(BaseModel):
     title: str
     icon: str
     description: str
-    date: datetime = Field(default_factory=datetime.now)
 
 class NotebookCreate(NotebookBase):
     user_id: int

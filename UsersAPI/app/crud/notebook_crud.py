@@ -15,12 +15,11 @@ async def create_notebook(db: AsyncSession, notebook: NotebookCreate):
         title=notebook.title,
         icon=notebook.icon,
         description=notebook.description,
-        date=notebook.date,
         user_id=notebook.user_id,
     )
 
     db.add(db_notebook)
-    await db.commit() # ¡Obligatorio el await!
+    await db.commit()
     await db.refresh(db_notebook)
     return db_notebook
 

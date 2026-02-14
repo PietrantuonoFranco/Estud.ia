@@ -3,4 +3,6 @@ export default interface Flashcard {
   notebook_id: number;
   question: string;
   answer: string;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
