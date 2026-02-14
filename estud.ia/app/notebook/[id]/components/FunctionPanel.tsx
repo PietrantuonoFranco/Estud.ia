@@ -92,7 +92,7 @@ export default function StudioPanel({ openPanel }: StudioPanelProps) {
       </div>
 
       <div className="w-full border-t border-border p-4">
-        <button className={`text-sm text-black font-semibold w-full flex items-center justify-center gap-2 bg-gradient-to-br from-[var(--purple-accent)] to-[var(--sidebar-border)] hover:from-[var(--purple-accent)] hover:to-[var(--sidebar-border)]/85 hover:shadow-lg transition-all duration-300 ease-in-out cursor-pointer ${ openPanel ? "py-3 px-6  rounded-full" : "p-3  rounded-lg"}`}>
+        <button className={`text-sm text-black font-semibold w-full flex items-center justify-center gap-2 rounded-md bg-gradient-to-br from-primary-accent to-primary/90 shadow-primary/20 hover:bg-gradient-to-br hover:from-primary-accent hover:to-primary hover:shadow-lg transition-all duration-200 ease-in-out cursor-pointer ${ openPanel ? "py-3 px-6" : "p-3"}`}>
           <StickyNote  className="h-4 w-4" strokeWidth={2.5}/>
           <span className={`${ openPanel ? "" : "hidden" }`}>Agregar nota</span>
         </button>
