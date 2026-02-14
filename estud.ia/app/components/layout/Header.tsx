@@ -64,7 +64,7 @@ export default function Header() {
               )}
             </div>
     
-            <div className="text-muted-foreground rounded-full py-1 px-3 bg-card">{user.name} {user.lastname}</div>
+            <div className="text-muted-foreground text-sm rounded-full py-1 px-3 bg-card">{user.name} {user.lastname}</div>
 
             <button
               type="button"
