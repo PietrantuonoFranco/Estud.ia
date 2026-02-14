@@ -54,25 +54,23 @@ export default function Header() {
       <div className="w-full hidden sm:flex items-center justify-end">
         {user && (
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleSettings}          
-              className="cursor-pointer flex items-center gap-2 py-1.5 px-4 rounded-full hover:bg-[var(--hover-bg)] bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]"
-            >
-              <Settings className="h-4 w-4" />
-              <span>Configuración</span>
-            </button>
-          
             <div className="ml-6 h-8 w-8">
               <Image src={user.profile_image_url || "/user-avatar.png"} alt="User Avatar" width={32} height={32} className="rounded-full" />
             </div>
     
-            <div className="text-muted-foreground rounded-full py-1.5 px-4 bg-card">{user.name} {user.lastname}</div>
+            <div className="text-muted-foreground rounded-full py-1 px-3 bg-[var(--hover-bg)]">{user.name} {user.lastname}</div>
 
             <button
               type="button"
+              onClick={handleSettings}          
+              className="cursor-pointer flex items-center gap-2 p-1.5 rounded-full hover:bg-[var(--hover-bg)] bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]"
+            >
+              <Settings className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
               onClick={handleLogout}
-                className="cursor-pointer py-2.5 px-2.75 rounded-full hover:bg-[var(--hover-bg)] bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]"
+                className="cursor-pointer p-1.5 rounded-full hover:bg-[var(--hover-bg)] bg-card text-[var(--purple-accent)]"
               >
               <LogOut className="h-4 w-4" strokeWidth={2.5}/>
             </button>
