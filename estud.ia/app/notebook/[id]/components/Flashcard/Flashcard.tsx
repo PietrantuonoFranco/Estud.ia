@@ -56,7 +56,7 @@ export function Flashcard({ cards, className }: FlashcardProps) {
         >
           {/* Frente - Pregunta */}
           <div
-            className="absolute inset-0 flex items-center justify-center rounded-lg border-2 border-primary bg-card p-8 backface-hidden"
+            className="absolute inset-0 flex items-center justify-center rounded-lg border-2 border-primary shadow-primary/20 hover:shadow-lg bg-card p-8 backface-hidden"
             style={{ backfaceVisibility: "hidden" }}
           >
             <div className="text-center">
@@ -67,7 +67,7 @@ export function Flashcard({ cards, className }: FlashcardProps) {
 
           {/* Reverso - Respuesta */}
           <div
-            className="absolute inset-0 flex items-center justify-center rounded-lg border-2 border-primary bg-primary p-8 backface-hidden"
+            className="absolute inset-0 flex items-center justify-center rounded-lg border-2 border-primary p-8 backface-hidden bg-gradient-to-br from-primary-accent/50 to-primary/50 shadow-primary/20 hover:bg-gradient-to-br hover:from-primary-accent/52 hover:to-primary/52 hover:shadow-lg transition-all duration-200 ease-in-out cursor-pointer"
             style={{
               backfaceVisibility: "hidden",
               transform: "rotateY(180deg)",
