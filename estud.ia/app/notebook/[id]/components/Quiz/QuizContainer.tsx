@@ -19,7 +19,7 @@ interface QuizContainerProps {
 }
 
 export default function QuizContainer({ 
-  questions = sampleQuestions,
+  questions = [],
   quizTitle = "Quiz", 
   onQuizComplete 
 }: QuizContainerProps) {

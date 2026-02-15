@@ -41,8 +41,8 @@ export default function NotebooksContainer ({ orderBy, viewMode, onStartUpload, 
     }
 
     return copy.sort((a, b) => {
-      const dateA = new Date(a.created_at);
-      const dateB = new Date(b.created_at);
+      const dateA = new Date(a.created_at ?? 0);
+      const dateB = new Date(b.created_at ?? 0);
       return dateB.getTime() - dateA.getTime();
     });
   };

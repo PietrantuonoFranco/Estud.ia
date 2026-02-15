@@ -1,12 +1,10 @@
-import { BookOpen } from "lucide-react"
-
 import "./flashcard.css";
 import { Flashcard } from "./Flashcard"
 import { useChatInformationContext } from "../../contexts/ChatInformationContext";
 import { useOptionContext } from "../../contexts/OptionContext";
 
 export default function FlashcardContainer() {
-  const { notebook, flashcards } = useChatInformationContext();
+  const { notebook } = useChatInformationContext();
   const { isLoading } = useOptionContext();
 
   return (

@@ -51,7 +51,7 @@ export default function NotebooksGrid({ notebooks, viewMode }: NotebooksGridProp
           <div>
             <h3 className={`text-sm xl:text-lg font-medium text-foreground ${viewMode === "grid" ? "mb-2" : "mb-1"}`}>{notebook.title}</h3>
             <p className="text-xs xl:text-sm text-foreground">
-              {notebook.sources.length === 1 ? "1 fuente" : `${notebook.sources.length} fuentes`} · {formatRelativeDate(notebook.created_at)}
+              {notebook.sources.length === 1 ? "1 fuente" : `${notebook.sources.length} fuentes`} · {formatRelativeDate(notebook.created_at ?? new Date().toISOString())}
             </p>
           </div>
         </Link>
