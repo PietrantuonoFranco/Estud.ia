@@ -33,6 +33,16 @@ export default function OptionsBanner ({ orderBy, setOrderBy, viewMode, setViewM
         console.error("No se seleccionó ningún archivo");
         return;
       }
+
+      // Validar que el tamaño total no exceda 2MB
+      const totalSize = Array.from(files).reduce((acc, file) => acc + file.size, 0);
+      const maxSize = 2 * 1024 * 1024; // 2MB en bytes
+      
+      if (totalSize > maxSize) {
+        onUploadComplete?.();
+        addNotification("Error", "El tamaño total de los archivos no puede exceder 2MB.", "error");
+        return;
+      }
       
       onProgressUpdate?.(30);
       
