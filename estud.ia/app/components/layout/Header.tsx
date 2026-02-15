@@ -53,18 +53,18 @@ export default function Header() {
 
       <div className="w-full hidden sm:flex items-center justify-end">
         {user && (
-          <div className="flex items-center gap-2">
-            <div className="ml-6 h-8 w-8">
+          <div className="flex items-center gap-1">
+            <div className="ml-6 h-10 w-10">
               {user.profile_image_url !== null ? (
-              <Image src={user.profile_image_url || "/user-avatar.png"} alt="User Avatar" width={32} height={32} className="rounded-full" />
+                <Image src={user.profile_image_url || "/user-avatar.png"} alt="User Avatar" width={32} height={32} className="rounded-full" />
               ) : (
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-accent/10 text-sm text-primary font-semibold">
-                  {user.name.charAt(0).toUpperCase()}
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-accent/10 text-sm text-primary font-semibold">
+                  {user.name.charAt(0).toUpperCase()}{user.lastname.charAt(0).toUpperCase()}
                 </div>
               )}
             </div>
     
-            <div className="text-muted-foreground text-sm rounded-full py-1 px-3 bg-card">{user.name} {user.lastname}</div>
+            <div className="text-foreground text-sm font-semibold mr-2">{user.name} {user.lastname}</div>
 
             <button
               type="button"
@@ -108,7 +108,13 @@ export default function Header() {
             <div className="">
               <div className="px-4 py-2 mb-2 w-full flex items-center gap-2 bg-[var(--hover-bg)] rounded-t-lg">
                 <div className="">
-                  <Image src={user.profile_image_url || "/user-avatar.png"} alt="User Avatar" width={40} height={40} className="rounded-full" />
+                  {user.profile_image_url !== null ? (
+                    <Image src={user.profile_image_url || "/user-avatar.png"} alt="User Avatar" width={40} height={40} className="rounded-full" />
+                  ) : (
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-accent/10 text-sm text-primary font-semibold">
+                      {user.name.charAt(0).toUpperCase()}{user.lastname.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                 </div>
         
                 <div className="text-muted-foreground text-sm rounded-full">{user.name} {user.lastname}</div>
