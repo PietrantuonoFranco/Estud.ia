@@ -103,7 +103,7 @@ export default function QuizContainer({
 
               <button 
                 onClick={handleRestart} 
-                className="w-full text-sm text-black font-semibold flex items-center justify-center gap-2 bg-gradient-to-br from-[var(--purple-accent)] to-[var(--sidebar-border)] hover:from-[var(--purple-accent)] hover:to-[var(--sidebar-border)]/85 py-3 px-6 rounded-full transition-all duration-300 ease-in-out cursor-pointer hover:shadow-lg"
+                className="w-full text-sm text-black font-semibold flex items-center justify-center gap-2 py-3 px-6 rounded-md bg-gradient-to-br from-primary-accent to-primary/90 shadow-primary/20 hover:bg-gradient-to-br hover:from-primary-accent hover:to-primary hover:shadow-lg transition-all duration-200 ease-in-out cursor-pointer"
               >
                 <RotateCcw className="w-4 h-4" strokeWidth={2.5} />
                 Reiniciar Quiz
@@ -175,10 +175,10 @@ export default function QuizContainer({
                 />
 
                 {answeredCurrent && (
-                    <div className="flex justify-end">
+                  <div className="w-full max-w-2xl mx-auto flex justify-end">
                     <button 
                         onClick={handleNextQuestion}
-                        className="text-sm text-black font-semibold flex items-center justify-center gap-2 bg-gradient-to-br from-[var(--purple-accent)] to-[var(--sidebar-border)] hover:from-[var(--purple-accent)] hover:to-[var(--sidebar-border)]/85 py-3 px-6 rounded-full transition-all duration-300 ease-in-out cursor-pointer hover:shadow-lg"
+                        className="text-sm text-black font-semibold flex items-center justify-center gap-2 py-3 px-6 rounded-md bg-gradient-to-br from-primary-accent to-primary/90 shadow-primary/20 hover:bg-gradient-to-br hover:from-primary-accent hover:to-primary hover:shadow-lg transition-all duration-200 ease-in-out cursor-pointer"
                     >
                         {currentIndex < totalQuestions - 1 ? (
                         <>
@@ -189,7 +189,7 @@ export default function QuizContainer({
                         "Ver Resultados"
                         )}
                     </button>
-                    </div>
+                  </div>
                 )}
 
                 <div className="flex justify-center gap-2 pt-2">
