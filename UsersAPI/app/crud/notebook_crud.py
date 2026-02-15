@@ -7,9 +7,26 @@ from ..models.source_model import Source
 from ..models.notebook_model import Notebook
 from ..models.quiz_model import Quiz
 
+# --- FUNCIONES AUXILIARES ---
+
+async def _load_notebook_with_relations(db: AsyncSession, notebook_id: int):
+    """Función auxiliar para cargar un notebook con todas sus relaciones eagerly."""
+    query = (
+        select(Notebook)
+        .options(
+            joinedload(Notebook.messages),
+            joinedload(Notebook.sources),
+            joinedload(Notebook.flashcards),
+            joinedload(Notebook.quizzes),
+        )
+        .filter(Notebook.id == notebook_id)
+    )
+    result = await db.execute(query)
+    return result.unique().scalars().first()
+
 # --- OPERACIONES DE NOTEBOOKS ---
 
-async def create_notebook(db: AsyncSession, notebook: NotebookCreate):
+async def create_notebook(db: AsyncSession, notebook: NotebookCreate, auto_commit: bool = True):
     """Crea un nuevo notebook en la base de datos de forma asíncrona."""
     db_notebook = Notebook(
         title=notebook.title,
@@ -19,8 +36,11 @@ async def create_notebook(db: AsyncSession, notebook: NotebookCreate):
     )
 
     db.add(db_notebook)
-    await db.commit()
-    await db.refresh(db_notebook)
+    await db.flush()  # Genera el ID sin hacer commit
+    await db.refresh(db_notebook)  # Obtiene el ID generado
+    
+    if auto_commit:
+        await db.commit()
     return db_notebook
 
 async def get_all_notebooks(db: AsyncSession, skip: int = 0, limit: int = 10):

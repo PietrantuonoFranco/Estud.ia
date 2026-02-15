@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import joinedload
 from typing import List
 import httpx
 import datetime as date
@@ -12,6 +13,10 @@ from ..schemas.source_schema import SourceOut, SourceCreate
 from ..schemas.flashcard_schema import FlashcardCreate, FlashcardOut
 from ..schemas.quiz_schema import QuizWithQuestions, QuizCreate, QuestionCreate
 from ..models.source_model import Source
+from ..models.message_model import Message
+from ..models.flashcard_model import Flashcard
+from ..models.quiz_model import Quiz
+from ..models.notebook_model import Notebook
 from ..security.auth import get_current_user
 from ..utils.validate_admin import validate_admin
 from ..crud.source_crud import create_source, get_source, delete_source as delete_source_crud
@@ -24,6 +29,7 @@ from ..crud.notebook_crud import (
     delete_notebook as delete_notebook_crud,
     get_all_sources_by_notebook_id,
     get_all_notebooks_by_user_id,
+    _load_notebook_with_relations,
 )
 
 # Creamos el router para agrupar estas rutas
@@ -65,7 +71,7 @@ async def create_notebook(files: List[UploadFile], db: AsyncSession = Depends(ge
                 notebook_id=None
             )
 
-            new_file = await create_source(db=db, source=source_data)
+            new_file = await create_source(db=db, source=source_data, auto_commit=False)
             source_ids.append(new_file.id)
 
         # Preparar TODO en una sola lista para el parámetro files
@@ -92,9 +98,9 @@ async def create_notebook(files: List[UploadFile], db: AsyncSession = Depends(ge
             try:
                 for source_id in source_ids:
                     await delete_source_crud(db, source_id=source_id)
-                db.commit()
-            finally:
-                pass
+                await db.commit()
+            except Exception:
+                await db.rollback()
             print(f"HTTPStatusError: {e.response.status_code} - {e.response.text}")
             raise HTTPException(status_code=e.response.status_code, detail=f"Error en servicio externo de Langchain: {e.response.text}")
         
@@ -103,9 +109,9 @@ async def create_notebook(files: List[UploadFile], db: AsyncSession = Depends(ge
             try:
                 for source_id in source_ids:
                     await delete_source_crud(db, source_id=source_id)
-                db.commit()
-            finally:
-                pass
+                await db.commit()
+            except Exception:
+                await db.rollback()
             print(f"Connection Error: {str(e)}")
             import traceback
             traceback.print_exc()
@@ -128,7 +134,7 @@ async def create_notebook(files: List[UploadFile], db: AsyncSession = Depends(ge
         )
 
         # 5. Crear en base de datos local
-        new_notebook = await create_notebook_crud(db=db, notebook=notebook_data)
+        new_notebook = await create_notebook_crud(db=db, notebook=notebook_data, auto_commit=False)
 
 
         # 6. Asociar las fuentes (sources) al notebook creado
@@ -141,8 +147,8 @@ async def create_notebook(files: List[UploadFile], db: AsyncSession = Depends(ge
                 db.add(source)
         await db.commit()
         
-        # Recargar el notebook con todas sus relaciones
-        await db.refresh(new_notebook)
+        # 7. Cargar el notebook con todas sus relaciones
+        new_notebook = await _load_notebook_with_relations(db, new_notebook.id)
         
         return new_notebook
         
@@ -163,7 +169,7 @@ async def read_notebooks(skip: int = 0, limit: int = 10, db: AsyncSession = Depe
 @router.get("/{notebook_id}", response_model=NotebookOut, status_code=status.HTTP_200_OK)
 async def read_notebook(notebook_id: int, db: AsyncSession = Depends(get_db)):
     """Método para obtener un notebook por su ID."""
-    notebook = await get_notebook_crud(db, notebook_id=notebook_id)
+    notebook = await _load_notebook_with_relations(db, notebook_id)
 
     if not notebook:
         raise HTTPException(status_code=404, detail="Notebook no encontrado")
@@ -241,7 +247,7 @@ async def add_sources_to_notebook(notebook_id: int, files: List[UploadFile] = Fi
                 notebook_id=None
             )
 
-            new_file = await create_source(db=db, source=source_data)
+            new_file = await create_source(db=db, source=source_data, auto_commit=False)
             source_ids.append(new_file.id)
 
         # Preparar TODO en una sola lista para el parámetro files
@@ -299,8 +305,8 @@ async def add_sources_to_notebook(notebook_id: int, files: List[UploadFile] = Fi
 
         await db.commit()
         
-        # Recargar el notebook con todas sus relaciones
-        await db.refresh(notebook)
+        # Cargar el notebook con todas sus relaciones
+        notebook = await _load_notebook_with_relations(db, notebook.id)
         
         return notebook
         

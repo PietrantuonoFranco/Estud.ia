@@ -6,7 +6,7 @@ from ..models.source_model import Source
 from ..models.notebook_model import Notebook
 
 
-async def create_source(db: AsyncSession, source: SourceCreate):
+async def create_source(db: AsyncSession, source: SourceCreate, auto_commit: bool = True):
     """Crea una nueva fuente (source) en la base de datos."""
     db_source = Source(
         name=source.name,
@@ -14,8 +14,11 @@ async def create_source(db: AsyncSession, source: SourceCreate):
     )
 
     db.add(db_source)
-    await db.commit()
-    await db.refresh(db_source)
+    await db.flush()  # Genera el ID sin hacer commit
+    await db.refresh(db_source)  # Obtiene el ID generado
+    
+    if auto_commit:
+        await db.commit()
 
     return db_source
 
