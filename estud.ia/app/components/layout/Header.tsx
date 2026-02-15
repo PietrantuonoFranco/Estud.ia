@@ -22,6 +22,20 @@ export default function Header() {
     }
   }
 
+  const closeMobileMenu = () => {
+    setOpen(false);
+  }
+
+  const handleSettingsClick = () => {
+    closeMobileMenu();
+    handleSettings();
+  }
+
+  const handleLogoutClick = () => {
+    closeMobileMenu();
+    handleLogout();
+  }
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -122,14 +136,16 @@ export default function Header() {
 
               <div className="pb-4 flex flex-col items-center gap-2">
                 <button
-                  onClick={handleSettings}
+                  onClick={handleSettingsClick}
+                  type="button"
                   className="cursor-pointer text-left px-4 py-2 text-sm text-muted-foreground hover:bg-[var(--hover-bg)] hover:rounded-md flex items-center gap-2"
                 >
                   <Settings className="h-4 w-4" />
                   Configuración
                 </button>
                 <button
-                  onClick={handleLogout}
+                  onClick={handleLogoutClick}
+                  type="button"
                   className="cursor-pointer text-left px-4 py-2 text-sm text-muted-foreground hover:bg-[var(--hover-bg)] hover:rounded-md flex items-center gap-2"
                 >
                   <LogOut className="h-4 w-4" strokeWidth={2.5}/>
@@ -141,6 +157,7 @@ export default function Header() {
             <div className="py-1">
               <Link
                 href="/login"
+                onClick={closeMobileMenu}
                 className="block px-4 py-2 text-sm text-muted-foreground hover:bg-[var(--hover-bg)] flex items-center gap-2"
               >
                 <LogIn className="h-4 w-4" />
@@ -148,6 +165,7 @@ export default function Header() {
               </Link>
               <Link
                 href="/register"
+                onClick={closeMobileMenu}
                 className="block px-4 py-2 text-sm text-muted-foreground hover:bg-[var(--hover-bg)] flex items-center gap-2"
               >
                 <UserRoundPlus className="h-4 w-4" />
