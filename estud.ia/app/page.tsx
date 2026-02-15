@@ -34,7 +34,7 @@ export default function Home() {
         {isLoading && (
           <div className="h-2 bg-card w-full">
             <div
-              className="h-full bg-gradient-to-r from-[var(--purple-accent)] to-purple-400 transition-all rounded-r-full duration-300 ease-out"
+              className="h-full bg-gradient-to-r from-primary-accent to-primary shadow-md shadow-primary/20 transition-all rounded-r-full duration-300 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>

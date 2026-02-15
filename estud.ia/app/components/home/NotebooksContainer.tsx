@@ -187,7 +187,7 @@ export default function NotebooksContainer ({ orderBy, viewMode, onStartUpload, 
         <div
           className={`group cursor-pointer w-full space-y-2 flex justify-center items-center border-2 border-dashed rounded-xl transition-colors duration-300 p-6 ${
             isDragging
-              ? "border-[var(--purple-accent)] bg-card/60"
+              ? "border-primary shadow-lg shadow-primary/20 bg-card/60"
               : "border-border hover:bg-card"
           } ${
             viewMode === "grid" 

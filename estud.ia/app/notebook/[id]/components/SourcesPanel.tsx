@@ -164,7 +164,7 @@ export default function SourcesPanel({ openPanel }: SourcesPanelProps) {
         >
           {isDragging ? (
             <div className="flex-1 p-4">
-              <div className={`flex h-full min-h-[180px] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[var(--purple-accent)] text-[var(--purple-accent)] ${ openPanel ? "w-full" : "px-2" }`}>
+              <div className={`flex h-full min-h-[180px] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary text-primary ${ openPanel ? "w-full" : "px-2" }`}>
                 <FilePlusCorner className="h-5 w-5" strokeWidth={2.5} />
                 <span className="text-xs font-semibold">Solta para agregar</span>
               </div>
