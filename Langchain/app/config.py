@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
 
@@ -13,6 +14,12 @@ class Settings(BaseSettings):
 
     GOOGLE_API_KEY: str = Field(..., validation_alias="GOOGLE_API_KEY")
     VOYAGE_API_KEY: str = Field(..., validation_alias="VOYAGE_API_KEY")
-    MILVUS_URI: str = Field(..., validation_alias="MILVUS_URI")
+
+    # Configuración para Zilliz (Producción)
+    ZILLIZ_TOKEN: Optional[str] = Field(default=None, validation_alias="ZILLIZ_TOKEN")
+    ZILLIZ_URI: Optional[str] = Field(default=None, validation_alias="ZILLIZ_URI")
+    
+    # Configuración para Milvus (Desarrollo)
+    MILVUS_URI: Optional[str] = Field(default=None, validation_alias="MILVUS_URI")
 
 conf = Settings()

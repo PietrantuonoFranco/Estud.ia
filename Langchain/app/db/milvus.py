@@ -1,13 +1,23 @@
 from pymilvus import MilvusClient, DataType, AsyncMilvusClient
 
-from ..config import conf 
+from ..config import conf
+
+
+def _get_milvus_connection():
+    uri = (conf.ZILLIZ_URI or "").strip() or (conf.MILVUS_URI or "").strip()
+    token = (conf.ZILLIZ_TOKEN or "").strip() or None
+    is_zilliz = bool((conf.ZILLIZ_URI or "").strip())
+    return uri, token, is_zilliz
   
 class Async_Milvus_Client:
-    
     "Clase para el cliente asíncrono de la bsdd estudia_db en Milvus."
     
     def __init__(self):
-        self.client = AsyncMilvusClient(uri=conf.MILVUS_URI, db_name="estudia_db")
+        uri, token, _ = _get_milvus_connection()
+        self.client = AsyncMilvusClient(uri=uri, token=token, db_name="estudia_db")
+        
+        # Uncomment the following line to use Milvus local (desarrollo) and comment the line above.
+        # self.client = AsyncMilvusClient(uri=conf.MILVUS_URI, db_name="estudia_db")
     
     async def delete_documents(self, collection_name: str, ids: list[int]):
         return await self.client.delete(
@@ -56,12 +66,14 @@ class Async_Milvus_Client:
 
                       
 class Milvus_Sync_Client:   
-    
     def __init__(self):
-        self.client = MilvusClient(uri=conf.MILVUS_URI, db_name="estudia_db") 
+        uri, token, _ = _get_milvus_connection()
+        self.client = MilvusClient(uri=uri, token=token, db_name="estudia_db")
+        
+        # Uncomment the following line to use Milvus local (desarrollo) and comment the line above.
+        # self.client = MilvusClient(uri=conf.MILVUS_URI, db_name="estudia_db") 
               
     def create_milvus_collection(self,name: str):
-        
         """"Crea una coleccion en Milvus con el esquema e indices definidos."""
         
         if name in self.client.list_collections():
@@ -101,7 +113,6 @@ class Milvus_Sync_Client:
             index_type="INVERTED"  # Recomendado para VARCHAR
             
         )
-        
 
         collection = self.client.create_collection(
             collection_name=name,
@@ -125,17 +136,24 @@ class Milvus_Sync_Client:
         self.client.close()
 
 def check_database_exist():
-    
     """Verifica si la base de datos 'estudia_db' existe en Milvus, si no, la crea."""
-    
-    client = MilvusClient(uri=conf.MILVUS_URI)
+    uri, token, is_zilliz = _get_milvus_connection()
+    client = MilvusClient(uri=uri, token=token)
 
-    if "estudia_db" not in client.list_databases():
-            
-        client.create_database("estudia_db")
+    # Uncomment the following lines to use Milvus local (desarrollo) and comment the line above.
+    # client = MilvusClient(uri=conf.MILVUS_URI)
+
+    # if "estudia_db" not in client.list_databases():
+    #     if is_zilliz:
+    #         client.close()
+    #         raise PermissionError(
+    #             "La base de datos 'estudia_db' no existe y Zilliz no permite crearla desde este token. "
+    #             "Creala en la consola de Zilliz o usa una URI de Milvus local."
+    #         )
+    #     client.create_database("estudia_db")
         
-    else:
-        print(f"La base de datos {"estudia_db"} ya existe")
+    # else:
+    #     print(f"La base de datos {"estudia_db"} ya existe")
     
     client.close() 
     
@@ -146,5 +164,3 @@ check_database_exist()
 syncClient = Milvus_Sync_Client()
 syncClient.create_milvus_collection("documents_collection")
 syncClient.close()
-
-

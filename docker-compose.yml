@@ -55,6 +55,8 @@ services:
       - MILVUS_URI=${MILVUS_URI}
       - VOYAGE_API_KEY=${VOYAGE_API_KEY}
       - API_KEY_NAME=${API_KEY_NAME}
+      - ZILLIZ_URI=${ZILLIZ_URI}
+      - ZILLIZ_TOKEN=${ZILLIZ_TOKEN}
     ports:
       - 80:3000
     depends_on:
