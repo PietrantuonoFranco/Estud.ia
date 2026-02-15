@@ -5,9 +5,10 @@ from .config import conf
 
 # 1. Usamos create_async_engine en lugar de create_engine
 engine = create_async_engine(
-    conf.DB_URL, 
+    conf.DB_URL,
     echo=True, # Útil para debug, puedes quitarlo en producción
-    future=True
+    future=True,
+    connect_args={"statement_cache_size": 0},
 )
 
 # 2. Usamos async_sessionmaker para manejar sesiones asíncronas
