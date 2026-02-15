@@ -239,7 +239,7 @@ export default function SourcesPanel({ openPanel }: SourcesPanelProps) {
                       type="button"
                       onClick={() => setOpenDeleteVariousModal(true)}
                       name="delete-selected-sources"
-                      className={`${ openPanel ? "cursor-pointer w-full flex items-center justify-center text-sm font-semibold text-red-500 py-3 px-6 rounded-3xl bg-red-800/15 hover:hover:bg-red-800/20 hover:shadow-md transition-all duration-300 ease-in-out" : "hidden" }`}
+                      className={`${ openPanel ? "cursor-pointer w-full flex items-center justify-center text-sm font-semibold text-red-500 py-3 px-6 rounded-lg bg-red-800/15 hover:hover:bg-red-800/20 hover:shadow-md transition-all duration-300 ease-in-out" : "hidden" }`}
                     >
                       <Trash2 className="h-4 w-4 mr-3"/>
                       Eliminar seleccionadas
