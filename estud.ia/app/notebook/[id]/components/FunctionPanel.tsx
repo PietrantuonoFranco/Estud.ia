@@ -37,7 +37,7 @@ export default function StudioPanel({ openPanel }: StudioPanelProps) {
     }] : []),
     ...(quizzes?.map((quiz) => {
       const questionCount = quiz.questions_and_answers?.length || 0;
-      console.log(`Quiz "${quiz.title}":`, { questionCount, questions_and_answers: quiz.questions_and_answers });
+      
       return {
         id: quiz.id,
         type: "quiz",

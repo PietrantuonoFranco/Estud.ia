@@ -56,7 +56,6 @@ export function ChatInformationProvider({ children }: { children: React.ReactNod
           const notebookId = parseInt(id);
           const data = await NotebooksApi.getNotebook(notebookId);
 
-          console.log("Fetched notebook data:", data);
           setNotebook(data);
           setMessages(data.messages ?? []);
           setSources(data.sources ?? []);
