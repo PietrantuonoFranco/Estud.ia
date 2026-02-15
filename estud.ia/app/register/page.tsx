@@ -4,6 +4,7 @@ import { useState } from "react"
 
 import Image from "next/image"
 import Link from "next/link"
+import { UserRoundPlus } from "lucide-react"
 
 import { useAuth } from "../contexts/AuthContext"
 import { useNotification } from "../contexts/NotificationContext"
@@ -71,7 +72,7 @@ export default function RegisterPage() {
               value={email}
               placeholder="jhondoe@example.com"
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-full border border-gray-300 py-3 px-6 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-md border-b border-muted-foreground py-3 px-6 shadow-primary/20 focus:shadow-lg focus:border-b-primary focus:outline-none transition-all duration-200"
               required
             />
           </div>
@@ -88,7 +89,7 @@ export default function RegisterPage() {
                 value={name}
                 placeholder="Jhon"
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-full border border-gray-300 py-3 px-6 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-md border-b border-muted-foreground py-3 px-6 shadow-primary/20 focus:shadow-lg focus:border-b-primary focus:outline-none transition-all duration-200"
                 required
               />
             </div>
@@ -104,7 +105,7 @@ export default function RegisterPage() {
                 value={lastname}
                 placeholder="Doe"
                 onChange={(e) => setLastname(e.target.value)}
-                className="w-full rounded-full border border-gray-300 py-3 px-6 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-md border-b border-muted-foreground py-3 px-6 shadow-primary/20 focus:shadow-lg focus:border-b-primary focus:outline-none transition-all duration-200"
                 required
               />
             </div>
@@ -122,7 +123,7 @@ export default function RegisterPage() {
                 value={password}
                 placeholder="****************"
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-full border border-gray-300 py-3 px-6 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-md border-b border-muted-foreground py-3 px-6 shadow-primary/20 focus:shadow-lg focus:border-b-primary focus:outline-none transition-all duration-200"
                 required
               />
             </div>
@@ -138,7 +139,7 @@ export default function RegisterPage() {
                 value={confirmPassword}
                 placeholder="****************"
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full rounded-full border border-gray-300 py-3 px-6 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-md border-b border-muted-foreground py-3 px-6 shadow-primary/20 focus:shadow-lg focus:border-b-primary focus:outline-none transition-all duration-200"
                 required
               />
             </div>
@@ -146,17 +147,18 @@ export default function RegisterPage() {
           
           <button
             type="submit"
-            className="cursor-pointer font-semibold w-full rounded-full bg-gradient-to-br from-purple-600 to-blue-500 p-3 text-white hover:to-blue-600"
+            className="w-full rounded-md bg-gradient-to-br from-primary-accent to-primary/90 shadow-primary/20 hover:bg-gradient-to-br hover:from-primary-accent hover:to-primary hover:shadow-lg transition-all duration-200 ease-in-out cursor-pointer p-3 text-black font-semibold flex items-center justify-center gap-2"
           >
+            <UserRoundPlus className="w-4 h-4" strokeWidth={2.5} />
             Registrarme
           </button>
 
-          <div className="w-full h-[1px] bg-foreground my-4"/>
+          <div className="w-full h-[1px] bg-muted-foreground my-4"/>
 
           <button
             type="submit"
             onClick={handleGoogleLogin}
-            className="cursor-pointer w-full flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-white to-foreground p-3 text-background hover:to-foreground/80"
+            className="cursor-pointer w-full flex items-center justify-center gap-2 rounded-lg bg-gradient-to-br from-white to-foreground p-3 text-background hover:to-foreground/80"
           >
             {isGoogleLoading ? (
               <span>Redirigiendo...</span>

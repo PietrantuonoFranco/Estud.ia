@@ -66,7 +66,7 @@ export default function LoginPage() {
               value={email}
               placeholder="jhondoe@example.com"
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border-b py-3 px-6 shadow-primary/20 focus:shadow-lg focus:border-b-primary focus:outline-none transition-all duration-200"
+              className="w-full rounded-md border-b border-muted-foreground py-3 px-6 shadow-primary/20 focus:shadow-lg focus:border-b-primary focus:outline-none transition-all duration-200"
               required
             />
           </div>
@@ -81,7 +81,7 @@ export default function LoginPage() {
               value={password}
               placeholder="****************"
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border-b py-3 px-6 shadow-primary/20 focus:shadow-lg focus:border-b-primary focus:outline-none transition-all duration-200"
+              className="w-full rounded-md border-b border-muted-foreground py-3 px-6 shadow-primary/20 focus:shadow-lg focus:border-b-primary focus:outline-none transition-all duration-200"
               required
             />
           </div>
@@ -94,7 +94,7 @@ export default function LoginPage() {
             Iniciar Sesión
           </button>
 
-          <div className="w-full h-[1px] border-t my-4"/>
+          <div className="w-full h-[1px] bg-muted-foreground my-4"/>
 
           <button
             type="submit"
