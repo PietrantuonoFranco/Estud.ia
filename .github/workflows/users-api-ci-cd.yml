@@ -1,0 +1,110 @@
+name: Buildear y Pushear Imágen de Docker de Users API al crear un Tag o Release correspondiente
+
+on:
+  push:
+    tags:
+      - 'U-v*.*.*'
+      - 'release-*'
+
+permissions:
+  contents: write 
+
+env:
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Extract tag information
+      id: tag_info
+      run: |
+        TAG_NAME=${GITHUB_REF#refs/tags/}
+        echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
+        
+        # Extraer versión semántica si es posible
+        if [[ $TAG_NAME =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+          VERSION=${BASH_REMATCH[1]}
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "MAJOR=${BASH_REMATCH[1]%%.*}" >> $GITHUB_OUTPUT
+          
+          # Para versiones semánticas, también extraer major y major.minor
+          MINOR=${VERSION%.*}
+          echo "MINOR=$MINOR" >> $GITHUB_OUTPUT
+        else
+          echo "VERSION=$TAG_NAME" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    
+    - name: Create .env file
+      run: |
+        echo "API_KEY_NAME=${{ secrets.API_KEY_NAME }}" >> .env
+        echo "DB_URL=${{ secrets.DB_URL }}" >> .env
+        echo "ALGORITHM=${{ secrets.ALGORITHM }}" >> .env
+        echo "ACCESS_TOKEN_EXPIRE_MINUTES=${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}" >> .env
+        echo "LANGCHAIN_URI=${{ secrets.LANGCHAIN_URI }}" >> .env
+        echo "LANGCHAIN_API_KEY=${{ secrets.LANGCHAIN_API_KEY }}" >> .env
+        echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+        echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+
+    - name: Build Docker image
+      run: docker compose build users-api
+
+    - name: Push images with multiple tags
+      run: |
+        NEW_IMAGE_NAME="${{ secrets.DOCKERHUB_USERNAME }}/users-api"
+          
+        echo "Processing service: users-api"
+        echo "Image name: $NEW_IMAGE_NAME"
+          
+        # Taggear con múltiples tags
+        docker tag "users-api" "${NEW_IMAGE_NAME}:${{ steps.tag_info.outputs.TAG_NAME }}"
+        docker tag "users-api" "${NEW_IMAGE_NAME}:latest"
+          
+        # Para versiones semánticas, agregar tags adicionales
+        if [[ '${{ steps.tag_info.outputs.VERSION }}' != '${{ steps.tag_info.outputs.TAG_NAME }}' ]]; then
+          docker tag "users-api" "${NEW_IMAGE_NAME}:${{ steps.tag_info.outputs.VERSION }}"
+          docker tag "users-api" "${NEW_IMAGE_NAME}:${{ steps.tag_info.outputs.MINOR }}"
+        fi
+            
+        # Push de todos los tags
+        docker push "${NEW_IMAGE_NAME}:${{ steps.tag_info.outputs.TAG_NAME }}"
+        docker push "${NEW_IMAGE_NAME}:latest"
+            
+        if [[ '${{ steps.tag_info.outputs.VERSION }}' != '${{ steps.tag_info.outputs.TAG_NAME }}' ]]; then
+          docker push "${NEW_IMAGE_NAME}:${{ steps.tag_info.outputs.VERSION }}"
+          docker push "${NEW_IMAGE_NAME}:${{ steps.tag_info.outputs.MINOR }}"
+        fi
+            
+        echo "Successfully pushed ${NEW_IMAGE_NAME} with multiple tags"
+
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      if: success()
+      with:
+        tag_name: ${{ steps.tag_info.outputs.TAG_NAME }}
+        name: Release ${{ steps.tag_info.outputs.TAG_NAME }}
+        body: |
+          Docker images have been built and pushed to Docker Hub:
+          
+          Images pushed:
+          ${{ steps.tag_info.outputs.SERVICES }}
+          
+          Tags: ${{ steps.tag_info.outputs.TAG_NAME }}, latest${{ steps.tag_info.outputs.VERSION != steps.tag_info.outputs.TAG_NAME && format(', {0}, {1}', steps.tag_info.outputs.VERSION, steps.tag_info.outputs.MINOR) || '' }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
