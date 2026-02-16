@@ -46,7 +46,7 @@ export default function UserMessage ({ message }: { message: string }) {
         >
           <Copy className="h-4 w-4" />
         </button>
-        
+{/*       
         <button
           type="button"
           onClick={() => {}}
@@ -54,7 +54,8 @@ export default function UserMessage ({ message }: { message: string }) {
         >
           <Pencil className="h-4 w-4" />
         </button>
-      </div>
+*/}
+        </div>
     </div>
   );
 }
