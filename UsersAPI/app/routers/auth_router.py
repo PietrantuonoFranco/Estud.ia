@@ -54,9 +54,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
     response.set_cookie(
         key="accessToken",
         value=accessToken,
-        httponly=True,        # No accesible desde JavaScript
-        secure=True,         # False en desarrollo, True en producción con HTTPS
-        samesite="lax",      # Permite cookies cross-origin (cambiar a "Lax" en producción)
+        httponly=True,          # No accesible desde JavaScript
+        secure=True,            # False en desarrollo, True en producción con HTTPS
+        samesite="none",        # Permite enviar la cookie entre Vercel y Render
         max_age=60*conf.ACCESS_TOKEN_EXPIRE_MINUTES
     )
     
@@ -97,7 +97,7 @@ async def register(form_data: UserCreate, db: AsyncSession = Depends(get_db)):
         value=accessToken,
         httponly=True,
         secure=True,         # False en desarrollo, True en producción con HTTPS
-        samesite="lax",      # Permite cookies cross-origin (cambiar a "Lax" en producción)
+        samesite="none",     # Permite enviar la cookie entre Vercel y Render
         max_age=60*conf.ACCESS_TOKEN_EXPIRE_MINUTES
     )
     
@@ -144,8 +144,8 @@ async def auth_google_callback(request: Request, db: AsyncSession = Depends(get_
         key="accessToken",
         value=accessToken,
         httponly=True,
-        secure=True, # True en prod
-        samesite="lax",
-        max_age=60 * conf.ACCESS_TOKEN_EXPIRE_MINUTES
+        secure=True,            # False en desarrollo, True en producción con HTTPS
+        samesite="none",        # Permite enviar la cookie entre Vercel y Render
+        max_age=60*conf.ACCESS_TOKEN_EXPIRE_MINUTES
     )
     return response
