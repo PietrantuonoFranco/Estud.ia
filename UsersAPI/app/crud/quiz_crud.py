@@ -10,6 +10,7 @@ from ..schemas.quiz_schema import QuizCreate, QuestionCreate
 
 async def create_quiz(db: AsyncSession, quiz: QuizCreate):
     db_quiz = Quiz(
+        title=quiz.title or "Untitled Quiz",
         notebook_id=quiz.notebook_id,
         notebook_users_id=quiz.notebook_users_id,
     )
@@ -21,8 +22,10 @@ async def create_quiz(db: AsyncSession, quiz: QuizCreate):
         for question in quiz.questions:
             await create_question(db, question, quiz_id=db_quiz.id)
 
-    await db.refresh(db_quiz)
-    return db_quiz
+    # Reload with questions eager-loaded to avoid async lazy-load errors.
+    query = select(Quiz).options(joinedload(Quiz.questions)).filter(Quiz.id == db_quiz.id)
+    result = await db.execute(query)
+    return result.scalars().unique().first()
 
 
 async def create_question(db: AsyncSession, question: QuestionCreate, quiz_id: Optional[int] = None):
