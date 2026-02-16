@@ -55,7 +55,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
         key="accessToken",
         value=accessToken,
         httponly=True,        # No accesible desde JavaScript
-        secure=False,         # False en desarrollo, True en producción con HTTPS
+        secure=True,         # False en desarrollo, True en producción con HTTPS
         samesite="lax",      # Permite cookies cross-origin (cambiar a "Lax" en producción)
         max_age=60*conf.ACCESS_TOKEN_EXPIRE_MINUTES
     )
@@ -96,7 +96,7 @@ async def register(form_data: UserCreate, db: AsyncSession = Depends(get_db)):
         key="accessToken",
         value=accessToken,
         httponly=True,
-        secure=False,         # False en desarrollo, True en producción con HTTPS
+        secure=True,         # False en desarrollo, True en producción con HTTPS
         samesite="lax",      # Permite cookies cross-origin (cambiar a "Lax" en producción)
         max_age=60*conf.ACCESS_TOKEN_EXPIRE_MINUTES
     )
@@ -144,7 +144,7 @@ async def auth_google_callback(request: Request, db: AsyncSession = Depends(get_
         key="accessToken",
         value=accessToken,
         httponly=True,
-        secure=False, # True en prod
+        secure=True, # True en prod
         samesite="lax",
         max_age=60 * conf.ACCESS_TOKEN_EXPIRE_MINUTES
     )
