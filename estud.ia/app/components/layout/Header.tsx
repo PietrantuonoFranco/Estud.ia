@@ -68,7 +68,7 @@ export default function Header() {
       <div className="w-full hidden sm:flex items-center justify-end">
         {user && (
           <div className="flex items-center gap-1">
-            <div className="ml-6 h-10 w-10">
+            <div className="ml-6 h-10 w-10 flex items-center justify-center">
               {user.profile_image_url !== null ? (
                 <Image src={user.profile_image_url || "/user-avatar.png"} alt="User Avatar" width={32} height={32} className="rounded-full" />
               ) : (
