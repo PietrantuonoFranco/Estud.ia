@@ -1,0 +1,107 @@
+name: Buildear y Pushear Imágen de Docker de LangChain al crear un Tag o Release correspondiente
+
+on:
+  push:
+    tags:
+      - 'L-v*.*.*'
+      - 'release-*'
+
+permissions:
+  contents: write 
+
+env:
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Extract tag information
+      id: tag_info
+      run: |
+        TAG_NAME=${GITHUB_REF#refs/tags/}
+        echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
+        
+        # Extraer versión semántica si es posible
+        if [[ $TAG_NAME =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+          VERSION=${BASH_REMATCH[1]}
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "MAJOR=${BASH_REMATCH[1]%%.*}" >> $GITHUB_OUTPUT
+          
+          # Para versiones semánticas, también extraer major y major.minor
+          MINOR=${VERSION%.*}
+          echo "MINOR=$MINOR" >> $GITHUB_OUTPUT
+        else
+          echo "VERSION=$TAG_NAME" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    
+    - name: Create .env file
+      run: |
+        echo "API_KEY_NAME=${{ secrets.API_KEY_NAME }}" >> .env
+        echo "GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}" >> .env
+        echo "VOYAGE_API_KEY=${{ secrets.VOYAGE_API_KEY }}" >> .env
+        echo "ZILLIZ_TOKEN=${{ secrets.ZILLIZ_TOKEN }}" >> .env
+        echo "ZILLIZ_URI=${{ secrets.ZILLIZ_URI }}" >> .env
+
+    - name: Build Docker image
+      run: docker compose build langchain
+
+    - name: Push images with multiple tags
+      run: |
+        NEW_IMAGE_NAME="${{ secrets.DOCKERHUB_USERNAME }}/langchain"
+          
+        echo "Processing service: langchain"
+        echo "Image name: $NEW_IMAGE_NAME"
+          
+        # Taggear con múltiples tags
+        docker tag "langchain" "${NEW_IMAGE_NAME}:${{ steps.tag_info.outputs.TAG_NAME }}"
+        docker tag "langchain" "${NEW_IMAGE_NAME}:latest"
+          
+        # Para versiones semánticas, agregar tags adicionales
+        if [[ '${{ steps.tag_info.outputs.VERSION }}' != '${{ steps.tag_info.outputs.TAG_NAME }}' ]]; then
+          docker tag "langchain" "${NEW_IMAGE_NAME}:${{ steps.tag_info.outputs.VERSION }}"
+          docker tag "langchain" "${NEW_IMAGE_NAME}:${{ steps.tag_info.outputs.MINOR }}"
+        fi
+            
+        # Push de todos los tags
+        docker push "${NEW_IMAGE_NAME}:${{ steps.tag_info.outputs.TAG_NAME }}"
+        docker push "${NEW_IMAGE_NAME}:latest"
+            
+        if [[ '${{ steps.tag_info.outputs.VERSION }}' != '${{ steps.tag_info.outputs.TAG_NAME }}' ]]; then
+          docker push "${NEW_IMAGE_NAME}:${{ steps.tag_info.outputs.VERSION }}"
+          docker push "${NEW_IMAGE_NAME}:${{ steps.tag_info.outputs.MINOR }}"
+        fi
+            
+        echo "Successfully pushed ${NEW_IMAGE_NAME} with multiple tags"
+
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      if: success()
+      with:
+        tag_name: ${{ steps.tag_info.outputs.TAG_NAME }}
+        name: Release ${{ steps.tag_info.outputs.TAG_NAME }}
+        body: |
+          Docker images have been built and pushed to Docker Hub:
+          
+          Images pushed:
+          ${{ steps.tag_info.outputs.SERVICES }}
+          
+          Tags: ${{ steps.tag_info.outputs.TAG_NAME }}, latest${{ steps.tag_info.outputs.VERSION != steps.tag_info.outputs.TAG_NAME && format(', {0}, {1}', steps.tag_info.outputs.VERSION, steps.tag_info.outputs.MINOR) || '' }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
