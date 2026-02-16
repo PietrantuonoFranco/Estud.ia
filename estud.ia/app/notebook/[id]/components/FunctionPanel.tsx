@@ -16,7 +16,7 @@ import ShowFlashcardsButton from "./ShowEntityButtons/ShowFlashcardsButton";
 const studioTools = [
   { optionName: "chat", icon: MessageSquareText, label: "Chat", color: "blue" },
   { optionName: "flashcards", icon: BookOpen, label: "Tarjetas didácticas", color: "green" },
-  { optionName: "summary", icon: FileText, label: "Resumen", color: "orange" },
+  // { optionName: "summary", icon: FileText, label: "Resumen", color: "orange" },
   { optionName: "quiz", icon: HelpCircle, label: "Cuestionario", color: "purple" },
 ]
 
@@ -91,12 +91,14 @@ export default function StudioPanel({ openPanel }: StudioPanelProps) {
         )}
       </div>
 
+{/*
       <div className="w-full border-t border-border p-4">
         <button className={`text-sm text-black font-semibold w-full flex items-center justify-center gap-2 rounded-md bg-gradient-to-br from-primary-accent to-primary/90 shadow-primary/20 hover:bg-gradient-to-br hover:from-primary-accent hover:to-primary hover:shadow-lg transition-all duration-200 ease-in-out cursor-pointer ${ openPanel ? "py-3 px-6" : "p-3"}`}>
           <StickyNote  className="h-4 w-4" strokeWidth={2.5}/>
           <span className={`${ openPanel ? "" : "hidden" }`}>Agregar nota</span>
         </button>
       </div>
+*/}
     </div>
   )
 }

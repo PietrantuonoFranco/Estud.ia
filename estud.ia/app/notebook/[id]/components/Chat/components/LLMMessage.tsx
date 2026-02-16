@@ -54,13 +54,14 @@ export default function LLMMessage ({ message, isLoading }: { message: string | 
       </div>
 
       <div className="flex items-center gap-2">
+{/*
         <button
           className="cursor-pointer flex items-center gap-2 text-muted-foreground p-1.5 md:px-3 rounded-full border border-border  hover:bg-card/50 hover:shadow-md transition-shadow duration-300"
         >
           <Pin className="h-4 w-4" />
           <span className="hidden md:inline whitespace-pre-wrap">Guardar en las notas</span>
         </button>
-
+*/}
         <button
           type="button"
           onClick={handleCopy}
@@ -68,7 +69,7 @@ export default function LLMMessage ({ message, isLoading }: { message: string | 
         >
           <Copy className="h-4 w-4" />
         </button>
-        
+{/*
         <button
           type="button"
           onClick={() => {}}
@@ -84,6 +85,7 @@ export default function LLMMessage ({ message, isLoading }: { message: string | 
         >
           <ThumbsDown className="h-4 w-4" />
         </button>
+*/}
       </div>
     </div>
   );

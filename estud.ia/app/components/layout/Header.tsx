@@ -79,7 +79,7 @@ export default function Header() {
             </div>
     
             <div className="text-foreground text-sm font-semibold mr-2">{user.name} {user.lastname}</div>
-
+{/*
             <button
               type="button"
               onClick={handleSettings}          
@@ -87,6 +87,7 @@ export default function Header() {
             >
               <Settings className="h-4 w-4" />
             </button>
+*/}
             <button
               type="button"
               onClick={handleLogout}
@@ -135,6 +136,7 @@ export default function Header() {
               </div>
 
               <div className="pb-4 flex flex-col items-center gap-2">
+{/*
                 <button
                   onClick={handleSettingsClick}
                   type="button"
@@ -143,6 +145,7 @@ export default function Header() {
                   <Settings className="h-4 w-4" />
                   Configuración
                 </button>
+*/}
                 <button
                   onClick={handleLogoutClick}
                   type="button"

@@ -37,6 +37,7 @@ export default function NotebooksGrid({ notebooks, viewMode }: NotebooksGridProp
             }`}>
               {notebook.icon}
             </div>
+{/*
             <button
               type="button"
               className={`cursor-pointer absolute p-2 rounded-full bg-card hover:bg-card/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 right-4 ${
@@ -47,6 +48,7 @@ export default function NotebooksGrid({ notebooks, viewMode }: NotebooksGridProp
             >
               <MoreVertical className="h-4 w-4" />
             </button>
+*/}
           </div>
           <div>
             <h3 className={`text-sm xl:text-lg font-medium text-foreground ${viewMode === "grid" ? "mb-2" : "mb-1"}`}>{notebook.title}</h3>

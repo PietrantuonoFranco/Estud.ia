@@ -44,12 +44,13 @@ export default function ShowQuizButton ({ item, openPanel }: ShowQuizButtonProps
           {item.type === "quiz" && `${item.sources} pregunta${item.sources > 1 ? "s" : ""}` }
         </p>
       </div>
-      
+{/*
       <div className={ openPanel ? "flex items-center gap-1" : "hidden"}>
         <button className="cursor-pointer h-8 w-8 opacity-0 group-hover:opacity-100">
           <MoreVertical className="h-4 w-4" />
          </button>
       </div>
+*/}
     </div>
   )
 }
