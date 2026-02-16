@@ -24,7 +24,7 @@ export default function OptionContainer() {
     );
   }
   return (
-    <div className="flex-1 overflow-y-auto flex flex-col">
+    <div className="h-full flex-1 overflow-y-auto flex flex-col">
       {option === "chat" && <ChatPanel/>}
       {option === "flashcards" && <FlashcardContainer/>}
       {option === "quiz" && <QuizContainer questions={selectedQuiz?.questions_and_answers || []} />}
