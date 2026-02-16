@@ -52,12 +52,18 @@ export default function NotebooksGrid({ notebooks, viewMode }: NotebooksGridProp
           </div>
           <div>
             <h3 className={`text-sm xl:text-lg font-medium text-foreground ${viewMode === "grid" ? "mb-2" : "mb-1"}`}>{notebook.title}</h3>
-            <p className="flex items-center gap-1 text-xs xl:text-sm text-foreground">
-              <FileText className="h-3 w-3" />
-              {notebook.sources.length === 1 ? "1 fuente" : `${notebook.sources.length} fuentes`}
-              <span className="mx-1">-</span> 
-              <Clock3 className="h-3 w-3" />
-              {formatRelativeDate(notebook.created_at ?? new Date().toISOString())}
+            <p className="flex flex-col sm:flex-row sm:items-center gap-1 text-xs xl:text-sm text-foreground">
+              <div className="flex items-center gap-1">
+                <FileText className="h-3 w-3" />
+                {notebook.sources.length === 1 ? "1 fuente" : `${notebook.sources.length} fuentes`}
+              </div>
+              
+              <span className="hidden sm:inline sm:mx-1">-</span> 
+              
+              <div className="flex items-center gap-1">
+                <Clock3 className="h-3 w-3" />
+                {formatRelativeDate(notebook.created_at ?? new Date().toISOString())}
+              </div>
             </p>
           </div>
         </Link>
