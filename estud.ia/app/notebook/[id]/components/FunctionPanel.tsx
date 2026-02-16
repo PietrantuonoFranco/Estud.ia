@@ -50,9 +50,9 @@ export default function StudioPanel({ openPanel }: StudioPanelProps) {
 
   return (
     <div className={`${ openPanel ? "w-90 opacity-100" : "w-0 md:w-18 opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" } flex h-full flex-col overflow-hidden border-l border-border bg-[var(--panel-bg)] transition-[width,opacity] duration-400 ease-in-out`}>
-      <div className="flex-1 p-4">
-        <h3 className={`${ openPanel ? "mb-3 text-sm font-medium text-foreground" : "hidden"}`}>Crear</h3>
-        <div className={`grid grid-cols-1 ${ openPanel ? "md:grid-cols-2" : ""} gap-3`}>
+      <div className="flex-1">
+        <h3 className={`${ openPanel ? "mb-3 text-sm font-medium text-foreground px-4 pt-4 pb-0" : "hidden"}`}>Crear</h3>
+        <div className={`grid grid-cols-1 ${ openPanel ? "md:grid-cols-2" : ""} p-4 gap-3`}>
           {studioTools.map((tool, idx, index) => {
             const colorClasses = {
               purple: "bg-[var(--purple-accent)]/10 text-[var(--purple-accent)]",
