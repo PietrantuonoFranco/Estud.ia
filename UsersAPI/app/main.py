@@ -42,7 +42,9 @@ app = FastAPI(lifespan=lifespan)
 
 # 1. Define la lista de orígenes permitidos
 origins = [
-    "http://localhost:3000",
+    # Para desarrollo local, puedes usar:
+    # "http://localhost:3000",
+    conf.FRONTEND_URL,
 ]
 
 # 2. Agrega el middleware a la aplicación

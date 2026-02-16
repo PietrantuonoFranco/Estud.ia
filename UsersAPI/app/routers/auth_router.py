@@ -139,7 +139,7 @@ async def auth_google_callback(request: Request, db: AsyncSession = Depends(get_
     accessToken = create_access_token(data={"sub": user.email})
 
     # 4. Responder con la misma Cookie que ya implementaste
-    response = RedirectResponse(url="http://localhost:3000/")
+    response = RedirectResponse(url=conf.FRONTEND_URL)  # Redirige al frontend después del login
     response.set_cookie(
         key="accessToken",
         value=accessToken,

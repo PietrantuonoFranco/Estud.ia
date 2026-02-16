@@ -9,6 +9,7 @@ class Settings(BaseSettings):
         extra="ignore"
     )
 
+    FRONTEND_URL: str = Field(..., validation_alias="FRONTEND_URL")
     DB_URL: str = Field(..., validation_alias="DB_URL")
     # DB_PASSWORD: str = Field(..., validation_alias="POSTGRES_PASSWORD")
     # DB_NAME: str = Field(..., validation_alias="POSTGRES_DB")
