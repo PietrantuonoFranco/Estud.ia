@@ -101,7 +101,7 @@ jobs:
           Docker images have been built and pushed to Docker Hub:
           
           Images pushed:
-          ${{ steps.tag_info.outputs.SERVICES }}
+          ${{ steps.tag_info.outputs.TAG_NAME }}
           
           Tags: ${{ steps.tag_info.outputs.TAG_NAME }}, latest${{ steps.tag_info.outputs.VERSION != steps.tag_info.outputs.TAG_NAME && format(', {0}, {1}', steps.tag_info.outputs.VERSION, steps.tag_info.outputs.MINOR) || '' }}
       env:
