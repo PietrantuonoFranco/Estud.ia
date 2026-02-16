@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 
 import User from '@/app/lib/interfaces/entities/User';
 import AuthContextType from '@/app/lib/interfaces/contexts/AuthContextType';
+import * as AuthApi from '@/app/lib/api/entities/AuthApi';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -12,8 +13,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-
-  const API_URL = process.env.API_URL || 'http://localhost:5000';
 
   // Verificar si el usuario está autenticado al montar el componente
   useEffect(() => {
@@ -23,18 +22,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const checkAuth = async () => {
     try {
       setIsLoading(true);
-      // Endpoint que verifica el token en la cookie y retorna el usuario
-      const response = await fetch(`${API_URL}/auth/me`, {
-        method: 'GET',
-        credentials: 'include', // Enviar cookies
-      });
-
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-      } else {
-        setUser(null);
-      }
+      const userData = await AuthApi.getMe();
+      setUser(userData);
     } catch (error) {
       console.error('Error verificando autenticación:', error);
       setUser(null);
@@ -46,21 +35,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      const formData = new FormData();
-      formData.append('username', email); // OAuth2 espera 'username'
-      formData.append('password', password);
-
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        credentials: 'include', // Permite guardar la cookie
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Error al iniciar sesión');
-      }
-
+      await AuthApi.login({ username: email, password });
+      
       // Después del login exitoso, obtener datos del usuario
       await checkAuth();
       router.push('/'); // Redirigir a la homepage
@@ -75,25 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (email: string, name: string, lastname: string, password: string) => {
     try {
       setIsLoading(true);
-
-      const response = await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          email,
-          name, 
-          lastname,
-          password
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Error al registrarse');
-      }
+      await AuthApi.register({ username: email, name, lastname, password });
 
       // Después del registro exitoso, obtener datos del usuario
       await checkAuth();
@@ -109,10 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       setIsLoading(true);
-      await fetch(`${API_URL}/auth/logout`, {
-        method: 'POST',
-        credentials: 'include',
-      });
+      await AuthApi.logout();
 
       setUser(null);
       router.push('/login'); // Redirigir al login

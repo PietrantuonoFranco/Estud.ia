@@ -40,8 +40,9 @@ export default function RegisterPage() {
   const handleGoogleLogin = () => {
     setIsGoogleLoading(true);
 
-    // Redirige directamente al endpoint del backend
-    window.location.assign("http://localhost:5000/auth/login/google");
+    // Usa la URL del helper de AuthApi
+    const { getGoogleLoginUrl } = require("../lib/api/entities/AuthApi");
+    window.location.assign(getGoogleLoginUrl());
   };
 
   return (

@@ -1,3 +1,4 @@
+export * as AuthApi from "./AuthApi";
 export * as FlashcardsApi from "./FlashcardsApi";
 export * as QuizzesApi from "./QuizzesApi";
 export * as MessagesApi from "./MessagesApi";
