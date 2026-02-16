@@ -15,6 +15,7 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    environment: langchain-actions
     
     steps:
     - name: Checkout code
