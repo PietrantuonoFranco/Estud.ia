@@ -64,31 +64,31 @@ jobs:
 
     - name: Push images with multiple tags
       run: |
+        # 1. Encontrar el ID de la imagen que acaba de crear Compose para el servicio langchain
+        IMAGE_ID=$(docker images --format "{{.Repository}}:{{.Tag}}" | grep "langchain" | head -n 1)
+        
         NEW_IMAGE_NAME="${{ secrets.DOCKERHUB_USERNAME }}/langchain"
+        
+        echo "Imagen local detectada: $IMAGE_ID"
+        echo "Subiendo a Docker Hub como: $NEW_IMAGE_NAME"
           
-        echo "Processing service: langchain"
-        echo "Image name: $NEW_IMAGE_NAME"
-          
-        # Taggear con múltiples tags
-        docker tag "langchain" "${NEW_IMAGE_NAME}:${{ steps.tag_info.outputs.TAG_NAME }}"
-        docker tag "langchain" "${NEW_IMAGE_NAME}:latest"
-          
-        # Para versiones semánticas, agregar tags adicionales
-        if [[ '${{ steps.tag_info.outputs.VERSION }}' != '${{ steps.tag_info.outputs.TAG_NAME }}' ]]; then
-          docker tag "langchain" "${NEW_IMAGE_NAME}:${{ steps.tag_info.outputs.VERSION }}"
-          docker tag "langchain" "${NEW_IMAGE_NAME}:${{ steps.tag_info.outputs.MINOR }}"
-        fi
-            
-        # Push de todos los tags
+        # 2. Taggear y push del Tag de Git (el que disparó el pipeline)
+        docker tag "$IMAGE_ID" "${NEW_IMAGE_NAME}:${{ steps.tag_info.outputs.TAG_NAME }}"
         docker push "${NEW_IMAGE_NAME}:${{ steps.tag_info.outputs.TAG_NAME }}"
+        
+        # 3. Taggear y push de 'latest'
+        docker tag "$IMAGE_ID" "${NEW_IMAGE_NAME}:latest"
         docker push "${NEW_IMAGE_NAME}:latest"
-            
-        if [[ '${{ steps.tag_info.outputs.VERSION }}' != '${{ steps.tag_info.outputs.TAG_NAME }}' ]]; then
+          
+        # 4. Lógica para versiones semánticas (v1.2.3 -> 1.2.3 y 1.2)
+        if [[ "${{ steps.tag_info.outputs.VERSION }}" != "${{ steps.tag_info.outputs.TAG_NAME }}" ]]; then
+          echo "Aplicando tags semánticos adicionales..."
+          docker tag "$IMAGE_ID" "${NEW_IMAGE_NAME}:${{ steps.tag_info.outputs.VERSION }}"
+          docker tag "$IMAGE_ID" "${NEW_IMAGE_NAME}:${{ steps.tag_info.outputs.MINOR }}"
+          
           docker push "${NEW_IMAGE_NAME}:${{ steps.tag_info.outputs.VERSION }}"
           docker push "${NEW_IMAGE_NAME}:${{ steps.tag_info.outputs.MINOR }}"
         fi
-            
-        echo "Successfully pushed ${NEW_IMAGE_NAME} with multiple tags"
 
 
     - name: Create GitHub Release
