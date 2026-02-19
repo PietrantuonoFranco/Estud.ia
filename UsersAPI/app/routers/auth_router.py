@@ -64,13 +64,13 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(form_data: UserCreate, db: AsyncSession = Depends(get_db)):
-    if not validate_email(form_data.username):
+    if not validate_email(form_data.email):
         raise HTTPException(
             status_code=400, 
             detail="El formato del correo electrónico no es válido"
         )
     
-    formatted_email = form_data.username.strip().lower()
+    formatted_email = form_data.email.strip().lower()
 
     existing_user = await get_user_by_email(db, formatted_email)
 
@@ -80,7 +80,7 @@ async def register(form_data: UserCreate, db: AsyncSession = Depends(get_db)):
             detail="El correo electrónico ya está registrado"
         )
     
-    form_data.username = formatted_email
+    form_data.email = formatted_email
     form_data.name = form_data.name.title()
     form_data.lastname = form_data.lastname.title()
 
