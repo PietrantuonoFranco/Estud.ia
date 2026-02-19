@@ -51,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (email: string, name: string, lastname: string, password: string) => {
     try {
       setIsLoading(true);
-      await AuthApi.register({ username: email, name, lastname, password });
+      await AuthApi.register({ email, name, lastname, password });
 
       // Después del registro exitoso, obtener datos del usuario
       await checkAuth();
