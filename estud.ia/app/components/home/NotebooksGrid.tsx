@@ -1,8 +1,9 @@
 import { MoreVertical, FileText, Clock3 } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from 'next/navigation';
 
 import Notebook from "@/app/lib/interfaces/entities/Notebook";
 import formatRelativeDate from "@/app/lib/utils/formatRelativeDate";
+import { useProtectedActionWithNotification } from "@/app/lib/hooks/useProtectedActionWithNotification";
 
 interface NotebooksGridProps {
   notebooks: Notebook[];
@@ -10,11 +11,20 @@ interface NotebooksGridProps {
 }
 
 export default function NotebooksGrid({ notebooks, viewMode }: NotebooksGridProps) {
+  const router = useRouter();
+  const { protectedAction } = useProtectedActionWithNotification();
+
+  const handleNotebookClick = (notebookId: number) => {
+    protectedAction(() => {
+      router.push(`/notebook/${notebookId}`);
+    }, 'acceder a este cuaderno');
+  };
+
   return (
     <>
       {notebooks.map((notebook) => (
-        <Link
-          href={`/notebook/${notebook.id}`}
+        <div
+          onClick={() => handleNotebookClick(notebook.id)}
           key={notebook.id}
           className={`
             group relative flex cursor-pointer flex-col rounded-xl p-4 ${
@@ -66,7 +76,7 @@ export default function NotebooksGrid({ notebooks, viewMode }: NotebooksGridProp
               </div>
             </p>
           </div>
-        </Link>
+        </div>
       ))}
     </>
   )

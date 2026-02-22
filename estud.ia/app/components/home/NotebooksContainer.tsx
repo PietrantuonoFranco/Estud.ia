@@ -10,6 +10,8 @@ import { createNotebook, getAllNotebooks, getNotebooksByUser } from "../../lib/a
 import { getPermissionErrorMessage } from "@/app/lib/utils/apiErrorMessage";
 
 import { useAuth } from "../../contexts/AuthContext";
+import { useProtectedAction } from "@/app/lib/hooks/useProtectedAction";
+import { useProtectedActionWithNotification } from "@/app/lib/hooks/useProtectedActionWithNotification";
 import NotebooksGrid from "./NotebooksGrid";
 
 interface NotebooksContainerProps {
@@ -27,6 +29,7 @@ export default function NotebooksContainer ({ orderBy, viewMode, onStartUpload, 
 
   const { addNotification } = useNotification();
   const { user } = useAuth();
+  const { protectedAction } = useProtectedActionWithNotification();
   
   const router = useRouter();
 
@@ -56,50 +59,52 @@ export default function NotebooksContainer ({ orderBy, viewMode, onStartUpload, 
   }, [orderBy, notebooks]);
 
   const uploadFiles = async (files: FileList) => {
-    try {
-      onStartUpload?.();
+    protectedAction(async () => {
+      try {
+        onStartUpload?.();
 
-      if (!files || files.length === 0) {
-        console.error("No se seleccionó ningún archivo");
-        return;
-      }
+        if (!files || files.length === 0) {
+          console.error("No se seleccionó ningún archivo");
+          return;
+        }
 
-      // Validar que el tamaño total no exceda 2MB
-      const totalSize = Array.from(files).reduce((acc, file) => acc + file.size, 0);
-      const maxSize = 2 * 1024 * 1024; // 2MB en bytes
-      
-      if (totalSize > maxSize) {
+        // Validar que el tamaño total no exceda 2MB
+        const totalSize = Array.from(files).reduce((acc, file) => acc + file.size, 0);
+        const maxSize = 2 * 1024 * 1024; // 2MB en bytes
+        
+        if (totalSize > maxSize) {
+          onUploadComplete?.();
+          addNotification("Error", "El tamaño total de los archivos no puede exceder 2MB.", "error");
+          return;
+        }
+        
+        onProgressUpdate?.(30);
+        
+        const notebook = await createNotebook(files as unknown as File[]);
+
+        onProgressUpdate?.(70);
+
+        if (!notebook) {
+          throw new Error("Error al subir el archivo");
+        }
+        
+        const notebookId = notebook.id;
+
+        onProgressUpdate?.(90);
+        
+        addNotification("Éxito", "El cuaderno se creó exitosamente.", "success");
+
+        setTimeout(() => {
+          onUploadComplete?.();
+          router.push(`/notebook/${notebookId}`);
+        }, 100);
+      } catch (error) {
+        console.error("Error al subir el archivo:", error);
         onUploadComplete?.();
-        addNotification("Error", "El tamaño total de los archivos no puede exceder 2MB.", "error");
-        return;
+        const permissionMessage = getPermissionErrorMessage(error);
+        addNotification("Error", permissionMessage ?? "Ocurrió un error al subir el archivo.", "error");
       }
-      
-      onProgressUpdate?.(30);
-      
-      const notebook = await createNotebook(files as unknown as File[]);
-
-      onProgressUpdate?.(70);
-
-      if (!notebook) {
-        throw new Error("Error al subir el archivo");
-      }
-      
-      const notebookId = notebook.id;
-
-      onProgressUpdate?.(90);
-      
-      addNotification("Éxito", "El cuaderno se creó exitosamente.", "success");
-
-      setTimeout(() => {
-        onUploadComplete?.();
-        router.push(`/notebook/${notebookId}`);
-      }, 100);
-    } catch (error) {
-      console.error("Error al subir el archivo:", error);
-      onUploadComplete?.();
-      const permissionMessage = getPermissionErrorMessage(error);
-      addNotification("Error", permissionMessage ?? "Ocurrió un error al subir el archivo.", "error");
-    }
+    }, 'crear un cuaderno');
   };
 
   const handleFilesChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
