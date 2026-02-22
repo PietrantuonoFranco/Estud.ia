@@ -187,7 +187,8 @@ async def delete_notebook(notebook_id: int, db: AsyncSession = Depends(get_db), 
     if notebook.user_id != current_user.id and not validate_admin(current_user):
         raise HTTPException(status_code=403, detail="No tienes permiso para eliminar este notebook")
     
-    return await delete_notebook_crud(db, notebook_id=notebook_id)
+    await delete_notebook_crud(db, notebook_id=notebook_id)
+    return notebook
 
 @router.get("/{notebook_id}/sources", response_model=List[SourceOut], status_code=status.HTTP_200_OK)
 async def read_sources_by_notebook_id(notebook_id: int, db: AsyncSession = Depends(get_db)):

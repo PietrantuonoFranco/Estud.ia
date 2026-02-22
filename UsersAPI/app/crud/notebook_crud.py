@@ -1,11 +1,16 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload
+from sqlalchemy import delete as sql_delete
 
 from ..schemas.notebook_schema import NotebookCreate
 from ..models.source_model import Source
 from ..models.notebook_model import Notebook
 from ..models.quiz_model import Quiz
+from ..models.message_model import Message
+from ..models.flashcard_model import Flashcard
+from ..models.summary_model import Summary
+from ..models.questions_and_answers_model import QuestionsAndAnswers
 
 # --- FUNCIONES AUXILIARES ---
 
@@ -75,16 +80,58 @@ async def get_notebook(db: AsyncSession, notebook_id: int):
     return result.scalars().unique().first()
 
 async def delete_notebook(db: AsyncSession, notebook_id: int):
-    """Eliminar un notebook de forma asíncrona."""
-    # Primero buscamos el objeto
-    query = select(Notebook).filter(Notebook.id == notebook_id)
-    result = await db.execute(query)
-    db_notebook = result.scalars().first()
+    """Eliminar un notebook y todas sus entidades relacionadas de forma asíncrona."""
+    # Primero verificamos que el notebook existe (sin cargar el objeto ORM)
+    check_query = select(Notebook.id).filter(Notebook.id == notebook_id)
+    result = await db.execute(check_query)
+    notebook_exists = result.scalar_one_or_none()
     
-    if db_notebook:
-        await db.delete(db_notebook)
-        await db.commit()
-    return db_notebook
+    if not notebook_exists:
+        return None
+    
+    # Obtener los IDs de los quizzes para eliminar sus preguntas
+    quiz_query = select(Quiz.id).filter(Quiz.notebook_id == notebook_id)
+    quiz_result = await db.execute(quiz_query)
+    quiz_ids = quiz_result.scalars().all()
+    
+    # 1. Eliminar preguntas de los quizzes
+    if quiz_ids:
+        await db.execute(
+            sql_delete(QuestionsAndAnswers).where(QuestionsAndAnswers.quiz_id.in_(quiz_ids))
+        )
+    
+    # 2. Eliminar messages
+    await db.execute(
+        sql_delete(Message).where(Message.notebook_id == notebook_id)
+    )
+    
+    # 3. Eliminar sources
+    await db.execute(
+        sql_delete(Source).where(Source.notebook_id == notebook_id)
+    )
+    
+    # 4. Eliminar flashcards
+    await db.execute(
+        sql_delete(Flashcard).where(Flashcard.notebook_id == notebook_id)
+    )
+    
+    # 5. Eliminar summaries
+    await db.execute(
+        sql_delete(Summary).where(Summary.notebook_id == notebook_id)
+    )
+    
+    # 6. Eliminar quizzes
+    await db.execute(
+        sql_delete(Quiz).where(Quiz.notebook_id == notebook_id)
+    )
+    
+    # 7. Finalmente, eliminar el notebook
+    await db.execute(
+        sql_delete(Notebook).where(Notebook.id == notebook_id)
+    )
+    await db.commit()
+    
+    return True
 
 
 # --- OPERACIONES DE SOURCES ---
