@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 
 import Notebook from "@/app/lib/interfaces/entities/Notebook";
 import { useNotification } from "@/app/contexts/NotificationContext";
-import { createNotebook, getAllNotebooks, getNotebooksByUser } from "../../lib/api/entities/NotebooksApi";
+import { createNotebook, getNotebooksByUser } from "../../lib/api/entities/NotebooksApi";
 import { getPermissionErrorMessage } from "@/app/lib/utils/apiErrorMessage";
 
 import { useAuth } from "../../contexts/AuthContext";
@@ -23,7 +23,6 @@ interface NotebooksContainerProps {
 }
 
 export default function NotebooksContainer ({ orderBy, viewMode, onStartUpload, onProgressUpdate, onUploadComplete }: NotebooksContainerProps) {
-  const [notebooks, setNotebooks] = useState<Notebook[]>([]);
   const [userNotebooks, setUserNotebooks] = useState<Notebook[]>([]);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -53,10 +52,6 @@ export default function NotebooksContainer ({ orderBy, viewMode, onStartUpload, 
   const sortedUserNotebooks = useMemo(() => {
     return sortNotebooks(userNotebooks);
   }, [orderBy, userNotebooks]);
-
-  const sortedAllNotebooks = useMemo(() => {
-    return sortNotebooks(notebooks);
-  }, [orderBy, notebooks]);
 
   const uploadFiles = async (files: FileList) => {
     protectedAction(async () => {
@@ -150,38 +145,12 @@ export default function NotebooksContainer ({ orderBy, viewMode, onStartUpload, 
     }
   };
 
-  const fetchNotebooks = async () => {
-    try {
-      const notebooks = await getAllNotebooks();
-      
-      if (!notebooks) {
-        throw new Error("Error al obtener los cuadernos.");
-      }
-
-      setNotebooks(notebooks);
-    } catch (error) {
-      console.error("Error al obtener los cuadernos del usuario:", error);
-      addNotification("Error", "Ocurrió un error al obtener los cuadernos del usuario.", "error");
-    }
-  };
-
   useEffect(() => {
     fetchUserNotebooks();
-    fetchNotebooks();
   }, []);
 
   return (
     <>
-      <h1 className="text-2xl md:text-4xl font-semibold">Todos los cuadernos</h1>
-      <div className={`w-full ${
-          viewMode === "grid"
-          ? "grid grid-cols-2 md:grid-cols-4 gap-4" 
-            : "flex flex-col gap-4"
-        }`}
-      >
-        <NotebooksGrid notebooks={sortedAllNotebooks} viewMode={viewMode} />
-      </div>
-
       <h2 className={`${viewMode === "list" && userNotebooks.length === 0 ? "hidden" : ""} text-2xl md:text-4xl font-semibold`}>Tus cuadernos</h2>
       <div className={`w-full ${
           viewMode === "grid"
