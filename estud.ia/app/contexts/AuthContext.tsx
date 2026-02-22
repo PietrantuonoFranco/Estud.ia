@@ -24,8 +24,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       const userData = await AuthApi.getMe();
       setUser(userData);
-    } catch (error) {
-      console.error('Error verificando autenticación:', error);
+    } catch (error: any) {
+      if (error?.response?.status !== 401) {
+        console.error('Error verificando autenticación:', error);
+      }
       setUser(null);
     } finally {
       setIsLoading(false);
