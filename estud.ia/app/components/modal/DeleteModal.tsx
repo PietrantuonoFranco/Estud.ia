@@ -1,6 +1,7 @@
 "use client"
 
 import Source from "@/app/lib/interfaces/entities/Source"
+import Notebook from "@/app/lib/interfaces/entities/Notebook"
 import { Modal, ModalFooter, ModalButton } from "./Modal"
 import { Trash2 } from "lucide-react"
 import { useState } from "react"
@@ -8,13 +9,20 @@ import { useState } from "react"
 interface DeleteModalProps {
   isOpen: boolean
   title: string
-  items: Source[] // Agregar tipos con un OR según sea necesario
+  items: (Source | Notebook)[]
   onClose: () => void
   onDelete: () => void
 }
 
 export function DeleteModal({ isOpen, title, items, onClose, onDelete }: DeleteModalProps) {
   const [isDeleting, setIsDeleting] = useState(false)
+
+  const getItemName = (item: Source | Notebook): string => {
+    if ('name' in item) {
+      return item.name
+    }
+    return item.title
+  }
 
   const handleDelete = async () => {
     setIsDeleting(true)
@@ -45,7 +53,7 @@ export function DeleteModal({ isOpen, title, items, onClose, onDelete }: DeleteM
               </div>
     
               <div>
-                <p className="text-zinc-200 font-medium">{item.name}</p>
+                <p className="text-zinc-200 font-medium">{getItemName(item)}</p>
               </div>
             </div>
           ))}

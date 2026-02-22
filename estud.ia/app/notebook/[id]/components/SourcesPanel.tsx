@@ -2,13 +2,15 @@
 
 import { FilePlusCorner, FileText, Check, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { addSourcesToNotebook } from "@/app/lib/api/entities/NotebooksApi";
+import { useRouter } from "next/navigation";
+import { addSourcesToNotebook, deleteNotebook } from "@/app/lib/api/entities/NotebooksApi";
 import { deleteVariousSourcesByNotebookIdAndSourceIds } from "@/app/lib/api/entities/NotebooksApi";
 import { useChatInformationContext } from "../contexts/ChatInformationContext";
 import { useNotification } from "@/app/contexts/NotificationContext";
 import { DeleteModal } from "@/app/components/modal/DeleteModal";
 import Source from "@/app/lib/interfaces/entities/Source";
 import { getPermissionErrorMessage } from "@/app/lib/utils/apiErrorMessage";
+import { useProtectedActionWithNotification } from "@/app/lib/hooks/useProtectedActionWithNotification";
 
 
 interface SourcesPanelProps {
@@ -18,6 +20,7 @@ interface SourcesPanelProps {
 export default function SourcesPanel({ openPanel }: SourcesPanelProps) {
   const [selectedSources, setSelectedSources] = useState<Source[]>([]);
   const [openDeleteVariousModal,setOpenDeleteVariousModal] = useState(false);
+  const [openDeleteNotebookModal, setOpenDeleteNotebookModal] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [dragDepth, setDragDepth] = useState(0);
   const [tooltip, setTooltip] = useState<{
@@ -35,6 +38,8 @@ export default function SourcesPanel({ openPanel }: SourcesPanelProps) {
 
   const { sources, setSources, notebook } = useChatInformationContext();
   const { addNotification } = useNotification();
+  const router = useRouter();
+  const { protectedAction } = useProtectedActionWithNotification();
 
 
   const selectSource = (source: Source) => {
@@ -152,6 +157,20 @@ export default function SourcesPanel({ openPanel }: SourcesPanelProps) {
     }
   }
 
+  const handleDeleteNotebook = async () => {
+    protectedAction(async () => {
+      try {
+        await deleteNotebook(notebook?.id!);
+        addNotification("Éxito", "Cuaderno eliminado exitosamente.", "success");
+        router.push("/");
+      } catch (error) {
+        console.error("Error deleting notebook:", error);
+        const permissionMessage = getPermissionErrorMessage(error);
+        addNotification("Error", permissionMessage ?? "Ocurrió un error al eliminar el cuaderno.", "error");
+      }
+    }, 'eliminar este cuaderno');
+  }
+
   return (
     <>
       <div className={`${ openPanel ? "w-90 opacity-100" : "w-0 md:w-18 opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" } flex h-full flex-col overflow-hidden border-r border-border bg-[var(--panel-bg)] transition-[width,opacity] duration-400 ease-in-out`}>
@@ -246,6 +265,18 @@ export default function SourcesPanel({ openPanel }: SourcesPanelProps) {
                     </button>
                   </div>
                 )}
+
+                <div className="w-full px-4 pb-4 pt-2 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setOpenDeleteNotebookModal(true)}
+                    name="delete-notebook"
+                    className={`${ openPanel ? "cursor-pointer flex items-center justify-center gap-2 text-xs text-red-400 hover:text-red-300 py-2 px-3 rounded-md hover:bg-red-950/20 transition-all duration-200" : "hidden" }`}
+                  >
+                    <Trash2 className="h-3.5 w-3.5"/>
+                    Eliminar cuaderno
+                  </button>
+                </div>
               </div>
             </>
           )}
@@ -267,6 +298,14 @@ export default function SourcesPanel({ openPanel }: SourcesPanelProps) {
         items={selectedSources}
         onClose={() => setOpenDeleteVariousModal(false)}
         onDelete={handleDeleteSources}
+      />
+
+      <DeleteModal
+        isOpen={openDeleteNotebookModal}
+        title="Eliminar cuaderno"
+        items={notebook ? [notebook] : []}
+        onClose={() => setOpenDeleteNotebookModal(false)}
+        onDelete={handleDeleteNotebook}
       />
     </>
   )
