@@ -158,7 +158,8 @@ async def rag_endpoint(request: RAGRequest, api_key: str = Security(verify_api_k
             "generation": "",
             "is_valid": False,
             "refinement_attempts": 0,
-            "retrieval_attempts": 0
+            "retrieval_attempts": 0,
+            "chatHistory": request.chatHistory or []
         }
         
         # Invoke the graph (async wrapper on graph app)

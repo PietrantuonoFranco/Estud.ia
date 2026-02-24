@@ -9,6 +9,7 @@ class ContextRequest(BaseModel):
 
 class RAGRequest(BaseRequest):
     question: str
+    chatHistory: list[dict]
 
 
 class RAGResponse(BaseModel):

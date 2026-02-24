@@ -12,3 +12,4 @@ class BaseGraphState(TypedDict):
     is_valid: bool  # Si la respuesta es válida según el judge
     refinement_attempts: Annotated[int, operator.add]  # Contador de intentos
     retrieval_attempts: Annotated[int, operator.add]  # Contador de retrieves
+    chatHistory: list[dict]  # Chat history from previous messages

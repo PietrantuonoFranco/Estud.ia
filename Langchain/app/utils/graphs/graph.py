@@ -3,11 +3,13 @@ from langgraph.graph import StateGraph, END
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain.chat_models import init_chat_model
+from langchain_community.chat_message_histories import ChatMessageHistory
 import json
 
 from ..embbedings import EmbeddingGenerator
 from ..reranker import Reranker
 from ...db.milvus import Async_Milvus_Client
+from ..chatHistory import ChatHistory
 
 from ...schemas.graphs.conversation_graph_state_schema import ConversationGraphState
 
@@ -63,16 +65,31 @@ class RAGGraph:
 
     async def generate_answer(self, state: ConversationGraphState) -> ConversationGraphState:
         """
-        Nodo 2: Genera respuesta usando el contexto
+        Nodo 2: Genera respuesta usando el contexto y el historial de chat
         """
         print("\n  [GENERATE] Generando respuesta...")
         
         model = init_chat_model("google_genai:gemini-2.5-flash-lite")
         
+        # Parsear chat history si existe
+        contexto_inicial = []
+        if state.get("chatHistory") and len(state["chatHistory"]) > 0:
+            try:
+                conversations = ChatHistory.parse_conversations(state["chatHistory"])
+                contexto_inicial = ChatHistory.getChatHistory(conversations)
+                print(f"  Chat history cargado: {len(contexto_inicial)} mensajes")
+            except Exception as e:
+                print(f"  Error al procesar historial de chat: {str(e)}")
+        
+        # Crear ChatMessageHistory con el contexto inicial
+        history = ChatMessageHistory(messages=contexto_inicial)
+        print(history.messages)
+        
         generator_prompt = ChatPromptTemplate.from_messages([
             ("system", """Eres un asistente/profesor útil y conciso que ayuda a los usuarios a estudiar usando **únicamente** el PDF previamente subido como contexto.  
 
 - Usa exclusivamente la información presente en `{context}`.  
+- El historial de chat: {history} (si está presente, úsalo para mantener coherencia, pero no dependas de él para responder), (si te preguntan por el historial o resumen del chat puedes proveerlo para recordarle al usuario la charla que mantienen, hazle un pequeño listado de pregutnas que te hizo, solo si lo pide).
 - **No inventes** información. Si la respuesta no puede responderse con lo provisto, responde exactamente: "No puedo responder eso con la información provista." y, si es posible, sugiere 1–2 acciones para obtener la respuesta.
 - **No reveles razonamiento interno** (no escribir chain-of-thought). En lugar de eso, entrega:  
   1) **Respuesta** — respuesta clara y directa (1–3 frases);  
@@ -84,7 +101,8 @@ class RAGGraph:
         
         generation = await generator_chain.ainvoke({
             "context": state["context"],
-            "question": state["question"]
+            "question": state["question"],
+            "history": history.messages  
         })
         
         return {

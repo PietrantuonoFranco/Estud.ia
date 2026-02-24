@@ -87,12 +87,30 @@ async def create_llm_message(message: MessageRequest
     message_data['notebook_id'] = message.notebook_id
     message_data['notebook_users_id'] = current_user.id
     
+    # Obtener historial de mensajes del notebook
+    chat_history = await get_messages_by_notebook(db, notebook_id=message.notebook_id)
+    
+    # Convertir mensajes a dict serializable (evitar atributos internos de SQLAlchemy)
+    chat_history_dicts = []
+    if chat_history:
+        for msg in chat_history:
+            chat_history_dicts.append({
+                "id": msg.id,
+                "text": msg.text,
+                "notebook_id": msg.notebook_id,
+                "notebook_users_id": msg.notebook_users_id,
+                "is_user_message": msg.is_user_message,
+                "created_at": msg.created_at.isoformat() if msg.created_at else None,
+                "updated_at": msg.updated_at.isoformat() if msg.updated_at else None,
+            })
+    
     try:
         response = await http_client.post(
             f"{conf.LANGCHAIN_URI}/chat/rag",
             json={
                 "question": message.text,
                 "pdf_ids": [source.id for source in notebook.sources],
+                "chatHistory": chat_history_dicts,
             },
             headers={"X-API-Key": conf.LANGCHAIN_API_KEY},
             timeout=60.0
